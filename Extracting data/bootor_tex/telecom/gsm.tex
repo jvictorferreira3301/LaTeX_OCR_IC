@@ -1,0 +1,362 @@
+\bApplication \textbf{Introduction to GSM using GSMsim}.
+\label{app:GSMsim}
+This application briefly discusses the GSM physical layer (PHY), which
+simultaneously uses frequency (FDMA) and time-division multiplexing (TDMA) in
+its multiple-access architecture~\cite{Yacoub02}. In frequency,
+the radio channels are separated by 200~kHz and each channel is
+split in time domain to enable eight time slots. To obtain full-duplex transmission,
+GSM adopts frequency division duplexing (FDD) with up and downlink typically separated
+by 45~MHz and uplink using lower frequencies than downlink. But the FDD frequency
+separation is 80~MHz in GSM-1900, for example, which adopts bands of 60~MHz
+in contrast to the standard (or primary) bands of 25~MHz called P-GSM-900.
+
+In fact, the original GSM-900 system, with the P-GSM-900 frequency bands around 900~MHz evolved
+in several variants, such as the ones operating at 1.8 and 1.9~GHz and called GSM-1800 and 
+GSM-1900, respectively.\footnote{GSM frequency bands can be found at Wikipedia or \akurl{http://niviuk.free.fr/gsm_band.php}{8ngs}.} Hereafter, the GSM-900 system is assumed.
+
+In a given channel, GSM transmits a total of 1,625 symbols within an interval of 6~ms. Hence, the symbol period is $\tsym = 6/1625 \approx 3.6923$ {\mus} and the symbol rate $\rsym=1/\tsym \approx 270.833$ kbauds. This corresponds to $270.833$~kbps when GSM uses Gaussian Minimum-Shift Keying (GMSK)\index{GMSK}\index{Gaussian Minimum-Shift Keying} binary modulation. GSM systems adopt GMSK for voice calls
+and also for packet-oriented mobile data services using 
+the \emph{General Packet Radio Service} (GPRS)\index{General Packet Radio Service (GPRS)}\index{GPRS}. 
+Note that GMSK uses a constellation with $M=4$ symbols but the adopted
+differential encoding leads to only $b=1$ instead of $b=2$~bits per symbol: a bit 0 is encoded by
+a clockwise change in phase (for example, from phase $\Theta$ to $\Theta-\pi/2$~rad), 
+while a bit 1 corresponds to a counter clockwise change (from $\Theta$ to $\Theta+\pi/2$~rad).
+
+In GPRS, the net bit rate varies according to the adopted channel coding scheme, which 
+can use code rates from 1/2 to 1. But the GPRS modulation is always GMSK with $b=1$.
+To support higher data rates, EDGE (\emph{Enhanced Data rates for GSM Evolution})\index{EDGE}
+uses not only GMSK but also 8-PSK ($b=3$). The following discussion will assume GMSK.
+
+GMSK is a constant envelope modulation that, for transmitting the mentioned $270.833$~kbps,
+requires a  bandwidth of approximately 270.833~kHz.
+Given that GSM radio channels are separated by 200~kHz, they overlap in frequency.
+% given that each individual channel has $\BW \approx 270.833$~kHz. 
+This overlap is not a problem
+because, guided by the so-called \emph{frequency reuse} adopted in cell planning, 
+the transceiver of a given cell does not use channels in adjacent carrier frequencies.
+Hence, GSM can pack 125 channels in one direction (up or downlink) 
+in $125 \times 200 \textrm{~kHz} = 25$~MHz but they will not be simultaneously used in a given cell. 
+Typically, a single cell uses from one to 16 pairs of frequencies, for up and downlink.
+
+%, but adjacent channels overlap in frequency and the frequency plan should not allocate geographically neighboring cells in adjacent channel frequencies.
+
+The radio channel is time-multiplexed into eight time slots (TS) and are called
+TS0 to TS7.  Together, these eight TS compose a \emph{frame}\index{GSM frame} of 1,250 symbol periods. 
+The frames are organized in \emph{multiframes}\index{GSM multiframes} of 26, 51 or 102 frames. 
+For example, 
+     %Control Channel Multiframe and     Traffic Channel Multiframe.
+the \emph{control channel multiframe} is      composed of 51 frames and has a
+     duration of 235.38~ms, while the \emph{traffic channel multiframe} is
+		composed of 26 frames and has a duration of 120~ms. Every cell has to transmit, at least
+		in one of its frequency and at TS0, the control channel multiframe. In downlink it provides
+		information for frequency correction and synchronization, while in uplink it provides
+		the random access channel (RACH) that is used by the mobile to establish the initial
+		conversation with the base station.
+
+Each TS has a duration of $1,250/8 = 156.25$ symbol periods that corresponds to $156.25 \times \tsym \approx 576.9$~{\mus}. These 
+156.25 symbols compose a \emph{burst}\index{GSM burst}.
+
+In a GSM burst, 148 symbol intervals correspond to actual data or, equivalently to 148 bits.
+The remaining 8.25 symbol intervals are guard intervals to prevent bursts from overlapping and interfering with transmissions in other time slots. Hence, a maximum of 148~bits can be transmitted
+in each TS (576.9 \mus).
+
+% (that is roughly the set of symbols transmitted in a given time slot).
+
+\ignore{
+\begin{verbatim}
+---------- Forwarded message ----------
+From: David A. Burgess <dburgess@jcis.net>
+Date: Mon, Nov 2, 2009 at 1:40 PM
+Subject: Re: [Openbts-discuss] some bewilderment about openBTS
+To: openbts-discuss@lists.sourceforge.net
+%
+On Nov 2, 2009, at 6:39 AM, China wrote:
+%
+2. How can modulate and demodulate work? They are quite different from
+the ways present in GSM 05.04. For example, I cannot find any code
+which does differential encoding in transceiver. It is appreciated if
+anyone can provide me with some information about how modulation and
+demodulation are realized in openBTS, for instance which theory does
+it use.
+%
+Ah, I misunderstood your question, I think, and apologize for the tone
+of my previous reply.
+The GMSK radiomodem in OpenBTS is based on the Laurent PAM
+approximation. This is indeed different from what is presented in
+05.04.  The theory is simple, though: by applying a specific frequency
+shift to the GMSK signal you convert it to something very much like
+BPSK, but with a complex-valued pulse shape.  After that, you can just
+treat it like a linear PAM-style modulation.  The math for that is
+much simpler than a direct-form GMSK radio modem, especially if you
+need to implement equalizers or trellis-search demodulators.
+\end{verbatim}
+}
+
+%The data transmitted during a single time slot is known as a burst. Each burst allows 8.25 bits for guard time within a time slot.  Subtracting this from the 156.25 bits, there are 148 bits usable for each burst.
+
+There are five main types of bursts in GSM: \emph{normal} (NB), \emph{frequency correction} (FCB or FB), \emph{synchronization} (SB), \emph{access} (AB) and dummy burst.
+These bursts are used by different \emph{logical channels} to perform specific
+tasks. GSM allows only certain combinations of logical channels and bursts.
+
+The FB is used for frequency synchronization of the mobile station. 
+%It is an unmodulated carrier that shifts in frequency. 
+It has the same guard time as a normal burst (8.25 symbols). The broadcast of the FB usually occurs on  the logical channel called \emph{frequency correction channel} or FCCH. FB has 3 tailing bits in each side and 142 bits equal to zero, which implies that the constellation symbols are picked by moving counterclockwise in the constellation, with a difference of $-90$ degrees between consecutive symbols.
+%AK-IMPROVE WRONG: (AK: not sure if the 6 tailing bits are zero, are they?), 
+The corresponding signal is a tone (sinusoid) with a nominal frequency of 67.7 kHz, corresponding to 1/4 of the symbol rate.
+
+The so-called ``Combination V'' C0T0 beacon is the following control channel multiframe, which is permanently sent by the base station at channel zero (C0) and time slot 0 (T0):
+\begin{verbatim}
+FSBBBBCCCCFSCCCCCCCCFSCCCCCCCCFSCCCCCCCCFSCCCCCCCCI
+F: FCCH (Frequency Correction Channel)
+S: SCH  (Synchronization Channel)
+B: BCCH (Broadcast Control Channel)
+C: CCCH (Control Channel) obs: 3 first quartets are
+        CCCH while other 4 quartets are SACCH
+I: Idle (Mobile can decode information from other base stations)
+\end{verbatim}
+The handsets monitor C0T0 and can identify when they are being called and when they can call the base station.
+
+There is a FCCH burst every 10 bursts on the TS0. The FCCH is always followed by a SCH burst. Note the C0T0, as others logical channels, occurs in one specific time slot, so one needs to wait 7 physical time slots to get the SCH that follows a FCCH. Recall that each TS corresponds to 156.25 symbols (or bits) and, therefore, seven time slots correspond to $156.25 \times 7 = 1093.75$ symbols.
+
+The information from the SCH allows us to calculate the Frame Number (FN). For each
+burst the FN is incremented by 1 until it reaches $8 \times 26 \times 51 \times 2048$. It then starts at 1
+again. If we modulo 51 the FN we know exactly if the current burst is at the beginning of
+a 51-multiframe or somewhere else. The SCH also tells us about the Base Station Color
+Code (BCC) and the Network Color Code (NCC).
+
+The next paragraphs discuss GSMsim, a simulator that is useful to practice the discussed concepts.
+A more advanced simulator can be found at \akurl{https://code.google.com/p/matphy/}{7gmp}, which implements the GSM PHY code in Matlab with interface to L2/L3 of the OsmocomBB project. The GSMsim
+is used in the sequel due to its simplicity.
+
+
+%\subsection{GSMsim: A {\matlab} GSM simulator}
+
+GSMsim\footnote{Developed by A. Ekstrom and J. Mikkelson, with Aalborg Univ., Denmark, \akurl{http://www.en.aau.dk}{7gsm}.} is a GSM toolbox for {\matlab}. The original and a slightly modified versions can be found at the companion software, directory \ci{Applications/GSMsim}. A modified version of the code is in folder \ci{ak\_GSMsim}, and this version will be assumed here. The manual \ci{GSMsim\_manual.pdf} provides a comprehensive description of the toolbox.
+
+To use the code in {\matlab}, first go to the folder \ci{Applications/GSMsim/ak\_GSMsim/config} and execute the script \ci{GSMsim\_config.m}. It will set a variable called \ci{GSMtop} that contains the full path of GSMsim's main folder and include its five subdirectories in {\matlab}'s path. After that, one can run the main scripts that are in folder \ci{Applications/GSMsim/ak\_GSMsim/examples} with commands such as:
+\begin{lstlisting}
+ak_GSMsim_demo
+ak_GSMsim_demo_2_withChannelCoding
+\end{lstlisting}
+%These are not working:
+%GSMsim_demo(10,2)
+%GSMsim_demo_2(10,2,'mysimulation')
+
+The code below shows how to generate the IQ samples and plots the I component.
+\begin{lstlisting}
+gsm_set
+BURST=-1+(2*(rand(1,148)>0.5));
+[I,Q] = gmsk_mod(BURST,Tb,OSR,BT);
+plot(I);
+\end{lstlisting}
+
+
+The code below illustrates how to generate the complex envelope of a GSM signal and obtain its PSD.
+\begin{lstlisting}
+gsm_set; %set some variables
+numOfBurts = 500; %number of bursts
+numOfSamples = 150*OSR;%number of burst samples
+gsmComplexEnvelope = zeros(1,numOfBurts*numOfSamples);
+startSample = 1;
+endSample = startSample + numOfSamples - 1;
+for n=1:numOfBurts;
+    tx_data = data_gen(INIT_L); %randomly generate a burst
+    %modulate a burst
+    [burst, I, Q] = gsm_mod(Tb,OSR,BT,tx_data,TRAINING);
+    gsmComplexEnvelope(startSample:endSample) = I + j*Q;
+    %update for next iteration:
+    startSample = endSample + 1;
+    endSample = startSample + numOfSamples - 1;
+end
+Fs = OSR * 270833; %sampling frequency in Hz
+N=1024; 
+pwelch(gsmComplexEnvelope,N,[],N,Fs)
+\end{lstlisting}
+
+\codl{ak_GSMsim_demo} illustrates how to perform a simulation using GSMsim. In this case, 100 bursts were generated. The channel was AWGN with approximately 14 dB of SNR.
+
+\lstinputlisting[caption={./Applications/GSMsim/ak\_GSMsim/examples/ak\_GSMsim\_demo.m},label=code:ak_GSMsim_demo]{./Code/Applications/GSMsim/ak_GSMsim/examples/ak_GSMsim_demo.m}
+
+The source code can be easily modified for changing parameters of interest.
+\eApplication
+
+
+%\subsection{Analyzing GSM data}
+%\label{sec:GSM_data}
+\bApplication \textbf{Analyzing GSM data}.
+\label{app:GSM_data}
+This application discusses an analysis of a file\footnote{File \url{GSMSP_20070204_robert_dbsrx_953.6MHz_128.cfile}, which is available at \akurl{www.segfault.net/gsm/resources}{7gch}.} containing a GSM signal and used at the ``GSMSP Challenge''.
+%\akurl{http://wiki.thc.org/gsm}{8gsp}.  %does not exist anymore
+To obtain this file, the DDC of the USRP was setup to perform anti-aliasing (analog) filtering, down-converting the signal at the original radio frequency (RF) of 953.6 MHz to baseband and eliminating the undesirable image spectra. The baseband complex-valued signal was sampled at 64 MHz and decimated by a factor of 128. Therefore, the file stores a complex signal sampled at $f_s = 500$~kHz and has 80,000 samples, which corresponds to a duration of 160 ms.
+
+The analysis method that will be discussed was used by the winner of the GMSP Challenge. 
+Before running this code, one needs to execute \ci{GSMsim\_config.m} as explained in 
+Application~\ref{app:GSMsim}.
+The code was commented and slightly modified, and can be found at directory \ci{Applications/GSM\_PHY\_Analysis}.
+The following commands are called from the main script \ci{ak\_runAllSteps.m}:
+\begin{lstlisting}
+clear all, gsm_setGlobalVariables, ak_step1a, ...
+    ak_step1b, ak_step1c, ak_step2a, ak_step2b, ak_step3
+\end{lstlisting}
+and allow to partially decode the signal as will be discussed here.
+
+Using \ci{ak\_step1a}, the original signal is lowpass filtered for improved performance using a FIR filter of order 60. This filter was designed using the windowing method with a Hamming window through the Matlab command 
+\ci{h = fir1(60,0.4)}, where the desired cutoff frequency $f_c = 100$ kHz (to account for a spectrum of interest in the range $-100$ to $100$~Hz of the complex-valued signal) is normalized to $f_c/(f_s/2) = 0.4$ as required by {\matlab}. \figl{psds} illustrates the PSDs and the filter's frequency response $H(f)$. The graph depicts the magnitude $|H(f)|$ in dB,
+% shifted by 10 dB for proper visualization (actually,
+which shows that the filter has a gain of 0 dB at 0 Hz.
+
+\begin{figure}[htb]
+\centering
+\includegraphics [width=8cm] {./Figures/gsm_usrp_psds}
+\caption{PSDs of original and filtered signals. Note that the PSDs do not present Hermitian symmetry because the original and filtered signals are complex-valued.\label{fig:psds}}
+\end{figure}
+
+It is convenient to process the signal sampled at multiples of the symbol rate $\rsym = 270,833$ bauds. In {\matlab}, changing $f_s$ to a new value $F_s = (P/Q) f_s$, with $P,Q \in \NN$ can be conveniently done with the function \ci{resample}. The \ci{resample} adopts, by default, a 10-th order FIR filter to perform interpolation and to combat aliasing before decimation.
+
+A first task is to estimate the frequency correction by finding FB, the corresponding FCCH burst. 
+The FB is used for compensating mismatches in the radio front end, such as in the local oscillator. A receiver such as the USRP typically does not achieve the exact carrier frequency used by the transmitter in the down-conversion process, and imposes an offset frequency (or error) to the generated baseband signal.
+
+\begin{figure}
+\centering
+\includegraphics[width=10cm]{Figures/gsm_freq_correction}
+\caption{Generated by \codl{ex_gsm_freq_correction}: a) is the FB burst, b) is the received constellation when there is a frequency offset of 0.1 rad and c) is the corrected constellation.\label{fig:gsm_freq_correction}}
+\end{figure}
+
+\codl{ex_gsm_freq_correction} illustrates how a frequency offset impacts the received symbols. The code was used to obtain \figl{gsm_freq_correction}. In this code, an offset of 0.1 rad was imposed, estimated and corrected. This is the base of the procedure that will be used to correct the offset for the digitized GSM signal.
+
+%\includecodelong{../Applications/GSM\_PHY\_Analysis}{ex\_gsm\_freq\_correction}{ex_gsm_freq_correction}
+\lstinputlisting[caption={../Applications/GSM\_PHY\_Analysis/ex\_gsm\_freq\_correction},label=code:ex_gsm_freq_correction]{./Code/Applications/GSM_PHY_Analysis/ex_gsm_freq_correction.m}
+
+To estimate the frequency offset using a FB, it is necessary to find the FB. This procedure can be computationally demanding and working at the baud rate alleviates this cost.
+For the example under discussion, the \ci{resample} function was used with $P=13$ and $Q=24$, to convert the original signal sampled at 500 kHz to a new signal \ci{x} with $F_s = (13/24) 500,000 = 270,833$ Hz. This is below the minimum sampling frequency stated by the sampling theorem (there is loss of information) but it is enough for the frequency offset estimation. 
+The complex samples of the resampled signal correspond to symbols, potentially shifted in time and frequency. % which in GMSK are separated by 90 degrees.% (neighbor).
+
+%Obs: The GnuRadio M\&M clock recovery blocks requires a minimum sample rate that is twice the symbol rate (270,833 / sec). That would have required at least 541,666 samples per second. This fact is irrelevant for MatLab.
+
+\begin{figure}
+\centering
+\includegraphics [width=8cm] {./Figures/gsm_usrp_bcch_location}
+\caption{Location of a burst for frequency correction. All graphs are in degrees, not rad. The top plot a) shows the phase $p[n]$ of received symbols, b) is the difference $p[n]-p[n-1]$ with a line indicating a  difference of $-90$ and c) indicates the estimated start sample.\label{fig:gsm_usrp_bcch_location}}
+\end{figure}
+
+The task is to find the (approximate) beginning of the FHCC payload. Note that 148 symbols correspond to 148 samples if the oversampling is one, but only 142 symbols will be used because 6 out of the 148 are tailing bits. Ideally, all the angle differences between consecutive symbols are $-90$ degrees. In this ideal case, both the minimum \ci{min} and maximum \ci{max} values of this difference value over the search interval is $-90$ and \ci{max-min=0}. Therefore, the adopted procedure is to use a sliding window with length of 146 symbols to search the sample where the difference between the maximum and minimum values of \ci{angleDiff} is minimum. When random bits are transmitted, this difference will be as large as $2\pi$ rad and an arbitrary threshold of 1 rad (in the range $[0, 2\pi]$) was used to detect FBs. If the minimum dynamic range \ci{max-min} is less than 1 rad, it is assumed a FB was found.
+\figl{gsm_usrp_bcch_location} illustrates the result of this procedure, which identified a FCCH start at sample number 12962.
+
+One method for calculating the phase difference $\theta[n]-\theta[n+1]$ between two consecutive samples is
+\begin{lstlisting}
+angleDiff=angle(x(1:L-1).*conj(x(2:L)));
+\end{lstlisting}
+where \ci{x} is the resampled signal and \ci{L} its length. 
+
+%AK-IMPROVE: It seems that the method used did forward difference instead of backward, and phase got multiplied by -1. need to check.
+Extracting the phase is important in GMSK. The following code investigates alternatives.
+\begin{lstlisting}
+r=exp(j*([1 2 3 4 5])); %example of phase (adding 1 rad)
+L = length(r); %number of samples of interest
+%first method to obtain the phase difference:
+da = angle(r(1:L-1) .* conj(r(2:L))); %angles difference
+%second method, which does not unwrap the phase
+da2 = - filter([1 -1],1,angle(r)); %H(z)=1-z^(-1)
+da2(1)=[]; %take out the filter transient
+%third method unwraps phase. It's equivalent to the first
+da3 = - filter([1 -1],1,unwrap(angle(r))); %unwrap before
+da3(1)=[]; %take out the filter transient
+\end{lstlisting}
+Note that it is important to properly deal with phase wrapping in this situation.
+
+After having the phase difference, the cumulative sum of these differences gives back the phase. In {\matlab}, this can be accomplished with
+\begin{lstlisting}
+angleSum=cumsum(angleDiff);
+\end{lstlisting}
+
+\begin{figure}
+\centering
+\includegraphics[width=10cm]{Figures/gsm_usrp_freq_offset}
+\caption{Angle differences for the detected frequency correction burst, where the indicated average is the frequency offset of 0.2017 radians.\label{fig:gsm_usrp_freq_offset}}
+\end{figure}
+
+\figl{gsm_usrp_freq_offset} illustrates the estimated offset of $\Delta \dw = 0.2017$ rad for the signal under analysis. It is a zoom of the FB at \figl{gsm_usrp_bcch_location}, plot b). The offset corresponds to $\Delta f = \Delta \dw \times F_s / (2 \pi) = 0.2017 \times 270,833 / (2 \pi) = 8,695.6$ Hz. A new signal \ci{y} =  \ci{x} $e^{-j \Delta \dw}$ is obtained by translating the spectrum of \ci{x} to correct the estimated offset.
+
+Note that, if there is oversampling (\ci{OSR}>1), then the expected phase change will not be 90 degrees but 90/OSR. In {\matlab}, this corresponds to
+\begin{lstlisting}
+angular_freq_offset = -(pi/2/OSR) - mean(angleDiff) %rad
+\end{lstlisting}
+
+After identifying the FB, the next task is to find the SCH burst that follows the FCCH. Because the oversampling factor is 4, the number of samples from the beginning of the FCCH to the start of the SCH is $156.25 \times 8 \times 4 = 5000$ samples.
+
+\begin{figure}
+\centering
+\includegraphics[width=10cm]{Figures/gsm_usrp_synchronism}
+\caption{Result of search for SCH.\label{fig:gsm_usrp_synchronism}}
+\end{figure}
+
+\lstinputlisting[caption={Applications/GSM\_PHY\_Analysis/find\_sch.m},label=code:find_sch]{./Code/Applications/GSM_PHY_Analysis/find_sch.m}
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_crossCorrelationDiffRates}{ex_crossCorrelationDiffRates}
+
+Using the concept in \codl{ex_crossCorrelationDiffRates}, the SCH was found with \codl{find_sch}, which generated \figl{gsm_usrp_synchronism} and the output below:
+\begin{verbatim}
+Counter = 1
+FHCC start according to FHCC alone:
+Sample 56848
+FHCC start tuned by the SCCH (oversample=4):
+Sample 56850
+Counter = 2
+FHCC start according to FHCC alone:
+Sample 106848
+FHCC start tuned by the SCCH (oversample=4):
+Sample 106850
+Counter = 3
+FHCC start according to FHCC alone:
+Sample 156848
+FHCC start tuned by the SCCH (oversample=4):
+Sample 156849
+\end{verbatim}
+
+The correction suggested by the cross-correlation
+using the SCH can be discarded, and the original estimate via FCCH used instead.
+The reason is that the correction is of only 2 samples for the two first FB and one sample for the latter, and using \ci{fcch\_start = fcch\_start + 2} does not change the decoding stage in the next step.
+
+\begin{verbatim}
+Base Station Color Code, BCC = 0
+Public land mobile network, PLM = 7
+Frame Number, FN = 857107
+Base Station Color Code, BCC = 0
+Public land mobile network, PLM = 7
+Frame Number, FN = 857117
+Base Station Color Code, BCC = 0
+Public land mobile network, PLM = 7
+Frame Number, FN = 857127
+\end{verbatim}
+
+The next task is to investigate how channel estimation is performed in GSM using least-squares. The discussion in Section~\ref{sec:ls_estimation} presents an introduction to the subject. It should be noted that the code \ci{ak\_mafi.m} and \ci{ak\_mafi\_sch} should be used for normal and synchronism bursts, respectively. The functions are called by \ci{demod\_nb.m} and \ci{demod\_sb.m}, respectively.
+
+The code below indicates how the training sequence can be manipulated to have an autocorrelation with five zeros at each side of its peak. This number limits the impulse length \ci{Lh} to 4 in GSMsim in order to achieve a reasonable estimation.
+\begin{lstlisting}
+tr=[0 0 1 0 0 1 0 1 1 1 0 0 0 0 1 0 0 0 1 0 0 1 0 1 1 1];
+T_SEQ = T_SEQ_gen(tr);
+T16 = conj(T_SEQ(6:21));
+T_SEQ_E = [zeros(1,5) T16 zeros(1,5)];
+[R,lags] = xcorr(conj(T_SEQ_E), T_SEQ);
+stem(lags,abs(R))
+\end{lstlisting}
+
+The other steps are related to Viterbi decoding and the interpretation of bits according to the GSM standards.
+\eApplication
+
+\bApplication \textbf{OpenBTS and OpenBSC projects}.
+The OpenBTS Project~\akurl{http://openbts.org}{7bts} aims to construct an open-source Unix application that uses the Universal Software Radio Peripheral (USRP) to present a GSM air interface to standard GSM handsets. It uses the Asterisk software Private Branch Exchange (PBX) to connect calls. The combination of the ubiquitous GSM air interface with a VoIP backhaul forms the basis of a cellular network that can be deployed and operated at substantially lower cost (the target is a factor of 1/10) than existing technologies. 
+A related project is the OpenBSC Project~\akurl{http://openbsc.osmocom.org}{7bsc}.
+
+The reader is invited to learn by examining the source code of these two projects. For example, part of the GSM physical layer can be found in OpenBTS at the \ci{Transceiver.cpp} and \ci{radioInterface.cpp}. The modulation is at the function \ci{modulateBurst} contained in file \ci{Transceiver/sigProcLib.cpp}.
+More specifically (see, e.g.,~\cite{Yacoub02} for acronyms), 
+OpenBTS is a GSM network-side protocol ``stack'' with a SIP (Session Initiation Protocol) network interface and integrated radio resource management functions. 
+%OpenBTS supports 2G GSM functions without the need for any supporting BSC, MSC or VLR, presenting each GSM handset to backing network as a SIP endpoint. In its simplest form, OpenBTS allows GSM handsets to be used as extensions in a SIP-capable VoIP PBX. OpenBTS can also be the foundation for a full-scale cellular system based on a VoIP core network instead of a conventional GSM hierarchy. 
+%The standard OpenBTS implementation uses a modified USRP radio hardware and the Asterisk PBX.
+\eApplication
+
+%\section{Comments and Further Reading}
+
+%Research in cognitive radio (CR)~\cite{Akyildiz06} is important because it aims 
+%the efficient use of the scarce spectrum.
+%Setups for CR have been discussed in, e.g.,~\cite{Yan08}. 

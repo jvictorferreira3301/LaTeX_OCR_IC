@@ -1,0 +1,345 @@
+\subsection{Hex / Binary File Editors}
+
+It is important to be able to visualize the contents of files. For this task one can use hex (hexadecimal) editors such as \akurl{http://home.gna.org/bless}{BMhex}. This is especially useful for binary files, but it is interesting for text files too.
+
+The companion software FileViewer can also be used. It is a Java program that can be invoked, for example, from command line with\\
+\ci{java -jar FileViewer.jar}
+
+This software was used to analyze a Windows (or DOS) text file called \url{fileviewer_test.txt}, which has 52 bytes and the following contents:
+\begin{verbatim}
+A simple text
+with 52 bytes:
+To be or not to be?
+\end{verbatim}
+\figl{fileviewer_screen1} is a screenshot of the file, showing each byte in hexadecimal in the main panel. One can see that the first letter, a capital `A' is represented by the byte 0x41 in hexadecimal (the prefix 0x indicates an hexadecimal number). Clicking on the button ``Decimal'' (at the left of ``Hexa''), one can note that 0x41 is 65 in decimal.
+
+\begin{figure}
+	\centering
+		\includegraphics[width=\figwidthLarge,keepaspectratio]{FiguresNonScript/fileviewer_screen1}		
+	\caption{Screenshot of the FileViewer software.\label{fig:fileviewer_screen1}}
+\end{figure}
+
+
+These plain text files are known as ASCII files, where ASCII stands for American Standard Code for Information Interchange. These files do not have the many extra bytes that a modern text editor (e.g, Microsoft Word and Open Office Writer) inserts to represent extra information, such as font size, color, etc.
+
+\subsection{ASCII Text Files: Unix/Linux versus Windows}
+
+There is an important distinction between how Windows and Unix'es (e.g., Linux) interpret text files. 
+Details are provided in \akurl{http://en.wikipedia.org/wiki/Newline}{BMlfc} and other sites. In summary, Windows uses two ASCII characters (CR and LF) to indicate a new line, while Linux uses LF alone. In hexadecimal these ASCII characters are represented by 0x0A (LF or line feed) and 0x0D (CR or carriage return). Note in \figl{fileviewer_screen1} that each line is terminated by a pair of bytes 0x0D 0x0A because \url{fileviewer_test.txt} is a Windows text file. In fact, when using a regular text editor, the number of visible letters in this file is 46, but each of the three new lines demand 2 extra (invisible) bytes, so the total file size is $46+3 \times 2 = 52$ bytes.
+
+The FileViewer software can be used to convert between Linux and Windows text files. In menu \ci{Tools / Converter} one can find the dialog window depicted in \figl{fileviewer_converter}.
+
+\begin{figure}
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresNonScript/fileviewer_converter}		
+	\caption{Screenshot of the FileViewer dialog window that allows to convert between Linux and Windows text files.\label{fig:fileviewer_converter}}
+\end{figure}
+
+The result of executing the instruction indicated in \figl{fileviewer_converter} is indicated in \figl{fileviewer_screen2}, which shows in the Description Panel that the file size was reduced to 49 bytes. The Main Panel also indicates that the pair 0x0D 0x0A was substituted by the byte 0x0A, which is enough to represent a new line on Linux.
+
+\begin{figure}
+	\centering
+		\includegraphics[width=\figwidthLarge,keepaspectratio]{FiguresNonScript/fileviewer_screen2}		
+	\caption[{Screenshot of the FileViewer software showing the result of converting the Windows file of \figl{fileviewer_screen1} to the Linux format.}]{Screenshot of the FileViewer software showing the result of converting the Windows file of \figl{fileviewer_screen1} to the Linux format. Note that the new lines are signaled by the byte 0x0A.\label{fig:fileviewer_screen2}}
+\end{figure}
+
+\subsection{Binary Files: Big versus Little-endian}
+\label{app:endianness}
+Another important distinction is the little-endian versus the big-endian (endian, not indian) representation of variables composed of more than one byte. In the big-endian representation, the most significant byte (MSB) is the first. In little-endian, the least significant byte (LSB) is the first. For example, suppose one is dealing with a binary file that stores values represented by short variables. A short is represented by two bytes in most languages, such as C and Java. The first two bytes of this file are 0x02 and 0x01. Assuming big-endian, they would be interpreted as the number 513 in decimal (0x0201 in hexa), while in little-endian this pair of bytes corresponds to 258 in decimal (0x0102 in hexa).
+Note that in this example both numbers are positive. When dealing with negative numbers, one needs to pay attention to the adopted representation. Negative integers are typically represented in two's-complement arithmetic~\akurl{http://en.wikipedia.org/wiki/2's_complement}{BMwtc}.
+
+\figl{fileviewer_screen3} illustrates the result of interpreting the bytes in the file of \figl{fileviewer_screen2} as short. From \figl{fileviewer_screen2} one can see that the first two bytes are 0x41 0x20, which (in this order 0x4120) corresponds to 16,672 in decimal. Using the option in FileViewer to interpret these bytes as little-endian would lead to 8,256 (i.e., 0x2041).
+
+\begin{figure}
+	\centering
+		\includegraphics[width=\figwidthLarge,keepaspectratio]{FiguresNonScript/fileviewer_screen3}		
+	\caption{Interpretation of the file in \figl{fileviewer_screen2} as short (2-bytes) big-endian elements.\label{fig:fileviewer_screen3}}
+\end{figure}
+
+The companion C code \ci{laps\_swap.c} can swap bytes and create little-endian files from big-endian files and vice-versa. Note that the code simply reverses the order of the bytes. Its usage requires knowing the number of bytes of each element. For example, short corresponds to 2 bytes, float to 4, etc.
+
+It is worth considering the following situation: Java always uses big-endian, even in computers that adopt a little-endian architecture such as the PC. After compiled, \ci{laps\_swap.c} can be used to convert binary big-endian files generated by a Java program into little-endian files to be interpreted by C programs executed in a PC. Assuming double (8 bytes per element), the command\\
+\ci{laps\_swap.exe inputFile.bin outputFile.bin 8}\\
+will swap the bytes of inputFile.bin (assumed to be big-endian) and create a file called outputFile.bin. FileViewer can be used to check the conversion.
+
+%\lstinputlisting[caption={C\_Language/laps\_swap.c},label=code:laps_swap]{./Code/C_Language/laps_swap.c}
+
+\subsection{Some Useful Code to Manipulate Files}
+
+\subsubsection{{\matlab} language}
+\label{app:matlab}
+
+Assume we have a vector $\bz$ in {\matlab}. The command \ci{save} can be used to create a file \url{somefile.txt} and store $\bz$ as follows\\
+\ci{save -ascii 'somefile.txt' z}
+
+However, \ci{save} does not allow much control on formatting the output numbers. For improved formatting, one can use the \ci{fprintf} function:
+\begin{lstlisting}
+z=rand(10,1); %generate a random vector
+fp = fopen('somefile.txt','wt'); %open the file for writing
+fprintf(fp,'%12.8f\n',z); %save according to the specified format
+fclose(fp);  %close the file
+\end{lstlisting}
+
+The command \ci{load} can be used to read in data. For example:\\
+\ci{x = load('anotherfile.txt');}\\
+would create a variable $\bx$ with the contents of \ci{anotherfile.txt}.
+
+Text (ASCII) files have a relatively large size when compared to binary files and require parsing. Hence, the interface  between other programs and {\matlab} is often more efficient when done via binary files. The following code illustrates how to read a binary file with samples stored as 16 bits.
+\begin{lstlisting}
+fp=fopen('somefile.bin','rb'); %open for reading in binary
+x=fread(fp,Inf,'int16'); %read all samples as signed 16-bits
+fclose(fp);  %close the file
+\end{lstlisting}
+
+When dealing with binary files one should inform the endianness when opening the file. When {\matlab} is running on PCs, its default is little-endian. For example, 
+\ci{fid = fopen('littleendianfile.bin','rb');} opens a file and prepares to interpret its data in little-endian. In contrast, \ci{fid = fopen('bigendianfile.bin','rb','b');} assumes the file is big-endian. In any case, the command \ci{[filename, permission, machineformat, encoding]=fopen(fid)} retrieves the information associated to the opened \ci{fid} variable.
+
+In case of dealing with matrices representing images, one may need some extra commands such as, for example:
+\begin{lstlisting}
+% Read image of size rows x cols stored in unsigned chars (no header)
+ rows = 256; cols = 256; %number of pixels in rows / columns
+ fid = fopen('myimage.bin','r'); %open the file
+ out = fread(fid,[rows,cols],'uchar'); %read the file
+ out = flipud(rot90(out)); %reorganize the data
+ fclose(fid); %close the file
+\end{lstlisting}
+
+
+\subsubsection{C language}
+
+The goal of this section is to illustrate how to read into {\matlab} data stored in files that were written by C programs and vice-versa. The example below shows how to generate a cosine signal in C, write it into a file and load in \matlab. 
+\begin{lstlisting}[language=c]
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+/* Program to generate a cosine of 200 Hz and amplitude 10 */
+#define D 5 /* duration in seconds */
+int main() {
+	FILE *fp;
+	char name[2048]="cosine.txt";
+	double sample;
+	int i; /*counter*/
+	double freq_cosine = 200;
+	double Fs = 8000; /*sampling frequency*/
+	int n; /* total number of samples */
+	double Ts; /*  sampling period */
+	double t; /* current time */
+
+	n = (int) (Fs * D);
+	Ts = 1/Fs;	
+	fp = fopen(name, "w"); /* open the output file */	
+	if (fp == NULL) {		
+		printf("Error opening file %s\n", name);
+		exit(-1); /* exit if error */
+	}
+	/* write all samples */
+	for (i=0; i<n; i++) {
+		t = i * Ts; /* calculate current time */
+		sample = 10.0*cos(2.0*M_PI*freq_cosine*t);
+		fprintf(fp, "%f\n", sample); 
+	}
+	fclose(fp); /* close file */
+	printf("Wrote %d samples in file %s\n",n,name);
+}
+\end{lstlisting}
+
+After compiling, executing the program and generating the file \ci{cosine.txt}, it is possible to load it in \matlab, listen to the signal and observe its spectrogram with the commands:
+\begin{lstlisting}
+x = load('cosine.txt');
+soundsc(x)
+specgram(x,[],8000);
+colorbar
+\end{lstlisting}
+Note that the sampling frequency 8,000 Hz is informed to the \ci{specgram} function for proper labeling of the axes.
+
+Considering that the text file \ci{somefile.txt} (see Section \ref{app:matlab}) should be processed in a C program, the following code illustrates how to read it. Note that the value of \ci{N} should be changed according to your needs.
+\begin{lstlisting}[language=c]
+#include <stdio.h>
+#include <stdlib.h>
+#define N 10 /*number of samples in file*/
+int main() {
+	FILE *fp; /*file pointer*/
+	char name[2048]="somefile.txt";
+	double signal[N];
+	int i; /*counter*/	
+	fp = fopen(name, "r"); /* open file for reading */
+	if (fp == NULL) {		
+		printf("Error opening file %s\n", name);
+		exit(-1); /* exit if error */
+	}	
+	for (i=0; i<N; i++) {
+		/* note the use of "%lf" because the elements are double: */
+		fscanf(fp, "%lf\n", &signal[i]); /*read N samples*/
+	}
+	/*from here you can manipulate signal*/
+	fclose(fp); /* close file */
+	printf("Finished reading %d samples from file %s",N,name);
+}
+\end{lstlisting}
+
+\subsubsection{Java language}
+
+Java is a modern language and has many features to deal with files. \codl{FileManipulation.java} illustrates writing and reading a file with float samples using a small header, which informs the number of samples. Recall that Java always uses big-endian. The output file has a size of 22 bytes, corresponding to 5 float (4-bytes) samples plus the 2-bytes header.
+
+\lstinputlisting[language=java,caption={Java\_Language/FileManipulation.java},label=code:FileManipulation.java]{./Code/Java_Language/FileManipulation.java}
+
+\subsection{Interpreting binary files with complex headers}
+\label{app:fileHeaders}
+
+Some binary files are \emph{headerless} (also called \emph{raw} files), i.e., they do not contain any extra information in a header, just the data (for example, the samples of a signal). However, most binary files start with a header. If the header information is encoded in the same format as the data itself, it is relatively easy to inspect the file contents using a software such as FileViewer. However, if the header is composed by a mix of float, short, char variables, etc., then the interpretation is trickier.
+
+As an example, assume the file \ci{floatsamples.bin} generated with \codl{FileManipulation.java}. 
+\figl{fileviewer_screen5} shows the \ci{floatsamples.bin} file contents interpreted as hexadecimal bytes. 
+
+\begin{figure}
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresNonScript/fileviewer_screen5}		
+	\caption{Contents in hexadecimal of file \ci{floatsamples.bin} generated with \codl{FileManipulation.java}.\label{fig:fileviewer_screen5}}
+\end{figure}
+
+The data is in float format but the header is a 2-bytes short. Hence, reading the file as float will get all numbers wrong as shown in \figl{fileviewer_screen4}. The correct would be to skip the header and then read the data. 
+
+\begin{figure}
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresNonScript/fileviewer_screen4}		
+	\caption[{Interpretation as big-endian floats of file \ci{floatsamples.bin} generated with \codl{FileManipulation.java}.}]{Interpretation as big-endian floats of file \ci{floatsamples.bin} generated with \codl{FileManipulation.java}. The numbers are wrong (the data after the header is $-2,-1,0,1,2$) because the reading is not aligned with the end of the 2-bytes header.\label{fig:fileviewer_screen4}}
+\end{figure}
+
+%The listing below illustrates how to read a file and interpret its bytes simultaneously as char, short, int, etc.
+The companion code \ci{laps\_dump.c} can be helpful in situations where the header is heterogeneous. One can study its source code to understand how to simultaneously visualize all interpretations (short, float, etc.).
+%\lstinputlisting[caption={C\_Language/laps\_dump.c},label=code:laps_dump]{./Code/C_Language/laps_dump.c}
+For example, the interpretation of the big-endian file \ci{floatsamples.bin} generated with \codl{FileManipulation.java}, which is not trivial on a little-endian PC, can be performed as follows.
+
+Recall that the useful information is the sequence $5,-2.0,-1.0,0.0,1.0,2.0$. The command\\
+\ci{laps\_dump.exe floatsamples.bin swap}\\
+provides the output below. Each line indicates distinct interpretations (char, short, etc.) assuming the element starts at the corresponding byte. For example, the second line below indicates that the corresponding byte is 5, its ASCII code (fourth column) is a special character, and the fifth column interprets this byte as the beginning of a short variable composed by the pair of bytes 0x05C0, which corresponds to 1472 in decimal. Note that the numbers of interest in this case are inside frame boxes. The file size is 22 bytes, but after reading 16 bytes, the code tries to read the next double (8 bytes) and aborts the execution because there are only 6 bytes remaining. This is the reason for not observing the last element 2.0. Typically the last bytes will be missed.
+
+\co{Each columns represents:}
+\begin{verbatim}
+<byte counter> <decimal char> <hexa char> <(ASCII)> ... 
+  <short> <int> <long int> <float> <double>
+\end{verbatim}
+\co{
+1 0 0 ( ) \framebox{5} 376832 376832 5.280541e-40 7.996359e-309\\
+2 5 5 (?) 1472 96468992 96468992 1.805559e-35 5.509016e-281\\
+3 192 c0 ( ) -16384 -1073741824 -1073741824 \framebox{-2.000000e+00} -2.000001e+00\\
+4 0 0 ( ) 0 191 191 2.676480e-43 4.063622e-312\\
+5 0 0 ( ) 0 49024 49024 6.869726e-41 1.040287e-309\\
+6 0 0 ( ) 191 12550144 12550144 1.758650e-38 4.485749e-305\\
+7 191 bf ( ) -16512 -1082130432 -1082130432 \framebox{-1.000000e+00} -7.812500e-03\\
+8 128 80 (?) -32768 -2147483648 -2147483648 -0.000000e+00 -3.112614e-322\\
+9 0 0 ( ) 0 0 0 0.000000e+00 8.031531e-320\\
+10 0 0 ( ) 0 0 0 0.000000e+00 2.056072e-317\\
+11 0 0 ( ) 0 0 0 \framebox{0.000000e+00} 5.263544e-315\\
+12 0 0 ( ) 0 63 63 8.828180e-44 1.347467e-312\\
+13 0 0 ( ) 0 16256 16256 2.277951e-41 3.449516e-310\\
+14 0 0 ( ) 63 4161536 4161536 5.831554e-39 1.752246e-307\\
+15 63 3f (?) 16256 1065353216 1065353216 \framebox{1.000000e+00} 7.812502e-03\\
+16 128 80 (?) -32768 -2147483584 -2147483584 -8.968310e-44\\
+16 bytes read from file floatsamples.bin
+}
+
+Another example is the interpretation of a binary file generated by \ci{HCopy}, which is part of the HTK package \akurl{http://htk.eng.cam.ac.uk}{BMhtk}, widely used in speech recognition. Using the \ci{HList} tool to interpret a file \ci{htk\_file.bin} with the command
+\ci{HList -t htk\_file.bin}\\
+leads to the output:
+\begin{verbatim}
+--------------------- Target -----------------------
+  Sample Bytes:  96       Sample Kind:   MFCC
+  Num Comps:     24       Sample Period: 6439.9 us
+  Num Samples:   855      File Format:   HTK
+\end{verbatim}
+
+HTK assumes the file content is a multi-variate time series with 855 samples of dimension 24 each. Because each of these 24 elements is represented by a 4-bytes float, the total size of a sample is 96 bytes. The sample period of 6439.9 microseconds indicates that the sampling frequency was $\fs = 10^6 / 6439.9 = 155.28$ Hz. MFCC is an identifier that is internally represented by a 2-bytes short of value 6 in this case (MFCC is typically represented by the short 838 in HTK) and indicates the kind of parameters in this time series.
+\figl{fileviewer_screen6} shows the first bytes of the file \ci{htk\_file.bin}. The HTK manual informs that this header is composed by 12 bytes and the file is big-endian (by default). The first element is a four-bytes integer (int) that indicates the number of samples (855 in this case). The second header element is again an int that indicates the sample period in the unit of $10^{-7}$ seconds. The third element is a 2-bytes short that informs the sample size in bytes (96 in this case) and the last element is another short that specifies the kind of parameters (6 in this case).
+
+\begin{figure}
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresNonScript/fileviewer_screen6}		
+	\caption[{Contents interpreted as floats of big-endian file \ci{htk\_file.bin} generated with HTK.}]{Contents interpreted as floats of big-endian file \ci{htk\_file.bin} generated with HTK. Note the first 12 bytes (3 floats) correspond to the header.\label{fig:fileviewer_screen6}}
+\end{figure}
+
+Using the command\\
+\ci{laps\_dump.exe htk\_file.bin swap}\\
+allows to investigate the contents of the file. The elements of interest are surrounded by frame boxes in the output below and can be compared to the previous output of the HList command.
+
+\co{Each columns represents:}
+\begin{verbatim}
+<byte counter> <decimal char> <hexa char> <(ASCII)> ... 
+  <short> <int> <long int> <float> <double>
+\end{verbatim}
+\co{
+1 0 0 ( ) 0 \framebox{855} 855 1.198110e-42 1.814306e-311\\
+2 0 0 ( ) 3 218880 218880 3.067162e-40 4.644624e-309\\
+3 3 3 (?) 855 56033280 56033280 6.318282e-37 1.440497e-292\\
+4 87 57 (W) 22272 1459618043 1459618043 1.407417e+14 1.202742e+111\\
+5 0 0 ( ) 0 \framebox{64399} 64399 9.024222e-41 1.366544e-309\\
+6 0 0 ( ) 251 16486144 16486144 2.310201e-38 6.279160e-304\\
+7 251 fb ( ) -1137 -74514336 -74514336 -1.485012e+36 -1.475190e+287\\
+8 143 8f ( ) -28928 -1895800832 -1895800832 -6.329376e-30 -2.011753e-236\\
+9 0 0 ( ) \framebox{96} 6291462 6291462 8.816216e-39 7.120277e-307\\
+10 96 60 (`) 24576 1610614272 1610614272 3.690024e+19 2.685490e+154\\
+11 0 0 ( ) \framebox{6} 393216 393216 5.510130e-40 8.344027e-309\\
+12 6 6 (?) 1536 100663296 100663296 2.407412e-35 8.814426e-280\\
+13 0 0 ( ) 0 0 0 \framebox{0.000000e+00} 0.000000e+00\\
+14 0 0 ( ) 0 0 0 0.000000e+00 3.260833e-322\\
+15 0 0 ( ) 0 0 0 0.000000e+00 8.363543e-320\\
+16 0 0 ( ) 0 0 0 0.000000e+00 2.141067e-317\\
+17 0 0 ( ) 0 0 0 \framebox{0.000000e+00} 5.481132e-315\\
+18 0 0 ( ) 0 66 66 9.248570e-44 1.403170e-312\\
+19 0 0 ( ) 0 16928 16928 2.372118e-41 3.592114e-310\\
+20 0 0 ( ) 66 4333568 4333568 6.072622e-39 2.016473e-307\\
+21 66 42 (B) 16928 1109393408 1109393408 \framebox{4.000000e+01} 3.435975e+10\\
+22 32 20 ( ) 8192 536870975 536870975 1.084210e-19 1.491758e-154\\
+23 0 0 ( ) 0 16256 16256 2.277951e-41 3.449516e-310\\
+24 0 0 ( ) 63 4161536 4161536 5.831554e-39 1.752246e-307\\
+25 63 3f (?) 16256 1065353216 1065353216 \framebox{1.000000e+00} 7.812502e-03\\
+}
+
+
+\emph{Reading and writing HTK files}. By default, HTK writes all
+files as big-endian. {\matlab} reads files according to the native
+architecture of the computer. Hence, on PCs Matlab reads/writes
+little-endian. For example, if you open a binary file with \ci{fid
+= fopen('testhtk.mfc','rb');}, Matlab on a PC will read it as
+little-endian. On the other hand, \ci{fid =
+fopen('testhtk.mfc','rb','b');}, reads as big-endian. A file in
+HTK format has a header with 12 bytes. You can write Matlab functions to
+read and write a file with MFCC parameters according to HTK's
+format. To test, use a file generated by \ci{HCopy} and compare
+the results of your functions with \ci{HList}. To help you with
+parsing the header, the code below shows how to read a HTK file
+with Java, which always uses big-endian (even on PCs).
+%\newpage
+\begin{lstlisting}[language=java]
+    public static float[][] getParametersFromFile(String hTKFileName) {
+        float[][] fparameters = null;
+        try {
+            FileInputStream fileInputStream =
+                new FileInputStream(new File(hTKFileName));
+            DataInputStream dataInputStream =
+                new DataInputStream(fileInputStream);
+
+            int nSamples = dataInputStream.readInt(); //4 bytes
+            int sampPeriod = dataInputStream.readInt(); //4 bytes
+            short sampSize = dataInputStream.readShort(); //2 bytes
+            short parmKind = dataInputStream.readShort(); //2 bytes
+            //parmKind = 838 corresponds to MFCC_E_D_A
+
+            //allocate space (assume float, 4 bytes per number)
+            int nspaceDimension = sampSize / 4;
+            fparameters = new float[nSamples][nspaceDimension];
+            for (int i = 0; i < fparameters.length; i++) {
+                for (int j = 0; j < nspaceDimension; j++) {
+                    fparameters[i][j] = dataInputStream.readFloat();
+                }
+            }
+            fileInputStream.close();
+            dataInputStream.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return fparameters;
+    }
+\end{lstlisting}

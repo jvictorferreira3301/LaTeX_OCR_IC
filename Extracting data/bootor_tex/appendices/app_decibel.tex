@@ -1,0 +1,266 @@
+The decibel (dB) expresses a ratio between two powers $\calP_1$ and $\calP_2$:
+\begin{equation}
+T_\dB = 10 \log_{10} \frac{\calP_1}{\calP_2}.
+\label{eq:decibelDefinition}
+\end{equation}
+Hence, dB is a relative, not an absolute quantity. If $T_\dB=0$, then the powers are equal. If $T_\dB$ is positive, $\calP_1$ is larger than $\calP_2$ and vice-versa if $T_\dB<0$.
+
+There are other definitions\footnote{See, e.\,g., \akurl{http://www.jimprice.com/prosound/db.htm}{BMdb}.} related to dB such as dBW, which is the relative power in dB of a signal with respect to 1~watt (W). An important distinction is that, while dB should always be a ``relative'' measure indicating a ratio of powers, dBW is an ``absolute'' measure that indicates one specific power value. For example, assuming that $\calP$ is power in watts, its conversion to $\hat \calP$ in dBW is given by
+\[
+	 \hat \calP = 10 \log_{10} \calP\textrm{~~~~~~~($\calP$ in W and $\hat \calP$ in dBW)}.
+\]
+For example, 100~W corresponds to 20~dBW.
+
+Similarly, dBm is defined with respect to 1~milliwatt (mW). Assuming that $\calP$ is power in watts,
+\[
+	 \hat \calP = 10 \log_{10} \frac{\calP}{10^{-3}}\textrm{~~~~~($\calP$ in W and $\hat \calP$ in dBm)}.
+\]
+For example, if a receiver detects a signal level of $-13$~dBm, it means this signal has a power that is 13~dB smaller than a milliwatt. %Another example is that most mobile phones currently transmit signals at 27~dBm and the base station typically irradiates signals of power around 65~dBm.
+For example, on a 3G cell phone using five ``bars'' to indicate signal strength, the 1-bar may correspond to $-113$~dBm and 5-bars to $-100$~dBm.
+
+%AK I think it is confusing:
+%Alternatively, in case $P$ is already in mW, one can use
+%\[
+%	 \hat P = 10 \log_{10} P\textrm{~~~~~~~(P in mW and $\hat P$ in dBm)}.
+%\]
+
+\ignore{
+Para dar ideia:
+Apos exaustiva pesquisa propria e com auxilio do CDG (CDMA Development Group), a
+Alcatel-Lucent, apesar de nao ser fabricante de terminais, identificou que o limite proposto de 40
+dBm seria excessivo, pois os terminais hoje disponiveis no mercado nao atingem este valor de
+potencia, sendo que os mais potentes atingiriam algo em torno de 27 dBm.
+Vale ressaltar que, mesmo considerando-se o valor proposto de 40 dBm para este limite, o limite
+proposto no Art 5o deste Capitulo III, de 65 dBm para potencia efetivamente irradiada (e.i.r.p) de
+uma estacao radio-base, seria
+}
+
+%Different than dB, powers in dBm, dBW, and other similar quantities become absolute values, not relative values anymore because there is a reference (absolute value). 
+
+Another definition derived from dB is dBc, which is related to the presence of a carrier, such as in radio communications. In this case, the reference is the power of the strongest carrier. Therefore, typically, the dBc\index{dBc} value of a signal component is negative.
+
+A more complicated definition is dBm0, used for example in audio and telephony. 
+It means the level compared to a milliwatt after
+the value is adjusted to make a reference (``correct'') value be 0 dBm.
+\ignore{
+%A good explanation by Floyd Davidson can be found at \url{http://yarchive.net/phone/decibels.html}, which is repeated here for convenience:
+\begin{verbatim}
+Let me try drawing a simple circuit to demonstrate.  Lets say
+this is a one-way only circuit (so I don't have to put both
+transmit and receive levels on it).  The part shown comes out of
+a channel bank, goes to a pad, is then transported over a cable
+pair to some distant point.  The levels shown are for a test
+tone.
+%
+  +-----+      +-----+               +-----+      +-----+
+  |     |      |     |     cable     |     |      |     |
+  |Chan |      | 2 dB|  (6 dB loss)  |15 dB|      |     |
+  |Bank |----->| PAD |->-----//----->| PAD |----->|Modem|
+  |(Rcv)|  +7  |     | +5         -1 |     | -16  |     |
+  |     | dBm  |     |dBm        dBm |     | dBm  |     |
+  +-----+      +-----+               +-----+      +-----+
+%
+At each point, the level shown is the correct level for a test
+tone, and is also the TLP.  Hence, the output of the channel
+bank is called a +7 TLP, and the input to the modem is called a
+-16 TLP.
+%
+If we measured this circuit, and at each point the levels were
+exactly what is listed, then at each point the level would be
+"0 dBm0".
+%
+But lets consider a more likely set of measurements!  The
+channel bank output is actually a little low, it reads +6 dBm
+(or -1 dBm0), the first pad isn't really 2 dB, it is 2.3 dB, so
+the signal hitting the cable is 3.7 dBm (-1.3 dBm0), the cable
+is wet today and therefore has 7.5 dB of loss instead of 6 dB so
+the level out of the cable is -3.8 (-2.8 dBm0), and the pad
+before the modem is actually a 14 dB pad instead of 15 dB, so
+the level going into the modem is -17.8 (-1.8 dBm0).
+%
+(One way to demonstrate the usefulness of dBm0 is fabricate an
+example like the above!  I guarantee that it was easiest to
+decide how far off the particular loss was and then first
+calculate how that would change the dBm0 value before figuring
+the dBm value.  Figuring the dBm value before the dBm0 value is
+just a lot harder.)
+%
+To show the usefulness of using dBm0 values, here is a table:
+%
+   Test Point     dBm0
+   ChanBk Out     -1
+   Cable Head     -1.3
+   Cable End      -2.8
+   Modem Input    -1.8
+%
+Each value shows how far from the correct value the level actually
+is.  Here is a table of raw (called "uncorrected" readings),
+%
+   Test Point     dBm0    TLP
+   ChanBk Out     +6      +7.0
+   Cable Head     +3.7    +5.0
+   Cable End      -3.8    -1.0
+   Modem Input    -17.8   -16.0
+%
+Clearly another column is needed to indicate what the TLP is!
+Otherwise that table is worthless.
+%
+Another practical example would be a leased line modem circuit
+that goes across the country, with testboard access at 10
+different locations.  If the level end-to-end is not correct,
+the problem must be traced by checking with each testboard.  If
+each testboard reports a dBm level, then they also must report
+what the TLP if the location asking is to know if that level is
+to high, too low, or just right.  By reporting a dBm0 value,
+which is "corrected" for whatever the TLP level is, that just
+eliminates confusion, because the value given is the amount by
+which the signal is too high or too low.
+\end{verbatim}
+}
+%There are many other units , such as dBrn0.
+%, that will not be discussed here because are less common.
+
+One unfortunate fact is that sometimes dB is erroneously interpreted as the absolute value of a signal power. For example, in sound engineering, the dB \emph{sound pressure level} or dB~SPL is widely used and it represents the ratio between the measured sound pressure level and the reference point. However,  the ``SPL'' suffix and the reference power value
+are often omitted and dB may be incorrectly understood as an absolute power value in these cases.
+
+In digital signal processing, most of the time the correct unit is unknown and, consequently,
+there is no interest on specifying the reference value. If the signals are assumed to be
+in volts and obtained from a resistance of 1~ohm, in many cases the correct unit would be dBW instead of dB. For example, in spectral analysis, it is common to convert a power spectral density $S(f)$
+in W/Hz to $10 \log_{10} S(f)$, which should be interpreted as dBW/Hz. 
+%However, in some cases the unit dB/Hz is used instead.
+For example, the \ci{periodogram.m} function in {\matlab} shows graphs in dB/Hz 
+but the informed unit could be dBW/Hz.
+
+Sometimes dB is used to express voltage ratios, not power ratios. For example, assuming purely
+resistive impedance $R$, the power associated to a voltage $V$ is $\calP = V^2/R$.
+In this case \equl{decibelDefinition} can be written as
+\begin{equation}
+T_\dB = 10 \log_{10} \left( \frac{V_1^2/R}{V_2^2/R} \right)= 20 \log_{10} \left( \frac{V_1}{V_2} \right).
+\label{eq:decibelAsVoltageRatios}
+\end{equation}
+Both voltage values in \equl{decibelAsVoltageRatios} should be measured over the same impedance. As an example of a possible mistake, consider an amplifier that requires 1~V from a
+1,000~Ohms source to output 40~V over a 10~Ohms speaker. In this case, it is not strictly correct to use \equl{decibelAsVoltageRatios} and state that this amplifier has a ``gain'' of 
+$20 \log_{10} (40/1) \approx 32$~dB. In fact, the power ratio in this case is $10 \log_{10} ((40^2/10)/(1/1000)) \approx 52$~dB.
+
+There are also definitions of absolute values for voltage ratios such as dBmV, which for the cable industry represents decibels relative to 1~millivolt across 75~Ohms (the impedance of a coaxial cable). Hence, 0~dBmV corresponds to $10 \log_{10} ((10^{-3})^2/75) \approx -78.75$~dBW or -48.75~dBm.
+
+Some other examples of dB usage:
+\begin{itemize}
+	\item To convert from dBW to dBm, simply add 30.
+	\item If a signal is transmitted with power 5 dBm and goes through a channel that attenuates it by 3 dB, it arrives at the receiver with 2 dBm of power.
+	\item A sinusoid with amplitude $A=10$ volts has average power $\calP=A^2/2 = 50$ W, which corresponds to $\approx 16.99$~dBW.
+	\item A DC signal with amplitude $A=10$ volts, has average power 100 watts or, equivalently, 20 dBW.
+	\item Assume one wants to design a (polar) signal that assumes only two amplitude values $-A$ and $A$ with power -9 dBm. The first step is to convert the power -9 dBm to $10^{-9/10}=0.126$ mW. Assuming $A$ is in volts, this signal has power $A^2$ watts and the amplitude should be $A = \sqrt{0.126 \times 10^{-3}} = 0.011$~V.
+\end{itemize}
+
+%AK-IMPROVE: more details about decibel and its related quantities, tal com o V/sqrt(Hz) para um dado valor em ohm
+\ignore{
+TO FINISH LATER:
+%
+	Uma outra interpretacao importante para o uso do dB eh quando se lida com funcoes de transferencia e respostas em frequencia. e comum a transformada de Laplace ser usada para expressar a funcao de transferencia H(s) = Y(s) / X(s), ou a de Fourier ser usada para expressar a resposta em frequencia do sistema H(f) = Y(f) / X(f) ou H(w) = Y(w) / X(w), em Hertz ou radianos por segundo, respectivamente. Como H(s) e H(f) (ou H(w)) sao funcoes complexas, usa-se comumente a forma polar de um numero complexo, expressando-se modulo e fase. Para o engenheiro, interessa saber, dado uma entrada X (normalmente uma funcao de numeros complexos), qual a saida Y. Na pratica, ha duas maneiras de expressar o modulo de H: a linear e a logaritmica (em dB). Considerando a resposta em frequencia (o mesmo vale para a funcao de transferencia), um filtro passa-baixa ideal com ganho 1 e frequencia de corte de 1.000 Hz pode ter o modulo do sinal de saida calculado fazendo-se a multiplicacao por 1 ou 0, dependendo da frequencia da componente do sinal. Outra maneira seria expressar H em dB. Neste caso o filtro teria ganho de 0 dB na faixa de 0 a 1.000 Hz. O sinal de entrada deveria ser expresso entao em dBm ou dBw, por exemplo, e o sinal de saida e encontrado fazendo-se a soma (ao inves do produto no caso linear) da entrada com a resposta em frequencia.
+%	
+	Uma "deducao" para isso seria: dado que se esta trabalhando com o modulo, tem-se $|Ylinear| = |Hlinear| |Xlinear|$. Supondo-se que a representacao linear e dada e deseja-se encontrar a representacao logaritmica em dB. Como o dB e uma razao entre duas potencias, tem-se: $|Hlogaritmica| = 10 \log_{10} (|Ylinear|^2 / |Xlinear|^2)  = 20 \log_{10} |Hlinear|$. Na pratica, a utilidade do dB e que se pode usar somas e subtracoes (ao inves de multiplicacoes e divisoes necessarias na representacao linear), dai e importante raciocinar como se pode representar sinais em dBm, por exemplo, e encontrar a saida em dBm. Isto pode ser entendido com outra "demonstracao" simples: pode-se elevar ao quadrado e tirar o logaritmo dos dois lados da expressao $|Ylinear| = |Hlinear| |Xlinear|$. Dado que se tem $10 log_{10} |Ylinear|^2 = 20 \log_{10} |Hlinear| + 10 \log_{10} |Xlinear|^2$, observa-se que isto corresponde a $YdBw = |Hlogaritmica| + XdBw$. Neste caso, X e Y seriam dados em dBw. Desejando-se trabalhar em dBm, pode-se pensar que bastaria dividir ambos lados de $|Ylinear| = |Hlinear| |Xlinear|$ por $10^{-3}$, apos elevar ao quadrado e seguir o mesmo raciocinio para encontrar $YdBm = |Hlogaritmica| + XdBm$.
+}
+
+\section{Insertion loss and insertion frequency response}
+\label{sec:insertionLoss}
+
+A system is often composed by the interconnection of several blocks and it is of interest to
+know how a signal is attenuated (or amplified!) as it passes through the blocks.
+The \emph{insertion loss}\index{Insertion loss} (IL) is widely used to characterize the loss in power, for example,
+of a transmission line or a circuit. This section discusses the IL of a generic \emph{two-port network} (or \emph{quadripole}), which is any four-terminal network called
+here \emph{device under test} (DUT).
+Material about IL in specific applications can be found elsewhere. 
+For example, in~\cite{T1417} 
+(more specifically, ``C.3.1.7 Relationship of transfer function and \emph{insertion loss}'')
+there is an interesting discussion of IL in the DSL systems context.
+
+IL estimation is based on a smart strategy: measure the system output 
+with and without the DUT, with the IL being the attenuation 
+imposed by the DUT.
+
+\begin{figure}
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{FiguresNonScript/insertionLoss}
+\caption{Basic setup for measuring the insertion loss of a device under test (DUT).\label{fig:insertionLoss}}
+\end{figure}
+
+\figl{insertionLoss} depicts a setup for measuring the insertion loss of a DUT.
+The behavior without the DUT is obtained by removing it (i.\,e.,
+directly connecting the pairs of terminals 1 and 2, and measuring the 
+power over the load, which in this case will be denoted as $\calP_L^{\textrm{no}}$.
+Then, the behavior with the DUT is obtained by inserting it 
+and again measuring the power over the load, which will be denoted as $\calP_L^{\textrm{yes}}$.
+The insertion loss in dB is defined as
+\begin{equation}
+\textrm{IL} \defeq \frac {\calP_L^{\textrm{no}}} {\calP_L^{\textrm{yes}}}
+\label{eq:insertionLossPower}
+\end{equation}
+and is often given in dB:
+\begin{equation}
+\textrm{IL}_{\textrm{dB}} \defeq 10 \log_{10} \left( \frac {\calP_L^{\textrm{no}}} {\calP_L^{\textrm{yes}}} \right).
+\label{eq:insertionLossPowerdB}
+\end{equation}
+
+For example, a passive optical device that splits the input into two output signals could have an IL of 4~dB per output, consisting of the ideal 3~dB IL for splitting the power in halves plus an \emph{excess loss} of 1~dB per port.
+
+If the system behavior varies with frequency, $\textrm{IL}(f)$ can be measured and reported over the frequency range of interest.
+Besides, in case the DUT amplifies its input, one
+can use the insertion gain $\textrm{IG}(f) = 1/\textrm{IL}(f)$ instead.
+
+Another alternative definition of IL uses
+the voltage $V_L$ over the load. Repeating the procedure
+of removing and then inserting the DUT, the measured values of
+$V_L$ are denoted as $V_L^{\textrm{no}}$ and $V_L^{\textrm{yes}}$,
+respectively. In this case and assuming frequency-dependence, IL can be written as
+\begin{equation}
+\textrm{IL}(f)= 10 \log_{10} \frac {|V_L^{\textrm{no}}(f)|^2} {|V_L^{\textrm{yes}}(f)|^2}  =20 \log_{10} \frac {|V_L^{\textrm{no}}(f)|} {|V_L^{\textrm{yes}}(f)|}.
+\label{eq:insertionLossVoltage}
+\end{equation}
+
+%\begin{equation}
+%H_{\textrm{IL}}(f) = \frac {V_L^{\textrm{no}}(f)} {V_L^{\textrm{yes}}(f)},
+%\label{eq:insertionLoss}
+%\end{equation}
+%which is often expressed in dB as
+%\begin{equation}
+%20 \log_{10} |H_{\textrm{IL}}(f)|.
+%\label{eq:insertionLossIndB}
+%\end{equation}
+%
+%In case the DUT amplifies its input, one
+%can use the insertion gain $H_{\textrm{IG}}(f) = 1/H_{\textrm{IL}}(f)$
+%instead.
+
+The ``insertion'' trick (measuring with and without the DUT) can be used to obtain parameters other than the IL. For example, in some situations it is inconvenient to
+deal with (or difficult to measure) 
+the frequency response $H(f)$ directly because it depends on 
+the source and load impedances. In these cases, it may be advantageous
+to measure the \emph{insertion frequency response}\index{Insertion frequency response} 
+\begin{equation}
+H_{\textrm{I}}(f) = \frac {V_L^{\textrm{yes}}(f)} {V_L^{\textrm{no}}(f)}
+\label{eq:insertionFreqResponse}
+\end{equation}
+and convert it to $H(f)$ when convenient and the source $Z_s$ and load $Z_l$ impedances
+are known. Note that \equl{insertionFreqResponse} does not discard the phases of the measured voltages as in \equl{insertionLossVoltage}, and can be obtained for example with a network analyzer equipment. 
+%The procedure to obtain $H(f)$ from $H_{\textrm{I}}(f)$ is the following.
+
+Having $H_{\textrm{I}}(f)$, the frequency response $H(f)$ relating the output voltage $V_L^{\textrm{yes}}(f)$ (with the DUT) to the input source voltage $V_S(f)$ can be obtained as
+\begin{equation}
+H(f) \defeq \frac {V_L^{\textrm{yes}}(f)} {V_s(f)}  = \frac {V_L^{\textrm{no}}(f)} {V_s(f)} \frac {V_L^{\textrm{yes}}(f)} {V_L^{\textrm{no}}(f)} = \frac {Z_L(f)} {Z_S(f) +
+Z_L(f)}H_{\textrm{I}}(f).	
+	\label{eq:frequencyResponseFromHI}
+\end{equation}
+When $Z_L(f)$ and $Z_S(f)$ can be considered constant over the frequency of interest, \equl{frequencyResponseFromHI} is conveniently expressed as
+\begin{equation}
+H(f) = \frac {Z_L} {Z_S +
+Z_L} H_{\textrm{I}}(f).
+	\label{eq:frequencyResponseFromHI2}
+\end{equation}
+
+$H_{\textrm{I}}(f)$ itself is of interest in some applications. For example, when estimating the channel capacity of a DSL copper loop, $H_{\textrm{I}}(f)$ is adopted instead of $H(f)$~\cite{T1417}.
+
+The ``insertion'' procedure is used in many distinct scenarios but people tend to keep together the terms ``insertion'' and ``loss'', instead of using only the former. 
+%there are several definitions of IL in the literature. 
+For example, some authors (e.\,g. \cite{Ciofficn} and in \figl{saw_filter2}) call insertion \emph{loss} to $\textrm{IG}(f)$ and report an attenuation as a negative value in dB.
+Others call the insertion frequency response of \equl{frequencyResponseFromHI2} as ``insertion loss'', as in the FTW software, or ``loop insertion gain transfer function'' as in~\cite{T1417}.

@@ -1,0 +1,1570 @@
+\section{To Learn in this Chapter}
+
+\begin{itemize}
+	\item Radio receiver architectures.
+	\item Notions of link budget calculation.
+	\item How to generate and interpret an analog AM signal.
+\item Elements of communication systems such as transmitter and receivers.
+	\item Basic analog communication concepts such as SNR, link budget, noise figure, etc.
+\end{itemize}	
+
+\section{Heterodyning via mixers}
+
+Before discussing amplitude modulation, it is useful to understand \emph{heterodyning}\index{Heterodyning}, the process of combining frequencies to create new ones. Heterodyning is also understood as synonymous of frequency conversion because it is widely used to shift a signal of interest to a new frequency range. In its simplest form, it consists in multiplying two input signals $x(t)$ and $c(t)$ as depicted in \figl{mixer}. The multiplier, which is a nonlinear device (recall that linear systems cannot create new frequencies), is called \emph{mixer}\index{Mixer}. 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall]{FiguresTex/mixer}
+\caption{Representation of a mixer, in this case an ideal multiplier.\label{fig:mixer}}
+\end{figure}
+
+As indicated by \equl{sinatimessinb}, when $x(t)$ and $c(t)$ in \figl{mixer} are sinusoids with frequencies $f_x$ and $f_c$, the output $y(t)=x(t)c(t)$ of the mixer is a sum of two sinusoids with frequencies $f_x+f_c$ and $f_x-f_c$. In practice, mixers are not perfect multipliers and generate harmonics of the input frequencies and \emph{intermodulation distortion} (IMD)\index{Intermodulation distortion}.
+
+The \emph{carrier}\index{Carrier} signal $c(t)$ of \figl{mixer} is often a sinusoid and $x(t)$, the signal of interest, can be modeled, for example, as a realization of a WSS random process $\calX(t)$ 
+with PSD $S_x(f)$. In this case, the process at the mixer output has PSD given by e.\,g. \equl{psdCosineModulationTheorem}.
+The mixer input can also be modeled as a deterministic signal.
+For instance, if $x(t)$ is non-random and periodic, $S_x(f)$ can be obtained with \equl{psdOfPeriodicSignals} and then \equl{psdCosineModulationTheorem} gives the output PSD.
+
+\bExample \textbf{Example of PSDs at inputs and output of a mixer}.
+\figl{mixerOutputs} illustrates the associated PSDs in two distinct cases.\footnote{PSDs are used in \figl{mixerOutputs} (instead of Fourier transforms) to avoid the need of representing the signal phases.
+}
+% of a sinusoid and random signal with bandwidth $\BW_i$.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthLarge]{FiguresTex/mixerOutputs}
+\caption{Two cases of signals and associated (unilateral) PSDs for inputs and outputs of the mixer in \figl{mixer}.\label{fig:mixerOutputs}}
+\end{figure}
+
+The left plot in \figl{mixerOutputs} corresponds to the case in which $x(t)$ is a sinusoid.
+Considering e.\,g. $f_x=10$ and $f_c=15$, the output is a sum of two sinusoids with frequencies 5 and 25. The signals are real-valued, therefore only the positive frequencies are shown.  But taking the negative frequencies in account allows to note that, as expected, swapping the values and assuming $f_x=15$ and $f_c=10$ also leads to the same result.
+
+The right plot in \figl{mixerOutputs} corresponds to having the information signal $x(t)$ as the realization of a WSS process with a bandwidth $\BW_{\textrm{i}}$. As will be discussed in the sequel, the output signal is called \emph{double-sideband} because it has a bandwidth $2 \BW_{\textrm{i}}$, which is twice the bandwidth of $x(t)$.
+\eExample 
+
+%\subsection{Receiver filters and their limitations}
+%Communication systems have to use frequency-selective filters to eliminate undesired components of the received signal. Given the filter's Q-factor 
+%(see Section~\ref{sec:bw_qfactor})
+
+\section{Examples of Analog Amplitude Modulation}
+\label{sec:amModulation}
+
+\subsection{DSB-SC}
+Amplitude modulation can be performed by multiplying, via a \emph{mixer}, the information signal $m(t)$ (corresponding to $x(t)$ in \figl{mixerOutputs}) and a carrier $c(t)=\cos(2 \pi f_c t + \phi)$ to obtain the transmit signal
+\begin{equation}
+s(t) = m(t) \cos(2 \pi f_c t + \phi).
+\label{eq:am-dsb}
+\end{equation}
+The modulating signal $m(t)$ effectively changes the carrier amplitude over time. Consequently, the information of interest is ``encoded'' on the amplitude of $s(t)$.
+
+\emph{Coherent} or \emph{synchronous demodulation} allows to recover $m(t)$ from $s(t)$ in \equl{am-dsb}. The term ``coherent'' is used because this demodulation scheme requires generating the carrier $c(t)$ at the receiver by recovering both its frequency $f_c$ and phase $\phi$. In practice, the receiver uses estimates of $f_c$ and $\phi$. 
+
+To simplify the discussion, assume the ideal case of having $c(t)$ perfectly regenerated at the receiver. In this case, $m(t)$ can be recovered by lowpass filtering the product $s(t) \, c(t)$ as follows:
+\[
+m(t) = \textrm{\ci{lowpass}} \{ \, s(t) \cos(2 \pi f_c t +  \phi) \, \},
+\]
+which is illustrated in \figl{dsbscDemodulation}.
+% depicts the process of recovering $m(t)$, i.\,e. the demodulation.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthLarge]{FiguresTex/dsbscDemodulation}
+\caption[PSDs (bilateral) in coherent demodulation of a DSB-SC signal.]{PSDs (bilateral) in coherent demodulation of a DSB-SC signal. An (ideal) lowpass filter can eliminate  the replicas at $f=\pm 2f_c$.\label{fig:dsbscDemodulation}}
+\end{figure}
+
+This amplitude modulation scheme is called DSB-SC (double-sideband suppressed carrier) because the carrier ``is not transmitted'' and the bandwidth $\BW_{\textrm{rf}}$ of $s(t)$ is twice the bandwidth $\BW_{\textrm{i}}$ of the information signal. 
+
+In practice, several non-ideal circuits and algorithms impact the process suggested by \figl{dsbscDemodulation}:
+\begin{itemize}
+	\item The receiver may estimate the correct frequency $f_c$ as $f_c + \Delta f$ instead, with the estimate error $\Delta f$ being called \emph{frequency offset}\index{Frequency offset};
+	\item Similarly, the phase estimate $\phi + \Delta \phi$ may incorporate a \emph{phase offset}\index{Phase offset} $\Delta \phi$;
+	\item A nonideal lowpass filter will attenuate the replicas at $f=\pm 2f_c$ but not completely eliminate them. Besides, the filter will eventually distort the amplitude and phase of its input signal.
+\end{itemize}
+The reader is invited to explore the individual effects of each impairment using simulations.
+
+\subsection{SSB and VSB}
+Besides DSB-SC, there are several amplitude modulation schemes for analog signals, such as SSB, VSB and AM, for example.
+The SSB (single-sideband) and VSB (vestigial-sideband) are amplitude modulation schemes that, when compared to DSB schemes, reduce the required bandwidth to a value $\BW_{\textrm{rf}} < 2\BW_{\textrm{i}}$. The main interest here is in AM, which is a DSB scheme ($\BW_{\textrm{rf}}= 2 \BW_{\textrm{i}}$) but, in contrast to DSB-SC, does not suppress the carrier.
+It  is adopted by commercial broadcast stations and due to its popularity is simply called AM here.
+
+\subsection{AM}
+To enable \emph{envelope detection}\index{Envelope detection} and, consequently, avoid coherent demodulation, AM is a modulation scheme in which a DC level $A$ is added to the information signal $m(t)$ before multiplication by the sinusoid carrier $c(t)$. Different than the DSB-SC of \equl{am-dsb}, the AM transmit signal is
+\begin{equation}
+s(t) = (m(t) + A) \cos(2 \pi f_c t + \phi).
+\label{eq:amSignal}
+\end{equation}
+The amplitude $A \ge -\textrm{min}\{m(t)\}$ is chosen to be not smaller than the magnitude of the negative peak of $m(t)$, with $m(t)$ assumed to have mean $\ev[m(t)]=0$ such that $\textrm{min}\{m(t)\}$ is indeed negative. This way the transmitter guarantees that $m(t)+A \ge 0$, which allows $m(t)$ to be recovered by a relatively cheap \emph{envelope detection} of the received version of $s(t)$. An AM receiver signal can recover $m(t)$ in \equl{amSignal} using  coherent demodulation, but the envelope detection scheme is simpler and cheaper to implement. 
+
+Assuming $m(t)$ is zero-mean and following the reasoning discussed in Section~\ref{sec:modulationTheoremPSD}, the AM signal of \equl{amSignal} has PSD given by
+\begin{equation}
+%S(\aw) = \frac{1}{2}[M(\aw+\aw_c) + M(\aw-\aw_c)] + \pi A^2 [\delta(-\aw_c) + \delta(\aw_c)],
+S_{\textrm{AM}}(f) = \frac{1}{4} \left[S_m(f+f_c) + S_m(f-f_c) \right] + \frac{A^2}{4} \left[ \delta(f-f_c) +  \delta(f+f_c) \right],
+\label{eq:amPSD}
+\end{equation}
+where $S_m(f)$ is the PSD of $m(t)$.
+
+Using \equl{psd_integration_continuousTime} to integrate \equl{amPSD} over frequency shows that the parcel $\frac{A^2}{4} [\delta(f-f_c) + \delta(f+f_c)]$ that ``transmits the carrier'' corresponds to an overhead that consumes power $\calP_c = A^2/2$. 
+This is consistent with the fact that this parcel in time-domain is
+$A \cos(\aw_c t + \phi)$ and $A^2/2$ is the power of a cosine.
+
+\figl{amModulation} illustrates that the added DC level appears as an impulse $A^2 \delta(f)$ in the PSD of $(m(t)+A)$, which is shifted to the frequencies $\pm f_c$ by the mixer. It should be contrasted with the DSB-SC PSD at the right of \figl{mixerOutputs}, which does not have the impulses corresponding to the DC level.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth]{FiguresTex/amModulation}
+\caption[Bilateral PSDs of AM signal and mixer inputs.]{Bilateral PSDs of AM signal and mixer inputs. The level $A$ appears originally as an impulse at the DC of the baseband signal and is shifted by the mixer to frequencies $\pm f_c$.\label{fig:amModulation}}
+\end{figure}
+
+Hence, the design of an analog amplitude modulation system faces a choice between a more energy-efficient DSB-SC and a simpler AM receiver using envelope-detection that requires the transmitter investing power to transmit the carrier.
+
+\bExample \textbf{Example of PSD mask for AM transmission}.
+\figl{am_fcc_mask} gives an example of a possible RF PSD mask for AM transmission\footnote{Adapted from the document NRSC-2-B made available by the National Radio Systems Committe (NRSC), USA, at \akurl{http://www.nrscstandards.org}{5nrs}. Check also the document NRSC-G100-A.} with PSD values given in dBc, i.\,e., with respect to the carrier power. The mask in this example indicates that within 10.2~kHz from the channel frequency, the PSD cannot exceed $-25$~dBc.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidthLarge,keepaspectratio]{FiguresTex/am_fcc_mask}		
+	\caption{Example of RF mask adopted for regulating AM transmission.\label{fig:am_fcc_mask}}
+\end{figure}
+
+PSD masks are imposed by regulatory agencies and indicate the limits but, for example, many AM broadcasters use BW smaller than 10~kHz such as 5~kHz.
+\eExample 
+
+Conceptually, the AM signal can be demodulated with the schemes depicted in \figl{am_demodulated_signal} using either digital or analog signal processing.\footnote{In the examples of \figl{am_demodulated_signal}, the diode-based half-wave rectification in the analog version differs from the digital counterpart in the sense that the latter implements a full-wave rectification via the $|\cdot|$ function. A command such as \ci{s(s<0)=0} would simulate a half-wave rectifier in {\matlab}. With proper filtering, both rectifications can recover the signal envelope.}
+In practice, several extra processing stages must be added, as will be discussed in Section~\ref{sec:radioReceiverArchitectures}.
+
+\begin{figure}[htbp]
+\centering
+%\includegraphics[width=\figwidth]{FiguresTex/am_demodulated_signal}
+\includegraphics[width=\figwidthLarge]{FiguresTex/am_demodulated_signal}
+\caption{High-level description of possible schemes for AM demodulation.\label{fig:am_demodulated_signal}}
+\end{figure}
+
+\bExample \textbf{The carrier frequency must be high enough}.
+The signals in \figl{am_demodulated_signal} can be generated with \codl{snip_digi_comm_amSignals} (only the first lines are shown here).
+
+\lstinputlisting[lastline=7,caption={MatlabOctaveCodeSnippets/snip\_digi\_comm\_amSignals.m},label=code:snip_digi_comm_amSignals]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_amSignals.m}
+
+One should observe that the carrier frequency must be high enough to have the AM demodulation working properly. The reader is invited to change the period of the carrier frequency in
+\codl{snip_digi_comm_amSignals} from 2 to 16 samples, and observe the results.
+\eExample 
+
+How large is the AM power overhead is controlled by the \emph{modulation index} $h$,
+which is a measure of how much the peak amplitude of $s(t)$ in \equl{amSignal} varies with respect to the unmodulated amplitude $A$ (i.\,e., $m(t)=0$ in \equl{amSignal}). 
+With $m(t)$ being zero-mean and having the same amplitude values for the positive and negative peaks (i.\,e., $\textrm{max}\{m(t)\} = -\textrm{min}\{m(t)\}$), $h$ is given by
+\begin{equation}
+h = \frac{\textrm{max}\{m(t)\}}{A},
+\label{eq:amModulationIndex}
+\end{equation}
+and often expressed as a percentage. 
+To allow envelope detection, a modulation index not larger than 100\% is required.\footnote{The script \ci{MatlabOctaveCodeSnippets/snip\_digi\_comm\_amIndexModulation.m} provides an example for which \equl{amModulationIndex} is not valid.}
+The impact of $h$ in the AM power overhead is discussed in the sequel. 
+
+\bExample \textbf{AM power overhead when the information signal is a sinusoid}.
+To simplify the analysis, assume that $m(t)=A_m \cos(2 \pi f_m t)$ is a pure sinusoid with peak value $A_m = h A$ and frequency $f_m < f_c$. In this case, using \equl{cosatimescosb}, one can calculate that the parcel $m(t) \cos(\aw_c t + \phi)$ of \equl{amSignal} has power $\calP_m = A_m^2/4 = A^2 h^2 /4$.
+Hence, the total power $\calP_{\textrm{AM}} = \calP_m + \calP_c$ of the AM signal, in the case of $m(t)$ being a sinusoid, is:
+\begin{equation}
+\calP_{\textrm{AM}} = \calP_m + \calP_c = \frac{A^2 h^2}{4} + \frac{A^2}{2} = \frac{A^2}{2} \left(1 + \frac{h^2}{2} \right) = \calP_c \left(1 + \frac{h^2}{2} \right).
+\label{eq:amPower}
+\end{equation}
+
+As mentioned, the maximum $h$ for envelope detection is 100\% and, in this case, the AM power overhead $\calP_c / \calP_{\textrm{AM}}$ is $2/3$ such that the signal parcel that carries information corresponds to only 33.3\% of the transmit power. In practice, $h<1$ and the AM power overhead would be larger than $2/3$ for a sinusoidal $m(t)$.
+\eExample
+
+\bExample \textbf{AM power overhead when the information signal has amplitude normally distributed}.
+As another example, consider when the amplitude of $m(t)$ is distributed according to a Gaussian $\calN(\mu,\sigma^2)$ with $\mu=0$ and variance (power) $\sigma^2$. After multiplication by the carrier cosine, $\calP_m = \sigma^2/2$, as discussed in Section~\ref{sec:modulationTheoremPSD}. To relate $\calP_m$ and $\calP_c$, assume that the peak value of $m(t)$ is $3 \sigma$, such that 
+from \equl{amModulationIndex}, $\sigma = h A / 3$.
+\begin{equation}
+\calP_{\textrm{AM}} = \calP_m + \calP_c = \frac{\sigma^2}{2} + \frac{A^2}{2} = \frac{h^2 A^2}{18} + \frac{A^2}{2} = \frac{A^2}{2} \left(1 + \frac{h^2}{9} \right) = \calP_c \left(1 + \frac{h^2}{9} \right).
+\label{eq:amPower2}
+\end{equation}
+In this case, even $h=1$ would lead to $\calP_m = 0.1 \calP_{\textrm{AM}}$ and a 90\% power overhead.
+\eExample
+
+Many methods have been investigated to decrease the AM power overhead such as ``companding'', which is similar to the strategy used in PCM with $\mu$ or A-law to compress (at Tx) and expand (at Rx) the amplitude of $m(t)$.
+
+Applications~\ref{app:amDemodulation2} and \ref{app:amDemodulation} further discuss AM.
+
+\section{Radio Receiver Architectures}
+\label{sec:radioReceiverArchitectures}
+
+This section discusses receiver architectures in the context of AM, but many concepts are also used for other modulation techniques.
+
+The first thing to identify is that simple demodulation schemes such as the ones depicted in \figl{dsbscDemodulation} and \figl{am_demodulated_signal} for synchronous and asynchronous demodulation, respectively, assume that the only signal arriving at the receiver antenna is the signal of interest. However, as indicated in \figl{spectrumAMStations}, the spectrum may have plenty of other interfering signals, especially in urban areas.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\figwidth]{./Figures/spectrumAMStations}
+\caption{PSD of signal with frequency band from 582 to 838~kHz. Eight AM stations are identified.\label{fig:spectrumAMStations}}
+\end{figure}
+
+The signal used to generate \figl{spectrumAMStations} is described in Application~\ref{app:amDemodulation}. It has $\BW=256$~kHz and could potentially accommodate 25 AM radio stations spaced by 10~kHz. The eight stations with relatively clear (strong enough) signals are identified in \figl{spectrumAMStations}, with the strongest one being at the center frequency 710~kHz.\footnote{The PSD in \figl{spectrumAMStations} is specified in dBm/Hz, assuming that the signal samples are in Volts. A calibration procedure of the measurement equipment is often necessary to actually obtain the amplitude in Volts or other unit. Hence, it is very common to specify PSDs in dB/Hz given that the correct absolute power is unknown.}
+
+\subsection{Amplifiers}
+As suggested by \figl{spectrumAMStations}, a radio receiver has to use good filters in order to isolate the signal of interest from interferers and noise. Besides, the received signal often requires amplification.
+
+Taking \figl{dsbscDemodulation} as reference, \figl{radioReceiver1} adds an amplifier just after the antenna. The AM signal of interest is assumed to be always centered at a radio frequency $f_{\textrm{RF}}$ and the local oscillator (LO) generates a frequency $f_{\textrm{LO}}$ that is ideally
+$f_{\textrm{LO}} = f_{\textrm{RF}}$.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/radioReceiver1}		
+	\caption{Simple radio architecture with a local oscillator (LO) generating a sinusoid with a fixed frequency for AM reception.\label{fig:radioReceiver1}}
+\end{figure}
+
+In \figl{radioReceiver1}, the signal captured by the antenna, with a large bandwidth, would be entering the amplifier. This would increase the impact of the amplifier nonlinearities, such as intermodulation products, for example. Therefore, is it advisable to place a filter just after the antenna, which is called RF filter.
+
+Another aspect that complicates the receiver design is that the receive signal power varies, and the amplifiers must have their gains adjusted accordingly. Hence, automatic gain control (AGC) blocks are commonly implemented based on a variable gain amplifier\footnote{When the VGA gain can be controlled by e.\,g. a microcontroller, the VGA is called programmable-gain amplifier (PGA)\index{PGA}.} (VGA)\index{Variable-gain amplifier (VGA)} and an arrow crossing the amplifier icon indicates its gain can be modified. 
+As will be discussed in Section~\ref{sec:noiseFactor}, instead of VGA, the amplifier in \figl{radioReceiver1} is called low-noise amplifier (LNA).
+The architecture with the RF filter and variable gain LNA is depicted in \figl{radioReceiver2}, which indicates that the gain is controlled by the baseband demodulator.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/radioReceiver2}		
+	\caption{Evolution of \figl{radioReceiver1}, with RF filter and variable gain amplifier.\label{fig:radioReceiver2}}
+\end{figure}
+
+\subsection{Filtering issues}
+
+Most radio receivers use several filtering stages and shift the signal of interest to intermediate frequencies via mixers. This filtering process may include filters with high and low Q-factors (see Sections~\ref{sec:qForFilters} and \ref{sec:filteringTechnologies}).
+
+%It is typically easier to design filters for a fixed center frequency $f_c$. Hence, i
+Filters with high Q-factor often have a fixed center frequency $f_c$ while filters with tunable $f_c$ have a more relaxed specification and lower Q.
+Components such as variable capacitors, tuning diodes, variable inductors, etc. can be used to tune $f_c$ of analog filters but there is a caveat if the filter has an approximately constant Q: its bandwidth will vary with $f_c$. For example, when considering the commercial AM band as being fom 535~kHz to 1605~kHz, as in many countries, and a filter with $Q=50$, the bandwidth would vary from 10.7~kHz to 32.1~kHz, when varying $f_c$ from 535~kHz to 1605~kHz. In this case, $Q=50$ is a good choice for AM stations with $\BW=10$~kHz in the vicinities of 535~kHz, but would lead to an excessively wide band for the upper frequencies.
+
+\subsection{Homodyne (direct conversion) receivers}
+Another issue to be addressed by the radio receiver is tuning to the desired center frequency $f_c$. 
+A conceptually simple strategy to have a tunable receiver is illustrated in \figl{radioReceiver3}, where $f_c$ can be varied to select the desired RF band.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/radioReceiver3}		
+	\caption{Homodyne receiver, which can be seen as a tunable version of \figl{radioReceiver2}.\label{fig:radioReceiver3}}
+\end{figure}
+
+The architecture described in \figl{radioReceiver3} is called \emph{homodyne}\index{Homodyne},
+ direct-conversion receiver\index{Direct-conversion receiver} or zero-IF, because it does not use an intermediate frequency. 
+However, the practical implementation of the homodyne receiver using analog processing has disadvantages when compared to the superheterodyne architecture, to be discussed in the sequel. But it should be noted that with the advent of fast ADC converters, which can digitize signals at the IF frequency, the homodyne architecture has been used in some software radio applications.
+
+\subsection{Superheterodyne receiver}
+
+The goal here is to discuss the \emph{superheterodyne}\index{Superheterodyne} architecture, which is used in most AM receivers and in many other radio systems. Most of these systems support tuning to a desired RF frequency. But, for simplicity and sake of example, it is first assumed the system depicted in \figl{am_demodulator}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthLarge]{FiguresTex/am_demodulator}
+\caption{Superheterodyne AM receiver without tuning capability.\label{fig:am_demodulator}}
+\end{figure}
+
+The signal $m(t)$ to be demodulated in \figl{am_demodulator} is centered at $f_{\textrm{RF}}=1.4$~MHz and has $\BW_{m}=10$~kHz (not shown in the picture). By design, the IF frequency is 455~kHz, which is the most commonly used for AM broadcast receivers. Note that both RF and IF bandpass filters should have bandwidths not smaller than the $\BW_{m}$ of the signal $m(t)$, and in this specific case: $\BW_{\textrm{rf}}=\BW_{\textrm{if}}=\BW_{m}$. 
+
+As a complement to \figl{radioReceiver1}, \figl{am_demodulator} indicates that a possible  baseband processing consists of an AM detector, which can be as simple as the circuit with a diode and first-order filter in \figl{am_demodulated_signal}, and one or more audio amplifiers. Note that in this scheme, the AM detector incorporates the lowpass filter that is used in synchronous AM demodulation (\figl{dsbscDemodulation}).
+
+Two values of LO frequency $f_{\textrm{LO}}$ would center a replica of the PSD $S_m(f)$ of $m(t)$ at $f_{\textrm{IF}}=455$~kHz: 945 and 1855~kHz.
+In fact, regarding the choice of $f_{\textrm{LO}}$, the options $f_{\textrm{LO}}=f_{\textrm{RF}}+f_{\textrm{IF}}$ or $f_{\textrm{LO}}=f_{\textrm{RF}}-f_{\textrm{IF}}$ are called in the literature ``high-side'' and ``low-side'' injection, respectively. Due to practical aspects of analog circuits, the broadcast AM receivers use high-side injection. This is also the choice adopted in \figl{am_demodulator}. Note that in this case, the IF filter must attenuate (ideally eliminate) the replica of $S_m(f)$ located at 3,255~kHz.
+
+The RF filter is the initial step for constraining the overall receiver 
+BW to the minimum required. Assuming the background noise has white PSD, the smaller $\BW_{\textrm{RF}}$, the smaller the power of the noise entering the receiver. Using $\BW_{\textrm{RF}}=\BW_m$ is therefore pedagogical, but would require a filter with a relatively high Q-factor. As mentioned, high Q filters are more complex especially when the filter center frequency is tunable.
+
+Considering now that tuning is a required feature, one could think of using a simple RF filter, with a bandwidth covering all frequencies of interest. For example, the non-tunable RF filter could have a passband from 535~kHz to 1605~kHz, to cover AM broadcast stations.
+The tuning could be done by varying $f_{\textrm{LO}}$ and using the IF filter to attenuate undesirable replicas.
+However, a mixer (as its names indicates) is susceptible to mix desired frequencies with their \emph{image frequencies}\index{Image frequency}.
+
+An image frequency is any frequency other than the desired $f_{\textrm{RF}}$ that, if allowed to enter the mixer, will produce a cross-product frequency that is equal to $f_{\textrm{IF}}$. For example, the RF filter in \figl{am_demodulator} must attenuate the signal components in the vicinity of the image frequency 2310~kHz. The reason is that the mixer (with $f_{\textrm{LO}}=1855$) will center a replica of these components at $2310-1855=455$~kHz. In other words, the frequency components at both $f_{\textrm{RF}}=1400$~kHz and its image $f_{\textrm{IM}}=2310$~kHz will be centered at $f_{\textrm{IF}}=455$~kHz. Similar to aliasing in sampling, once an image frequency has been mixed into the output signal, it cannot be filtered or attenuated.
+
+\bExample \textbf{Example of image frequencies in superheterodyning}.
+In general, with high-side injection:
+\begin{equation}
+f_{\textrm{IM}} = f_{\textrm{LO}}+f_{\textrm{IF}} = f_{\textrm{RF}} + 2 f_{\textrm{IF}}.
+%\label{eq:}
+\end{equation}
+\codl{snip_digi_comm_mixerFrequencies} illustrates how to obtain frequencies of interest associated to a mixer. In this case, 
+\co{LOh=1855,LOl=945,IMh=2310,IMl=490}.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_mixerFrequencies}{snip_digi_comm_mixerFrequencies}
+
+From \codl{snip_digi_comm_mixerFrequencies}, it can be seen that choosing a high value for $f_{\textrm{IF}}$ is beneficial for alleviating the requirements on the image rejection filter. However, the higher $f_{\textrm{IF}}$, the more difficult it is to have analog 
+amplifiers with high gain.
+Therefore, before a mixer, an image rejection filter should be positioned. 
+\eExample 
+
+\figl{radioReceiver4}
+illustrates a superheterodyne receiver architecture that supports tuning. In this case,
+the RF filter is called \emph{preselector}\index{Preselector filter} because it is tunable and responsible for image rejection.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidthLarge,keepaspectratio]{FiguresTex/radioReceiver4}		
+	\caption{Superheterodyne AM receiver with the preselector filter responsible for image rejection.\label{fig:radioReceiver4}}
+\end{figure}
+
+\figl{radioReceiver4} illustrates the adoption of
+\emph{gang tuning}\index{Gang tuning}, which means that adjustments of 
+the center frequency of the preselector and the LO frequency are tied together (often mechanically, via the same tuning knob). As indicated by the relations in \codl{snip_digi_comm_mixerFrequencies}, when the user tunes the radio, the frequencies $f_{\textrm{RF}}$ and $f_{\textrm{LO}}$ are simultaneously varied, always keeping a difference of $f_{\textrm{IF}}$ between them.
+
+The literature in radio receivers is vast and there are several alternatives to the
+architectures discussed here. For example, a carrier synchronization scheme could be added
+to the architecture of \figl{radioReceiver4}  to support synchronous demodulation.
+As another example, \figl{radioReceiver5} illustrates a superheterodyne architecture where
+the image rejection task is split between two filters and a second oscillator is used.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidthLarge,keepaspectratio]{FiguresTex/radioReceiver5}		
+	\caption{Alternative architecture to \figl{radioReceiver4} with an extra filter to perform image rejection and a second LO for converting from IF to baseband.\label{fig:radioReceiver5}}
+\end{figure}
+
+In the case of \figl{radioReceiver5}, the first LO is responsible for bringing the desired signal spectrum to $f_{\textrm{IF}}$ and the second LO converts from $f_{\textrm{IF}}$ to zero.
+
+
+\section{Concepts and Elements of Communication Systems}
+\label{sec:elements_analogComm}
+
+Some concepts of communication systems are discussed in the sequel, with emphasis
+to analog communications while Section~\ref{sec:elements_digitalComm} concentrates
+in digital communications.
+
+\subsection{Tx and Rx are designed according to the channel}
+
+A communication system designer builds the transmitter (Tx) and receiver (Rx) taking advantage of the many degrees of freedom available and techniques developed over the last decades. The real-world \emph{channels} are analog and the better the designer understands the channel, the more efficient can be the design of the Tx and Rx blocks. To some extent, the designer even has control over specific channel parameters. For example, the operating frequency of a wireless digital communication can be chosen or the diameter of the copper wire used in a DSL deployment. Or an optical fiber can be built according to desired properties for signal transmission. However, in many telecommunication studies, the designer is assumed to have no control over the channel and the task is to use it in the best way.
+% and can simply design the to the given channel.
+
+\subsection{Modulation}
+The role of modulation is to create waveforms that can withstand the channel and be properly interpreted by the receiver. For example, when using the atmosphere in wireless systems, antennas
+may become large when the system operates at low frequencies.\footnote{\raggedright See \akurl{http://www.radio-electronics.com/info/propagation/em_waves/electromagnetic-waves-spectrum.php}{5ant}.} Ideally, an antenna requires a radiating element that is at least one-quarter of the wavelength $\lambda$ given by
+\begin{equation}
+\lambda = c / f,
+\label{eq:antenna}
+\end{equation}
+with $c \approx 3 \times 10^8$ m/s being approximately the speed of radio waves (and light) and $f$ the wave frequency. If $s(t)$ has a spectrum concentrated in $f=1$~kHz, for example, $\lambda=300$~km and the ideal antenna would have 75~km. Hence, a common task of the modulator is frequency translation, also called \emph{frequency upconversion}\index{Upconversion (frequency)} or simply upconversion.
+% (or \emph{heterodyning}). 
+
+For example, assume that the source information $m(t)$ is an analog voice signal obtained with a microphone that has its power concentrated at frequencies from DC to 4~kHz. The multiplication of $m(t)$ by a sinusoid $c(t)=\cos(2 \pi f_c t + \phi_c)$ translates the spectrum $M(f)$ of $m(t)$, originally centered at DC, to the carrier frequency $f_c$. The multiplication $m(t) \times c(t)$ by a carrier is the most common method of frequency upconversion, which is used by many modulators.
+
+Some people consider that ``modulation'' corresponds \textbf{only} to this process of frequency upconversion via a carrier. 
+%One reason for this nomenclature is that, in cases such as the previous example, the transmitter outputs $s(t) = m(t) \times c(t)$, i.\,e., the modulation process is simply this upconversion.
+ However, in this text, following the modern jargon, the term modulation denotes the flexible process of incorporating information into a waveform $s(t)$. And it should be noted that this modulation process may even not include frequency upconversion.\footnote{An example is pulse-coded modulation (PCM) in digital telephony, which does not include upconversion.} 
+These two definitions are highlighted in \tabl{modulationJargon}.
+
+\begin{table}
+\centering
+\caption{Two distinct definitions of modulation.\label{tab:modulationJargon}}
+\begin{tabular}{|l|c|}
+\hline
+\emph{Classic} & Frequency upconversion by carrier \\ \hline
+\emph{Modern} & Mapping information into a waveform \\ \hline
+\end{tabular}
+\end{table}
+
+
+When the communication system does not use upconversion and most of the power is concentrated in the vicinities of 0 Hz, it is said to operate in \emph{baseband}\index{Baseband systems}. The systems that use frequency upconversion are called 
+%\emph{passband}\index{Passband systems} or 
+\emph{bandpass}\index{Bandpass systems}.
+
+%\emph{AK: need to adopt a convention for the name ``modulation'' because it has several meanings in digital communication.}
+%Too early to describe it:
+%Modulation is often followed by pulse shaping while demodulation is often preceded by a filtering or an integrate-and-sample operation.
+
+ 
+\subsection{Duplexing: Sharing the channel in full-duplex systems}
+
+Most communication systems are \emph{full-duplex}, meaning that the information can simultaneously flow in both directions.\footnote{The terms \emph{simplex} and \emph{half-duplex} are used for one direction and both, but not simultaneously, respectively.}
+
+In some full-duplex systems, the transmit and receive channels can be clearly distinguished because, for example, there is an individual circuit for each channel. In other cases, full-duplex operation is emulated by \emph{duplexing}\index{Duplexing}. Duplexing is often performed by creating channels via time-division duplex (TDD) or frequency-division duplex (FDD). TDD divides the time into \emph{slots} that are allocated to the transmitter and receiver, while FDD adopts distinct frequency bands to Tx and Rx.
+
+Besides TDD and FDD, another enabling technique for achieving full-duplex is \emph{echo cancellation}. The principle is that the transmitter knows its signal $s(t)$ and can subtract it from the observed signal $s(t)+r(t)$ to recover $r(t)$.
+In practice, special circuits or digital signal processing are used to try separate the Tx and Rx signals. 
+For example, in the telephony copper plant, a \emph{hybrid} circuit is used to split the Tx and Rx paths. In radar and other wireless communication systems, another three-port network called \emph{duplexer} allows the transmitter and receiver to use the same antenna \akurl{http://www.rfsolutions.com/duplex.htm}{5dup}.
+
+\subsection{TDD/FDD versus TDM/FDM versus TDMA/FDMA}
+
+Very close to TDD and FDD are the concepts of TDM (\emph{time-division multiplex}) and FDM (\emph{frequency-division multiplex}). While the term duplex (TDD and FDD) is used when emulating a full-duplex operation between a pair of communication agents, multiplexing (TDM or FDM) is adopted when several signals, eventually from different users, are organized to share the same channel, which is typically point-to-point. 
+
+Yet another close pair of concepts is TDMA and FDMA, which are techniques for \emph{multiple access}
+ that are based on time and frequency-division as in TDM and FDM, but also include the required protocols for a user to get access to a time-slot (in case of TDMA) or a frequency (in case of FDMA). 
+TDMA, FDMA, CDMA (code division multiple access) or combinations of them are often used in point-to-multipoint connections. For example, the Long-Term Evolution (LTE) wireless communication standard uses both TDMA and FDMA, simultaneously.
+
+Beware of the fact that the jargon with respect the these terms is not always consistent.
+
+%Sklar, Cap 11 states that FDMA and TDMA are ``faster adaptation'' than FDM and TDM.
+
+%\section{Generating signals at the transmitter}
+
+%\subsection{Basic passband binary transmission: ASK, FSK and PSK}
+%AK-PUT-BACK: moved to Chapter 6 ???
+
+\subsection{Thermal noise and receiver noise floor}
+\label{sec:thermalNoise}
+
+The \emph{thermal noise}\index{Thermal noise} (or Johnson–Nyquist noise) 
+is created by the agitation of charged particles such as electrons and increases
+with the temperature.\footnote{Thermal noise is discussed in many textbooks. A good summary can be found at \akurl{http://www.qsl.net/va3iul/Noise/Understanding\%20Noise\%20Figure.pdf}{5nfi}. In this text the thermal noise will be simply modeled as WGN.} It 
+is often modeled as having a flat PSD with (unilateral) level given by
+\begin{equation}
+\no = K_b T_k,
+\label{eq:psdThermal}
+\end{equation}
+where $T_k$ is the absolute temperature in Kelvin and  $K_b \approx 1.38 \times 10^{-23}$~J/K is the  Boltzmann's constant in Joules per Kelvin.
+
+The \emph{room temperature}\index{Room temperature} is often assumed to be a value
+between 290 and $300$~K (17 to 27 degrees Celsius, respectively) and, assuming $T_k=300$, 
+then $\no = 4.14 \times 10^{-21}$~W/Hz or, alternatively, $-174$~dBm/Hz.
+
+Because the PSD is white, the noise power $\calP$ that it imposes to the receiver depends on the bandwidth (BW) of the receiver analog front end according to $\calP=\no \BW$. Due to \equl{psdThermal},
+the thermal noise PSD is often specified through the temperature $T_k$, in Kelvin.
+Hence, even if the actual temperature is 290~K, for example, it is possible to state that 
+the  ``equivalent noise temperature'' is $T_k=50$~K or any other value that reflects
+the correct PSD $\no$.
+
+The so-called \emph{noise floor}\index{Noise floor}
+is the noise power experienced by a receiver and is typically
+modeled as thermal noise (note that the receiver may be impacted
+by other noise sources and even human-made interference signals).
+It is often important to have a good estimate of the noise
+floor because any other impairment (such as
+the ADC quantization noise) with power significantly lower than
+the noise floor will seldom deteriorate the receiver performance.
+For example, given a noise floor with PSD $\no=-174$~dBm/Hz, 
+it is sensible to allow a quantization noise with flat PSD 
+of $-194$~dBm/Hz given that it is 20~dB below the noise floor.
+
+\section{Signal to Noise Ratio (SNR)}
+
+%Considering the previous block diagram, 
+In communication systems, the \emph{signal to noise power ratio} or simply \emph{signal to noise ratio} (SNR)\index{Signal to noise ratio}\index{SNR} is an import figure of merit. It is very meaningful especially for analog systems, where the fidelity between the transmitted $s(t)$ and received $r(t)$ waveforms is crucial, in a scheme such as:
+\[
+\fbox{Tx} \rightarrow  s(t) \arrowedbox{Channel} r(t) \rightarrow  \fbox{Rx}.
+\]
+
+Conceptually, a SNR is simply the power of the signal of interest divided by the power of the ``undesired'' signal.
+This undesired signal (which is often a parcel of the received signal) may be composed of noise, interference and, eventually, a result of channel distortion. Hence, SNR can be very broadly defined as the ratio between the two power values:
+\begin{equation}
+\snr \defeq \frac{\calP_{\textrm{signal of interest}}}{\calP_{\textrm{undesired signal}}}.
+\label{eq:snr_simple}
+\end{equation}
+
+Depending on the communication channel, it may not be trivial to estimate the two signals in \equl{snr_simple} and then calculate their power values.
+To simplify the following discussion, unless otherwise stated:
+\begin{itemize}
+	\item SNR is evaluated at the receiver,
+	\item the channels are time-invariant and the random signals are stationary.
+\end{itemize}
+
+%Assuming the transmitted $s(t)$ is the signal of interest, it must be noted that $s(t)$ is not known at the receiver, where it eventually arrives contaminated by noise and interference and after being distorted by the channel. 
+
+It is also useful to assume the received signal $r(t)$ can be written as 
+$r(t) = r_s(t)+r_u(t)$, where $r_s(t)$ and $r_u(t)$ are the parcels that
+represent the signal of interest and the undesired signal, respectively.
+
+In this specific case, one can write \equl{snr_simple} as
+\begin{equation}
+\snr \defeq \frac{\ev[|r_s(t)|^2]}{\ev[|r_u(t)|^2]} = \frac{\ev[|r_s(t)|^2]}{\ev[|r(t)-r_s(t)|^2]}.
+\label{eq:snr_simple2}
+\end{equation}
+When performing simulations, the user typically has knowledge of both $r_u(t)$ and $r_s(t)$ such that the SNR can be easily calculated using \equl{snr_simple2}. Another situation that enables using \equl{snr_simple2} is when $s(t)$ is a training signal known to the receiver, and $r_s(t)$ can then be recovered at the receiver from $r(t)$.
+However, in practice, estimating the SNR is a relatively difficult task given that the  receiver does not necessarily know $s(t)$.% nor $r_s(t)$.
+
+The next paragraphs discuss the SNR definition in the specific context of the AWGN channel, which
+was introduced in \exal{AWGNchannelIntroduction}.
+
+\subsection{SNR definition for AWGN}
+The SNR estimation is simplified when the channel is AWGN. 
+In this case, the signal of interest $r_s(t)$ is the transmitted signal $s(t)$ itself and the undesired component $r_u(t)$ is WGN $\nu(t)$ with power $\sigma^2$. Therefore, the received signal can be written as $r(t)=s(t)+\nu(t)$.
+
+Hence, the SNR for AWGN is given by
+\ignore{
+\begin{align}
+\snr & = \frac{\ev[|s(t)|^2]}{\ev[|\nu(t)|^2]} = \frac{\ev[|r(t)-\nu(t)|^2]}{\ev[|\nu(t)|^2]} \nonumber \\
+     & = \frac{\ev[|r(t)|^2]}{\ev[|\nu(t)|^2]} - 1 
+\end{align}
+}
+\begin{equation}
+\snr = \frac{\ev[|r_s(t)|^2]}{\ev[|r_u(t)|^2]}  = \frac{\ev[|s(t)|^2]}{\ev[|\nu(t)|^2]} = \frac{\ev[|r(t)-\nu(t)|^2]}{\ev[|\nu(t)|^2]}  = \frac{\ev[|r(t)|^2]}{\ev[|\nu(t)|^2]} - 1 = \frac{\calP_r}{\sigma^2} - 1,
+\label{eq:snr_awgn}
+\end{equation}
+where $\calP_r$ is the power of $r(t)$. For deriving \equl{snr_awgn}, $r(t)$ and $\nu(t)$ were assumed to be uncorrelated such that
+$\ev[|r(t)-\nu(t)|^2] = \ev[|r(t)|^2]]- \ev[|\nu(t)|^2]$, as suggested by Application~\ref{app:power_of_sum_signals}.
+
+%In this case, the SNR can be estimated using the received signal $r(t)$ instead of $s(t)$.
+ Note that \equl{snr_awgn} requires an estimate of the noise power $\sigma^2$ at the receiver, which may not be trivial.
+%Note the subtraction of 1 in \equl{snr_awgn}. 
+%If one defines $\snr' = {\ev[|r(t)|^2]}/{\ev[|n(t)|^2]}$, then $\snr = \snr' - 1$.
+
+Note also that scaling the output of the AWGN channel does not alter the SNR.
+As it will be further detailed in Section~\ref{sec:noiseFactor}, any gain imposed at the AWGN receiver affects both the signal of interest and the noise.
+
+\subsection{Signal to interference plus noise ratio (SINR) definition}
+\label{sec:sinr}
+
+When the received signal is affected not only by noise, but also by ``human-made'' interference, it is useful to write \equl{snr_simple} to account for the interference power $\calP_i$, composing the \emph{signal to interference plus noise ratio} (SINR)\index{Signal to interference plus noise ratio (SINR)}:
+\begin{equation}
+\textrm{SINR} \defeq \frac{\calP_s}{\calP_{\nu} + \calP_i},
+\label{eq:sinr}
+\end{equation}
+where $\calP_s$ is the power of the signal of interest $r_s(t)$ and $\calP_{\nu}$ is the noise (typically WGN) power.
+
+\subsection{SNR definition for non-dispersive flat-fading channel}
+%It is possible to define an SNR that involves signals at both the transmitter and receiver, 
+%\begin{equation}
+%\snr_{\textrm{TxRx}} \defeq \frac{\ev[|s(t)|^2]}{\ev[|s(t)-r(t)|^2]},
+%\label{eq:snr_simple2}
+%\end{equation}
+%where $\calP_s=\ev[|s(t)|^2]$ is the signal power at the transmitter and the denominator evaluates the power of an error signal $s(t)-r(t)$. 
+
+%Most of the times one is not concerned with the $h_\textrm{Tx}(t)$ and $h_\textrm{Rx}(t)$ filters, such that the waverforms $r_r(t)$ and $s_t(t)$ are the continuous-time versions of $r[n]$ and $s[n]$. In this case, a more convenient representation is
+
+%, where it arrives contaminated by noise and interference and after being distorted by the channel. 
+The channel model can be made more realistic by incorporating a LTI system. A useful model is to have the transmitted signal convolved with the LTI system impulse response $h_c(t)$ and then contaminated by additive noise $\nu(t)$. The noise $\nu(t)$ is added at the receiver, after the LTI system, such that the received signal is
+\begin{equation}
+r(t) = s(t) \conv h_c(t) + \nu(t).
+\label{eq:ltiGaussianChannelPreliminar}
+\end{equation}
+This channel will be further discussed in Chapter~\ref{ch:channels} and is depicted in \figl{frequency_selective_channel}. 
+
+Using \equl{snr_simple2} is tricky in this case because estimating $r_s(t)$ from $r(t)$ given by \equl{ltiGaussianChannelPreliminar} may be far from trivial due to the effect of $h_c(t)$. Hence, the following simplification is sometimes adopted: the channel impulse response is assumed to be simply $h_c(t) = \kappa \delta(t)$, which corresponds to a non-dispersive channel that scales the input by a gain $\kappa$. This is a special case of the flat-fading channel depicted in \figl{flat_channel}. The received signal is
+\[
+r(t) = \kappa s(t) + \nu(t)
+\]
+and its parcel of interest is $r_s(t)=\kappa  s(t)$. Note that the gain scales only $s(t)$, not the noise. \equl{snr_awgn} can be used in this case or, alternatively, the SNR can be written as
+\begin{equation}
+\snr = \frac{\ev[|r_s(t)|^2]}{\ev[|\nu(t)|^2]} = \frac{\kappa^2 \ev[|s(t)|^2]}{\ev[|\nu(t)|^2]}.
+\label{eq:snrAtReceiver}
+\end{equation}
+%\equl{snr_awgn} can also be written be seen as a special case of \equl{snrAtReceiver} with $\kappa=1$ and $\nu(t)$ as WGN with power $\sigma^2$.
+
+\subsection{Carrier-to-noise density ratio}
+\label{sec:cno}
+
+When estimating the thermal noise power, in many situations the receiver bandwidth BW is unknown.
+In such cases, it is useful to adopt the concept of \emph{carrier-to-noise density ratio}\index{Carrier-to-noise density ratio} ($C/\no$), which can be seen as a SNR adopting BW of 1~Hz with
+unit $dB \times Hz$.
+
+\subsection{General comments on SNR estimation}
+Even for relatively simple channel models, it is often not possible to directly apply \equl{snr_simple2} nor \equl{snrAtReceiver}. Therefore, there are many SNR estimators that depend especially on the model adopted for the channel and, sometimes, on the signal statistics. 
+Of course, the SNR can be defined in a way that makes easier its estimation. These aspects lead to the existence of distinct definitions of SNR in the telecommunications literature, which is sometimes confusing.
+% and care must be exercised to distinguish, for example, if the SNR is defined at the transmitter or receiver, as discussed.
+
+Definitions of SNR may also take into account the adopted bandwidth and the impedance of the component that signals were extracted from. For example, when the noise at the receiver is modeled as white with PSD level $\no/2$, knowing the bandwidth $\BW$ is required to calculate the noise power $\calP=\no \, \BW$. In this case, the adopted $\BW$ is typically assumed to be the bandwidth of the signal of interest or \emph{signaling bandwidth}\index{Signaling bandwidth}, given that with a good filtering strategy, the \emph{out-of-band} noise can be eliminated.
+
+The SNR estimation can be ``blind'' or ``aided''. For example, an ``aided-estimation'' may rely on pre-specified \emph{pilot} or training signals such that the receiver knows the transmitted symbols and, consequently, can try generating a local copy of $s(t)$.
+% or of the symbols $s(t)$ represents. 
+These known signals do not carry information and are simply ``overhead''. Hence, there is significant interest on blind SNR estimation methods. % that do not incur in overhead.
+
+
+\section{Link Budget}
+
+The analysis of gains and losses along a transmission path is called \emph{link budget}\index{Link budget} and allows to quantify the link performance. It is typically a high-level description of a communication system and takes in account the attenuation over the medium (\emph{path loss}\index{Path loss}), the antenna gains (often specified in dBi, the gain with respect to the hypothetical \emph{isotropic antenna}), amplifiers, attenuators, etc. For example, a link budget with powers in dBm can be expressed generically by
+\begin{equation}
+\calP_{\textrm{Rx}} \textrm{~(dBm)} = \calP_{\textrm{Tx}} \textrm{~(dBm)} + \textrm{gains~(dB)} - \textrm{losses~(dB)},
+\label{eq:linkBudgetIndBm}
+\end{equation}
+where $\calP_{\textrm{Rx}}$ and $\calP_{\textrm{Tx}}$ are receive and transmit powers, respectively, which can be specified in dBW or any other absolute power unit in dB scale.
+
+There are many sophisticated models to be used in link budget calculations (e.\,g., for propagation over a given medium) and also simplified expressions such as the free-space path loss (used in the popular Friis transmission equation). These are briefly discussed in this section, but first
+the concepts of sensitivity and link margin are highlighted.
+
+\subsection{Sensitivity and link margin}
+\label{sec:sensitivity}
+The \emph{receiver sensitivity}\index{Sensitivity} is the minimum detectable input power $\calP_{\textrm{min}}$ of the signal to produce an ``acceptable'' output. The notion of ``acceptable'' depends on many aspects, such
+as the modulation scheme and can be specified, for instance, 
+by a minimum $\textrm{SNR}_{\textrm{min}} = \calP_{\textrm{min}} / \calP_n$, where $\calP_n$ is the
+total noise power at the receiver.
+
+In digital communications, $\textrm{SNR}_{\textrm{min}}$ can be obtained from standards
+or, for example, link-level simulations that indicate the SNR value to restrict the 
+bit error rate to the maximum allowed value. 
+
+The difference (in dB scale) between the receiver sensitivity and the actual received power is called the \emph{link margin}\index{Link margin}.\footnote{Examples of link budget calculations can be found on the Web. An example of a 802.11 link bugdet with associated margins can be found at \akurl{https://www.internetsociety.org/wp-content/uploads/2017/10/Link-Budget-Calculation.pdf}{5lbu}.} For example, a reliable wireless link can eventually require a minimum margin of 10~dB.
+
+%Leonardo's hint:
+%Aldebaro, o link do exercício 5.5 ( url5lbu : http://www.piscespacific.org/livesite/files/Link_Budget_Calculation.pdf) está quebrado. Creio que um link com o mesmo materail seja esse aqui: https://www.internetsociety.org/wp-content/uploads/2017/10/Link-Budget-Calculation.pdf
+
+
+
+\bExample \textbf{Sensitivity example}. 
+\label{ex:gsmsensitivy}
+Assume that a given telecommunication standard requires a sensitivity of $-100$~dBm 
+for a compliant 
+receiver. The standard also provides information about the assumed noise models and
+how to test the receivers. Hence, the chip makers design the IC to withstand such
+impairments. For simplicity, assume that the minimum SNR for
+proper operation is $\textrm{SNR}_{\textrm{min}}=20$~dB and the noise power
+suggested by the standard is $\calP_n=-120$~dBm. 
+
+When the designed IC receiver is operating at low-noise environments, with 
+e.\,g. $\calP_n=-150$~dBm, the link margin is 30~dB and a link budget calculation
+can assume the sensitivity is $-100$~dBm.
+
+However, when the noise power increases e.\,g. to $\calP_n=-110$~dBm, a link
+budget should assume the sensitivity is $-90$~dBm in order to cope with the
+requirement of $\textrm{SNR}_{\textrm{min}}=20$~dB.
+\eExample 
+
+%The sensitivity concept can also be applied to specific blocks within a processing chain. For example, a commercial AM broadcast receiver can be designed such that the power at the output of the audio stage, which drives the speaker, is approximately 27~dBm with an SNR of 10~dB.
+
+
+\subsection{Free-space propagation}
+
+Assuming the transmitter antenna radiates isotropically,\footnote{For examples of isotropic 
+radiation and a comprehensive treatment of 
+antennas, see e.\,g.~\cite{Stutzman12}, specially Section 4.4 ``Antennas in Comm. Systems'', pp. 107.} the power density on the surface
+of a sphere with radius $d$ is $\calP_{\textrm{Tx}} / (4 \pi d^2)$, where 
+$\calP_{\textrm{Tx}}$ is the power in linear scale (not dB).
+Completing this simplified model with a receiver antenna with \emph{effective area} $A_{\textrm{Rx}}$, the 
+received power is then
+\begin{equation}
+\calP_{\textrm{Rx}}  =   \frac{ \calP_{\textrm{Tx}} }{4 \pi d^2} A_{\textrm{Rx}}.
+\label{eq:receivedPowerFreeSpace}
+\end{equation}
+
+Practical antennas are not isotropic and the transmit gain $G_{\textrm{Tx}}$ helps
+to estimate the received power as $\calP_{\textrm{Rx}}  = (\calP_{\textrm{Tx}} G_{\textrm{Tx}} A_{\textrm{Rx}}) / (4 \pi d^2)$,
+where $G_{\textrm{Tx}}$ is the correction factor obtained for the
+transmit antenna in the direction of the receive antenna. 
+The product $G_{\textrm{Tx}} \calP_{\textrm{Tx}}$ is called \emph{equivalent} or \emph{effective
+isotropically radiated power}\index{EIRP - equivalent
+isotropically radiated power} (EIRP). In some texts, the EIRP definition incorporates the
+attenuation imposed by cables connecting the transmitter to its antenna, but this is not 
+adopted here. The EIRP in dB, is given by
+\begin{equation}
+\textrm{EIRP (dB)} = 10 \log_{10} (G_{\textrm{Tx}}) + 10 \log_{10} (\calP_{\textrm{Tx}}),
+\label{eq:eirp_dB}
+\end{equation}
+
+Note that a passive circuit working as an antenna could not increase the signal power, i.\,e., provide
+a gain larger than one. But $G_{\textrm{Tx}}$ is a ``gain'' with respect to the ideal isotropic radiation and is obtained in practice by designing antennas that have large \emph{directivity}\index{Directivity} along the receiver direction.
+
+An alternative way to define the antenna gain, which is particularly convenient 
+for a receiver antenna is
+\begin{equation}
+G_{\textrm{Rx}} = \frac{4 \pi}{\lambda^2} A_{\textrm{Rx}},
+\label{eq:receiverAntennaGain}
+\end{equation}
+where $\lambda$ is the signal wavelength and 
+$A_{\textrm{Rx}}$ is the effective area used in \equl{receivedPowerFreeSpace}. For a given $A_{\textrm{Rx}}$, \equl{receiverAntennaGain} 
+indicates that the antenna gain increases when the wavelength decreases.
+In other words, increasing the ``size'' of the antenna in terms of the number of
+wavelengths is beneficial with respect to $G_{\textrm{Rx}}$.
+
+From \equl{receiverAntennaGain}, one can write $A_{\textrm{Rx}} = (G_{\textrm{Rx}} \lambda^2) / (4 \pi)$. Then, substituting $A_{\textrm{Rx}}$ into \equl{receivedPowerFreeSpace} and taking
+in account $G_{\textrm{Tx}}$, leads to
+\begin{equation}
+\calP_{\textrm{Rx}}  = \calP_{\textrm{Tx}}  G_{\textrm{Tx}} G_{\textrm{Rx}}  \left( \frac{\lambda}{4 \pi d} \right)^2,
+\label{eq:frissInLinearScale}
+\end{equation}
+which is called \emph{Friis transmission equation}\index{Friis transmission equation}.
+
+Several assumptions are implicit in \equl{frissInLinearScale}:
+\begin{itemize}
+	\item as indicated by ``free-space'', there is \emph{line-of-sight}\index{Line-of-sight (LOS)} (LOS) between transmitter and receiver without secondary paths caused e.\,g. for reflections;
+	\item both antennas are matched in impedance to their feeder cables;
+	\item the antennas have identical and aligned \emph{polarizations}\index{Polarization (antenna)}.
+\end{itemize}
+
+These conditions are not completely met in practice but the Friis transmission equation is a good
+starting point for link budget calculation and is more explored in the next section.
+
+\subsection{Free-space path loss}
+
+%\defeq 10 \log_{10}(\calP_{\textrm{Rx}}/\calP_{\textrm{Tx}}) = 
+From \equl{frissInLinearScale}, the \emph{free-space path loss}\index{Free-space path loss} can be defined as
+\[
+L_{\textrm{fs}} = \left( \frac{4 \pi f d}{c} \right)^2,
+\]
+where $d$ is the distance between Tx and Rx, $f$ the frequency and $c=f \lambda$ the speed of light. $L_{\textrm{fs}}$ can be conveniently written in dB as
+\begin{equation}
+L_{\textrm{fs}} = 32.45 + 20 \log_{10}(d) + 20 \log_{10}(f),
+\label{eq:freeSpacePathLoss}
+\end{equation}
+with $d$ given in km and $f$ in MHz.
+%and $L_{\textrm{fs}}$ is given in dB. 
+For example, when $f=2.4$~GHz, \equl{freeSpacePathLoss} simplifies to $L_{\textrm{fs}} = 100+20 \log_{10}(d)$. 
+
+The Friis transmission equation of \equl{frissInLinearScale} in logarithm scale is
+\begin{equation}
+\calP_{\textrm{Rx}} = \calP_{\textrm{Tx}} + G_{\textrm{Tx}} + G_{\textrm{Rx}} - L_{\textrm{fs}},
+\label{eq:friisTransmissionEq}
+\end{equation}
+which takes in account the antenna gains $G_{\textrm{Tx}}$ and $G_{\textrm{Rx}}$ in dBi (decibel isotropic) and $L_{\textrm{fs}}$ is given by \equl{freeSpacePathLoss}.
+
+\subsection{Path loss and other losses in link budgets}
+
+It can be seen that \equl{friisTransmissionEq} is a special case of a link budget
+as described by \equl{linkBudgetIndBm}, in which the only loss is the path loss $L_{\textrm{fs}}$.
+More realistic link budgets incorporate losses other than $L_{\textrm{fs}}$. 
+For example, when the transmitter and receiver are located relatively far from the
+antennas (which may be in high towers while the other equipment are in a cabinet or shelter), the feeder cable loss $L_{\text{cables}}$ may have significant impact and be accounted as
+\begin{equation}
+\calP_{\textrm{Rx}} = \calP_{\textrm{Tx}} + G_{\textrm{Tx}} + G_{\textrm{Rx}} - L_{\textrm{pl}}  - L_{\text{cables}},
+\label{eq:realisticLinkBudget}
+\end{equation}
+where $L_{\textrm{pl}}$ is the path loss and, as in all link budgets in logarithmic scale,
+$\calP_{\textrm{Rx}}$ and $\calP_{\textrm{Tx}}$ can be in dBm or dBW, for example, but both using 
+the same absolute dB unit. 
+
+Besides $L_{\text{cables}}$, the loss due to connectors, duplexer and the handset user body are often 
+taken in account.
+
+A model to estimate $L_{\textrm{pl}}$ more accurately
+in specific wireless communication scenarios is the COST Hata (also called COST-231) model.
+
+\subsection{Path loss using the COST Hata model}
+
+There are many radio propagation models and some of them require several input parameters. 
+The COST Hata model is a relatively simple option, adopted mainly for 
+wireless communication systems in urban areas and for
+frequencies in the range of 1.5 to 2~GHz. It represents an evolution from the Okumura and Okumura-Hata
+models and is implemented in \ci{ak\_pathLossCost231.m}.
+
+Besides the frequency and distance between antennas, this model requires
+the heights of the antennas at the base station and mobile station.
+\codl{snip_digi_comm_path_loss} illustrates the loss predicted by this model and compares
+it to the free space path loss.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_path\_loss}{snip_digi_comm_path_loss}
+
+\begin{figure}[htbp]
+  \begin{center}
+    \includegraphics[width=6cm]{Figures/pathlosses}
+  \end{center}
+  \caption{Path loss for the free space and COST Hata models, assuming a frequency of 2~GHz.\label{fig:pathlosses}}  
+\end{figure}
+
+\figl{pathlosses} shows the result of executing \codl{snip_digi_comm_path_loss}. For the adopted
+frequency of 2~GHz and assuming a distance of 20~km, the COST Hata model predicts a loss 
+of 178.0~dB, while the free space loss (124.5) is 53.5~dB lower.
+
+\bExample \textbf{GSM coverage distances using COST Hata and free space models}. 
+\label{ex:gsmcoverage}
+Free space propagation according to \equl{freeSpacePathLoss} provides very optimistic results. In this example, GSM downlink transmission
+is assumed, with the handset having a standardized receiver sensitivity of $-102$~dBm. It is assumed a 
+software-defined transmitter with power $\calP_{\textrm{Tx}}=3$~W 
+(approximately $34.8$~dBm, which is relatively low given that
+a base station can use e.\,g. $\calP_{\textrm{Tx}}=44.5$~dBm) and antenna gain $G_{\textrm{Tx}}=6$~dBi.
+The receiver antenna is limited by the handset size and it is assumed to have 
+gain $G_{\textrm{Rx}}=-3$~dBi. 
+The feeder cable loss considering both the transmitter and receiver is $L_{\text{cables}}=4$~dB. 
+Using \equl{eirp_dB}, the EIRP is $34.8+6=40.8$~dBm and \codl{snip_digi_comm_friis_gsm} illustrates
+how to obtain the maximum distance for the frequencies 900~MHz, 1.8, 2.1 and 2.5~GHz using
+both the COST Hata and free space models.
+
+For the COST Hata model, it is also assumed the heights of the antennas at the base station and mobile station are 30 and 1.5~m, respectively. The function \ci{ak\_distanceCost231.m} has the path loss
+as an input parameter and outputs the distance in which this loss is reached.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_friis\_gsm}{snip_digi_comm_friis_gsm}
+
+Omitting the warning messages that indicate some frequencies are outside
+the range $[1.5, 2]$~GHz for the COST Hata model, the code output is:
+\begin{verbatim}
+900 MHz, FS=163.4438 and COST=2.4699 km
+1800 MHz, FS=81.7219 and COST=1.2298 km
+2100 MHz, FS=70.0473 and COST=1.0531 km
+2500 MHz, FS=58.8398 and COST=0.88368 km
+\end{verbatim}
+As expected, the free space (FS) model leads to very large distances, corresponding to unrealistic coverage. 
+In fact, GSM deployments often limit the cell range to 35~km.
+The reach predicted by the COST Hata model is more reasonable but, in practice, many
+aspects influence the actual coverage. Therefore, if possible, a measurement campaign is very
+useful to tune the model estimation.
+\eExample
+
+The coverage estimation performed in \exal{gsmcoverage} was relatively simple because
+a standardized receiver sensitivity (of $-102$~dBm) was adopted. This allowed the analysis
+to focus solely on the signal power at the receiver. But, using your intuition, consider
+a situation in which the noise power at the receiver constantly increases. 
+As discussed in Section~\ref{sec:sensitivity}, at some point,
+the communication will be interrupted. An implicit assumption in
+\exal{gsmcoverage} is that the actual 
+noise is not stronger than the noise models adopted in
+the corresponding standard. To properly understand link budgets that account for noise sources,
+two other important definitions are the \emph{noise figure}\index{Noise figure (NF)} (NF) and \emph{noise factor}.
+
+\subsection{Noise factor and noise figure}
+\label{sec:noiseFactor}
+
+As discussed in Section~\ref{sec:thermalNoise}, no matter how sophisticated is an electronic device, thermal noise will always affect its performance. 
+The \emph{noise factor}\index{Noise factor} (F) is used to indicate how much thermal noise is generated by a device, such as an amplifier. 
+
+An ideal amplifier simply scales its input as indicated by:
+
+where the signals $x(t)$ and $y(t)$ are in Volts, for example. The voltage gain is denoted by $\sqrt{G}$ because $G$ is reserved to represent the power gain in this section. With $\calP_{\textrm{in}}$ and $\calP_{\textrm{out}}$ being the powers of $x(t)$ and $y(t)$, respectively, one has $\calP_{\textrm{out}} = G \calP_{\textrm{in}}$ for the ideal amplifier.
+
+If $x(t)=s(t)+\nu(t)$ is composed by a signal of interest $s(t)$ and an additive thermal noise parcel $\nu(t)$, the amplifier scales both, and outputs $y(t)=\sqrt{G}(s(t)+\nu(t))$. 
+It is assumed here that thermal is the only noise present at the device input. In Application~\ref{app:extendedNoiseFactor}, a more general situation is modeled.
+
+Assuming the powers of $s(t)$ and $\nu(t)$ at the amplifier input are $\calP_{\textrm{in}}^{s}$ and $\calP_{\textrm{in}}^{t}$, respectively, 
+the output parcel corresponding to the signal of interest has\footnote{In this section, all signals are assumed to be uncorrelated, such that the power of a summation of signals is the sum of their individual powers.} power $\calP_{\textrm{out}}^{s} = G \calP_{\textrm{in}}^{s}$.
+%Because the device itself can generate noise, the following paragraphs discuss how to obtain the output parcel corresponding to noise taking this possibility into account.
+For an ideal amplifier that does not generate noise ``internally'', the output noise power would simply be $\calP_{\textrm{out}}^{t} = G \calP_{\textrm{in}}^{t}$.
+However, in practice, this power is modeled with the adoption of a
+noise factor (F) depicted in \figl{noiseFactorBetterExplained}, which allows to write
+\begin{equation}
+\calP_{\textrm{out}}^{t} = G F \calP_{\textrm{in}}^{t}.
+\label{eq:simplifiedExpressionForNoiseOutput}
+\end{equation}
+Because $F>1$, \equl{simplifiedExpressionForNoiseOutput} leads to a value larger than
+$G \calP_{\textrm{in}}^{t}$.
+
+\begin{figure}[htbp]
+  \begin{center}
+    \includegraphics[width=6cm]{FiguresTex/noiseFactorBetterExplained}
+  \end{center}
+  \caption{Model for the noise factor F, which depends on the power of the thermal noise generated inside the device.\label{fig:noiseFactorBetterExplained}}  
+\end{figure}
+
+Therefore, a general expression for the output power $\calP_{\textrm{out}}$ in \figl{noiseFactorBetterExplained} is
+\begin{equation}
+\calP_{\textrm{out}} = \calP_{\textrm{out}}^{s} + \calP_{\textrm{out}}^{t} = G \calP_{\textrm{in}}^{s} + G \textrm{F} \calP_{\textrm{in}}^{t}
+\label{eq:amplifierOutputPower}
+\end{equation}
+and
+%The simplicity of \equl{simplifiedExpressionForNoiseOutput} is the motivation for the adopted definition of F.
+% and, consequently, to \equl{simplifiedExpressionForNoiseOutput}.
+%Besides, 
+the SNR at the output can be conveniently written as
+\begin{equation}
+\snr_{\textrm{out}} = \frac{G\calP_{\textrm{in}}^{s}}{\calP_{\textrm{out}}^{t}} = \frac{G\calP_{\textrm{in}}^{s}}{G \calP_{\textrm{in}}^{t}F} = \frac{\calP_{\textrm{in}}^{s}}{\calP_{\textrm{in}}^{t}F},
+\label{eq:snrInTermsOfF}
+\end{equation}
+such that
+\begin{equation}
+\textrm{F}  = \frac{\snr_{\textrm{in}}}{\snr_{\textrm{out}}}.
+\label{eq:noiseFactor2}
+\end{equation}
+\equl{noiseFactor2} indicates that, for the adopted model, F is the degradation of SNR caused by a device such as a radio receiver or an amplifier. 
+
+A related concept is the \emph{noise figure} (NF), which is simply the noise factor F converted to dB:
+\begin{equation}
+\textrm{NF} = 10 \log_{10} \left( \textrm{F} \right).
+\label{eq:noiseFigure2}
+\end{equation}
+
+From \equl{noiseFigure2} and \equl{noiseFactor2}, one obtains:
+\begin{equation}
+\snr_{\textrm{out}} = \snr_{\textrm{in}} - \textrm{NF}.
+\label{eq:noiseFigure3}
+\end{equation}
+Note that an ideal amplifier would have $\textrm{NF}=0$~dB. However, practical circuits have $\textrm{F} > 1$ and, consequently, $\textrm{NF}> 0$.
+For example, the NF for the analog front end of modern receivers is typically in the range from 8 to 10~dB. If a low cost receiver has a $\textrm{NF}=10$~dB and if the SNR at the receiver input is $\snr_{\textrm{in}}=40$~dB, then $\snr_{\textrm{out}}=50-10=40$~dB at its output. In a link budget, NF can 
+be seen as a loss parcel.
+
+From \equl{noiseFigure3}, NF can be related to receiver sensitivity $S$ (see Section~\ref{sec:sensitivity}) given that $\snr_{\textrm{in}}=S - \calP_{\textrm{in}}^{t}$ (in dB scale) and 
+$\calP_{\textrm{in}}^{t} = \no + 10\log_{10}(\BW)$. Hence,
+\begin{equation}
+\snr_{\textrm{out}} = S -\no - 10\log_{10}(\BW) - \textrm{NF}.
+\label{eq:nf_sensitivity}
+\end{equation}
+
+\bExample \textbf{Sensitivity of a GSM receiver analog front end}.
+The analog front end (AFE) of a GSM receiver can be designed taking into account
+that the sensitivity is $S = -102$~dBm. 
+The AFE needs to provide a minimum SNR (called $\textrm{SNR}_{\textrm{min}}$ in Section~\ref{sec:sensitivity}) at its output, which is denoted here as $\snr_{\textrm{out}}$. In fact,
+this minimum SNR and the bandwidth BW (more specifically the noise-equivalent BW) 
+depend on each standard. For GSM, that uses the GMSK modulation and channels with
+$\BW=200$~kHz, it can be assumed that $\snr_{\textrm{out}} + 10\log_{10}(\BW) = 59$~dB
+is required. Assuming a noise PSD with $\no = -174$~dBm/Hz, from \equl{nf_sensitivity}:
+\[
+\textrm{NF} = S -\no - 10\log_{10}(\BW) - \snr_{\textrm{out}} = -102 + 174 - 59 = 13~\textrm{dB}.
+\]
+In practice, IC designers aim at $\textrm{NF} < 3$~dB because there 
+are losses at the AFE (say of 3~dB) and 
+advanced receivers target $S < -109$~dBm.
+\eExample 
+
+\bExample \textbf{Using the noise figure for a single amplifier}.
+\label{ex:singleAmpNF}
+An amplifier has $G=6$ and $\textrm{F}=3$. According to the notation, the parcels that compose the input signal $x(t)$ have the following powers (all in nW): 
+$\calP_{\textrm{in}}^{t}=2$ and $\calP_{\textrm{in}}^{s}=100$, such that $\calP_{\textrm{in}}= \calP_{\textrm{in}}^{s} + \calP_{\textrm{in}}^{t}= 100+2=102$. The input SNR is
+$\snr_{\textrm{in}}=10 \log_{10} (\calP_{\textrm{in}}^{s}/\calP_{\textrm{in}}^{t})= 10 \log_{10}(100/2) \approx 16.99$~dB. 
+
+At the output, the output noise power is
+$
+\calP_{\textrm{out}}^{t} = G F \calP_{\textrm{in}}^{t} = 6 \times 3 \times 2 = 36,
+$
+which accounts for the amplified $G \calP_{\textrm{in}}^{t} = 12$~nW plus 24~nW added ``internally'' by the device.
+The following diagram summarizes the total noise powers:
+
+
+The output parcel corresponding to the signal of interest has power
+$\calP_{\textrm{out}}^{s} = G \calP_{\textrm{in}}^{s} = 6 \times 100 = 600$. Hence, the output SNR is $\snr_{\textrm{out}} = 10 \log_{10} (\calP_{\textrm{out}}^{s} / \calP_{\textrm{out}}^{\nu}) = 10 \log_{10} (600/36) \approx 12.22$~dB.
+
+This result can be obtained by calculating $\textrm{NF}= 10 \log_{10} \approx 4.77$ and, from \equl{noiseFigure3}:
+\[
+\snr_{\textrm{out}} = \snr_{\textrm{in}} - \textrm{NF} \approx 16.99 - 4.77 = 12.22,
+\]
+which is a convenient way to estimate SNRs when calculating a link budget.
+\eExample
+
+\subsection{Relation between noise figure and noise temperature}
+
+As indicated by \equl{noiseFigure3}, The NF represents a decrease in SNR and this can
+be made equivalent to adding thermal noise at a given temperature.
+%This may be confusing but implies that 
+
+As discussed, the gain $G$ (that can also represent attenuation) and NF (or F) of each communication device are used to obtain a link budget. The following section discusses the procedure for a cascade of devices.
+
+\subsection{Noise figure for a cascade of devices}
+
+Different models can be used when considering a cascade of devices or a cascade
+of components that compose a device, such as filter, mixer and amplifier composing
+a radio receiver.
+\figl{noiseFactorModelfriis} presents a widely used model when a device
+consists of a cascade of individual components and input thermal noise power $\calP_{\textrm{in}}^{t}$ is added only at the first stage.\footnote{\figl{noiseFactorModelak} in
+Application~\ref{app:extendedNoiseFactor} presents an alternative model, in which the
+thermal noise power is added at each stage.}
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/noiseFactorModelfriis}		
+	\caption{Model for a cascade of $N$ components with distinct gains and noise factors.\label{fig:noiseFactorModelfriis}}
+\end{figure}
+
+\figl{noiseFactorModelfriis} leads to an elegant equivalent model for a cascade of $N$ components or devices. In this case, the overall NF of the cascade is given by the \emph{Friis formula for noise factor}\index{Friis formula for noise factor}:
+\begin{equation}
+F_{\textrm{cascade}} = F_1 + \frac{F_2-1}{G_1} + \frac{F_3-1}{G_1G_2} + \ldots + \frac{F_N-1}{G_1G_2 \ldots G_{N-1}},
+\label{eq:friisNoiseFactor}
+\end{equation}
+where $F_i$ and $G_i$ are the noise factor and power gain of the $i$-th stage, respectively, both in linear scale. Therefore, the $N$ amplifiers can be represented by a single stage with noise factor $F_{\textrm{cascade}}$ and gain $G_{\textrm{cascade}}=G_1G_2 \ldots G_N$.
+\codl{ak_friisCascadeNoiseFactor} shows an implementation of \equl{friisNoiseFactor} in {\matlab}.
+
+%,firstnumber=1
+\lstinputlisting[caption={Code/MatlabOctaveFunctions/ak\_friisCascadeNoiseFactor},label=code:ak_friisCascadeNoiseFactor,linerange={1-1,5-9}]{./Code/MatlabOctaveFunctions/ak_friisCascadeNoiseFactor.m}
+
+Some examples of using \equl{friisNoiseFactor} are discussed in the sequel.
+
+\bExample \textbf{Usage of Friis formula for noise factor}.
+\label{ex:cascadeAmpNF}
+Assume $\calP_{\textrm{in}}^{t}=2$ and $\calP_{\textrm{in}}^{s}=100$, all in nW, and a cascade of two amplifiers with $G_1=200,\textrm{F}_1=3$ and $G_2=20,\textrm{F}_2=4$. 
+\codl{snip_digi_comm_noiseFigureSimpleExample} illustrates how to calculate performance indicators
+for the cascade according to \figl{noiseFactorModelfriis}.
+
+\lstinputlisting[caption={Code/MatlabOctaveCodeSnippets/snip\_digi\_comm\_noiseFigureSimpleExample},label=code:snip_digi_comm_noiseFigureSimpleExample]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_noiseFigureSimpleExample.m}
+
+Execution of \codl{snip_digi_comm_noiseFigureSimpleExample} informs that $\textrm{NF}_{\textrm{cascade}}=4.79$~dB, the cascaded gain is 36.02~dB the output noise power is $\calP_{\textrm{out}}^{t}=24,120$~nW. %, as commented in the footnote within Example~\ref{ex:cascadeTwoAmplifiers}.
+ The SNR values at the input and output are approximately 16.99 and 12.20~dB, respectively.
+
+The reader is invited to check that by inverting the order of the amplifiers (using the second line of \codl{snip_digi_comm_noiseFigureSimpleExample} instead of the first), the performance is significantly modified: the output SNR in this case is only 10.86~dB. In fact, due to \equl{friisNoiseFactor}, the first device should have a large gain to decrease the impact of the noise factor in subsequent stages.
+\eExample
+
+\bExample \textbf{Noise figure of a microwave receiver}.
+Assume the receiver of \figl{referenceReceiver} (that is a simplified version of
+\figl{radioReceiver4})
+with NF and gain for each stage listed in \tabl{noiseFigureReceiver}.
+\codl{snip_digi_comm_noiseFigure} shows how to evaluate the cascaded stages.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/referenceReceiver}		
+	\caption{Example of a microwave receiver.\label{fig:referenceReceiver}}
+\end{figure}
+
+\begin{table}
+\centering
+\caption{NF and gain for each stage in \figl{radioReceiver4}.\label{tab:noiseFigureReceiver}}
+\begin{tabular}{|l|c|c|}
+\hline
+Block & Gain (dB) & NF (dB) \\ \hline \hline
+Preselector filter & -0.5 & 0.5 \\ \hline
+Low noise amplifier (LNA) & 25 & 3 \\ \hline
+Intermediate frequency (IF) image reject filter & -0.8 & 0.8 \\ \hline
+Mixer & -7 & 7 \\ \hline
+IF VGA (amplifier) & 30 & 5.5 \\ \hline
+\end{tabular}
+\end{table}
+
+\lstinputlisting[caption={Code/MatlabOctaveCodeSnippets/snip\_digi\_comm\_noiseFigure},label=code:snip_digi_comm_noiseFigure]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_noiseFigure.m}
+
+\codl{snip_digi_comm_noiseFigure} informs that $\textrm{NF}_{\textrm{cascade}}=3.64$~dB and the cascaded gain is 46.7~dB in this case.
+
+As suggested by careful inspection of \equl{friisNoiseFactor}, using an amplifier with a large gain in the first stage decreases the impact of the noise added by subsequent stages. This motivates the nomenclature LNA for a good first amplifier in a receive chain. For the given example, $\textrm{NF}_{\textrm{cascade}}=3.5$~dB when considering only the first two stages. Due to the gain of the LNA, the three remaining stages increase $\textrm{NF}_{\textrm{cascade}}$ by only $3.64-3.5=0.14$~dB.
+\eExample
+
+\bExample \textbf{Using NF with both PSD and absolute power values}.
+\label{ex:nfWithPSD}
+This example aims at illustrating how the NF (and gains) can be used with both PSD and absolute power values given that the thermal noise has a flat PSD over the bandwidth BW of interest. 
+For example, the NF can be used to calculate the PSD noise level at the output of a device given that the bandwidth BW will cancel out in some expressions.
+This can be seen by normalizing both sides of \equl{simplifiedExpressionForNoiseOutput} by BW, which leads to
+
+where $S_{\textrm{in}}^{t}(f)$ and $S_{\textrm{out}}^{t}(f)$ are the constant PSD values of the thermal noise at input and output, respectively, over BW.
+
+\codl{snip_digi_comm_noiseFigureWithPSD} provides a numerical example where NF is used to obtain the output noise PSD. 
+In this case, the input signal of interest also has a flat PSD with power $\calP_{\textrm{in}}^{s}=-60$~dBm and the input thermal noise has a white PSD with level $\no=-174$~dBm/Hz. The two amplifiers have gains of 30 and 20~dB, with NF of 2 and 5~dB, respectively. 
+%The model of \figl{noiseFactorModelfriis} is adopted.
+
+\lstinputlisting[caption={Code/MatlabOctaveCodeSnippets/snip\_digi\_comm\_noiseFigureWithPSD},label=code:snip_digi_comm_noiseFigureWithPSD]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_noiseFigureWithPSD.m}
+
+Running \codl{snip_digi_comm_noiseFigureWithPSD} calculates the output PSD level as $\no=-121.99$~dBm/Hz and $\calP_{\textrm{out}}^{s}=-60+30+20=-10$~dBm. It can also be observed that 
+the cascade has a NF of approximately 2~dB, i.\,e., the second amplifier does not impact the total NF significantly due to the relatively high gain of the first amplifier. 
+\eExample
+
+%AK-IMPROVE: Acho que podia mostrar o conceito de implementar produto interno atraves de convolucao, e mostrar que se teria que esperar rum Tsym maior do que a duracao da resposta ao impulso equivalente `a funcao-base.
+
+\subsection{Examples of link budgets}
+
+\bExample \textbf{Link budget for downlink satellite transmission}.
+%\label{ex:}
+
+
+\codl{snip_digi_comm_satellite_link_budget} illustrates a link budget for satellite transmission
+that estimates the carrier-to-noise density ratio $C/\no$ (see Section~\ref{sec:cno}).
+
+\lstinputlisting[caption={MatlabOctaveCodeSnippets/snip\_digi\_comm\_satellite\_link\_budget.m},label=code:snip_digi_comm_satellite_link_budget]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_satellite_link_budget.m}
+
+The output of \codl{snip_digi_comm_satellite_link_budget} informs $C/\no=81.2$~dB\,Hz.
+\eExample 
+
+\bExample \textbf{Link budget for GSM downlink}.
+%\label{ex:}
+\codl{snip_digi_comm_gsm_budget} illustrates a GSM link budget that obtains the
+maximum distance under the specified conditions using the COST Hata model.
+
+\lstinputlisting[lastline=14,caption={MatlabOctaveCodeSnippets/snip\_digi\_comm\_gsm\_budget.m},label=code:snip_digi_comm_gsm_budget]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_gsm_budget.m}
+
+The output of \codl{snip_digi_comm_gsm_budget} informs that \co{admissibleLoss} is 137~dB and
+the distance (\co{dist}) corresponds to approximately 1.95~km. Decreasing the transmitter
+power \ci{Ptx}  from 45 to 30~dB reduces the reach from 1.95 to 0.73~km. On the other
+hand, while using \ci{Ptx=45}, an
+increase on the base station equivalent antenna height \ci{hbs} from 30 to 70~m increases
+this distance to 2.7~km.
+
+It should be noted that GSM handsets typically limit the transmitter power to 2~W, while
+the base station transmitter power varies in a range from 2 to 300~W.
+\eExample
+
+\bExample \textbf{Minimum transmitter power for a GSM downlink}.
+%\label{ex:}
+This example is slightly distinct from the previous one. As indicated in 
+\codl{snip_digi_comm_gsm_budget2}, given a specific distance, the goal
+is to find the required transmitter power \ci{Ptx}.
+
+\lstinputlisting[lastline=20,caption={MatlabOctaveCodeSnippets/snip\_digi\_comm\_gsm\_budget2.m},label=code:snip_digi_comm_gsm_budget2]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_gsm_budget2.m}
+
+The output of \codl{snip_digi_comm_gsm_budget2} informs that \ci{Ptx} is approximately 31~dBm.
+Decreasing the frequency to 450~MHz would require only 20.8~dBm (note the COST Hata model is
+not accurate for such low frequency).
+\eExample
+
+\section{Applications}
+
+\bApplication \textbf{Creation and demodulation of AM signals}.
+\label{app:amDemodulation2}
+The goal here is to create a multiplex signal with $N$ ($N=4$ is assumed) AM signals and demodulate it. The code can be found at folder \ci{Applications/AMDemodulation} of the companion software.
+
+The signal that goes in each AM channel can be generated by the user in two steps: 1) First the user records $N$ wav files using $\fs=44100$~Hz, name them as explained in file \ci{ak\_resampleFiles.m}, and runs this script, which converts the files to $\fs=8$~kHz. 2) 
+	The script \ci{ak\_amCreateMultiplexedSignals.m} shifts the $N$ signals in frequency, sums them to create the multiplexed signal and stores this signal at file \ci{amMultiplexedSignals.wav}. This script requires information about the IF frequency (\ci{Fc\_if} variable) and the RF frequency of each AM signal. 
+	
+Then, the script \ci{ak\_amDemodulation.m} implements the demodulation process for the $N=4$ signals
+multiplexed in \ci{amMultiplexedSignals.wav}.
+
+The scripts can be modified to use other frequencies, bandwidths, etc. 
+Two tasks are suggested in the sequel. 
+
+The first task is to implement code to estimate the SNR between the original and demodulated signals. This will require aligning the signals, as illustrated in \codl{snip_signals_time_aligment}, discussed in Section~\ref{app:crosscorrelation}. The reader may also look at Application~\ref{app:linear_filtering}. More specifically, two baseband signals $x_1[n]$ and $x_2[n]$ should be recorded. These signals should be modulated and
+multiplexed to compose a single signal $s[n]$ with sampling frequency $\fs=44.1$~kHz. 
+The two AM signals should comply with the PSD mask described in \figl{am_fcc_mask}.
+Generate a figure showing the PSD with superimposed masks at the carrier frequencies.
+
+The
+demodulation of $s[n]$ should recover the respective estimates $\hat x_1[n]$ and $\hat x_2[n]$.
+A perfect gain scaling can be assumed, in which the receiver knows the power of $x_1[n]$ and $x_2[n]$ . With this information, the amplitudes of $\hat x_1[n]$ and $\hat x_2[n]$
+can be scaled to force the resulting signals to have the same power as their original versions.
+
+The function \ci{filtfilt.m} cannot be used (use \ci{filter.m} instead) because we want to 
+rely only on causal systems.
+After time-alignment, the two SNR values, between the original $x_i[n]$ and its estimate $\hat x_i[n]$, $i=1,2$, should be calculated. The system must be designed such that the SNR is larger than
+20~dB. Estimate the computational cost as the number $N_\textrm{ma}$ of multiplications plus additions of the filtering operations in the demodulator (do not take in account the alignment procedure, for example). Minimize $N_\textrm{ma}$ while achieving $\snr \ge 20$~dB. Inform the delay
+of the overall system (modulator and demodulator) in seconds.
+\eApplication
+
+\bApplication \textbf{Demodulation of the digitized signal corresponding to multiplexed real-life AM stations}.
+\label{app:amDemodulation}
+The experiment suggested here uses the companion file \ci{am\_real.wav} (around 20~MB).\footnote{Available at \url{https://github.com/aldebaro/dsp-telecom-book-code/tree/master/Applications/AMDemodulation}.}
+In summary, a software radio platform was tuned to capture a radio frequency (RF) band centered at $f_c$ with bandwidth BW. This digitized signal was used to generate the signal $x[n]$ stored in \ci{am\_real.wav}, as described in Application~\ref{app:amDemodulationComplex}.
+
+The real-valued signal $x[n]$ corresponds to approximately 11 seconds sampled at $\fs=1,024$~kHz. It
+has $\BW_{\dw} = 1.57$~rad and is centered at $\dw_c=2\pi/3$~rad. Using \equl{freqdiscrete2continuous}, these frequencies correspond to $\BW=256$~kHz and $f_c=341.33$~kHz, respectively.
+\figl{spectrumAMRealStations} shows the PSD of $x[n]$. The 8 AM stations are located at
+%frequencies $\dw$ in rad that correspond to 
+approximately 
+$[271,  301,  311,  321,  341,  371, 421,  441]$~kHz (to be more accurate, add $1/3$~kHz to these frequencies). The second and third stations are only 10~kHz apart, as well as the third and
+fourth.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/spectrumAMRealStations}
+\caption{Bilateral PSD of $x[n]$ sampled at $\fs=1,024$~kHz and  multiplexing 8 AM stations.
+The vertical lines with
+crosses indicate the AM carrier frequencies.\label{fig:spectrumAMRealStations}}
+\end{figure}
+
+The script \ci{ak\_amDemodulateDigitizedAMSignal.m} can be used to demodulate the AM stations represented in signal $x[n]$ of the companion file \ci{am\_real.wav}. Some lines of this code,
+ corresponding to seven processing steps, are shown in \codl{ak_amDemodulateDigitizedAMSignal},
+where  \ci{rx} is the original signal read from \ci{am\_real.wav}.
+
+%The carrier frequency separation of AM broadcast stations depends on the country. For example, it is 10~kHz in US, as well as in file \ci{am\_usrp710.dat}. In this case, the maximum signal bandwidth is $\BW_{\textrm{i}}=5$~kHz, which is just slightly larger than the telephony (POTS) bandwidth (while FM signals have $\BW_{\textrm{i}}=30$~kHz).
+
+%\codl{ak_amDemodulateDigitizedAMSignal}, where \ci{rx} is the original complex signal, \ci{freqRF=740}, \ci{Fc=710} and \ci{Fs=256}, all in kHz.
+
+\lstinputlisting[caption={Applications/AMDemodulation/ak\_amDemodulateDigitizedAMSignal},label=code:ak_amDemodulateDigitizedAMSignal,linerange={35-41},firstnumber=35]{./Code/Applications/AMDemodulation/ak_amDemodulateDigitizedAMSignal.m}
+
+The demodulation uses two resampling steps to decrease the original $\fs=1,024$~kHz to 
+8~kHz. The motivation is to decrease the computational cost and
+facilitate the filtering operations. The first resampling corresponds to step 3 in \codl{ak_amDemodulateDigitizedAMSignal} and decreases $\fs$ by a factor of two. The second resampling
+happens in step 5 and changes the sampling frequency from 512~kHz to 8~kHz. The function \ci{resample.m} automatically designs a lowpass filter to avoid aliasing. In the first resampling,
+the FIR filter \ci{h4} has order 40, while the second resampling used a filter (\ci{h5}) of order $2,560$.
+
+Besides the filtering executed by \ci{resample.m}, three additional filtering operations
+were performed using IIR filters in steps 2, 4 and 7. To obtain zero phase, 
+the noncausal \ci{filtfilt.m} operation was adopted. The whole procedure is just an example
+and other filters and functions could be used.
+In the sequel, the PSD after each step of demodulating the AM station centered at
+$341.33$~kHz is shown and discussed. This is the fifth station in \figl{spectrumAMRealStations} and it is in the center of the band of 256~kHz.
+
+\figl{amRealDemodSteps12} shows the PSDs after steps 1 and 2. The \ci{carrier} used for frequency
+downconversion was $e^{-j (2\pi/3) n}$ rad. One thing to note is that the spectrum replica at
+positive frequencies in \figl{spectrumAMRealStations} is moved to DC while a replica originally at
+negative frequencies shows up at its right. This is due to the periodicity of the spectrum of $x[n]$. 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/amRealDemodSteps12}
+\caption{PSDs of $x[n]$ after frequency downconversion (top) and
+lowpass filtering (bottom).\label{fig:amRealDemodSteps12}}
+\end{figure}
+
+\figl{spectrumAMRealStations} shows replicas that are centered in $\dw_{-1}=-2\pi/3$ and $\dw_{1}=-2\pi/3$~rad. 
+The frequency shift by $2\pi/3$ moves them to $\dw_{-1}-2\pi/3=-4\pi/3$ and $\dw_{1}-2\pi/3=0$.
+While the latter is centered at DC, the replica originally $\dw_{-1}$ ``disappears'' from the chosen
+visualization range of $[-\pi,\pi[$ because its highest frequency is $-4\pi/3+\BW_{\dw}/2=-3.4$~rad.
+However, the replica located at $\dw_{-2}=-2\pi/3+2\pi$, which was not shown in \figl{spectrumAMRealStations}, appears at $\dw_{-2}-2\pi/3 = 2.09$~rad in \figl{amRealDemodSteps12}.
+All this reasoning can be done in Hertz instead of radians. On purpose, both Hz and rad are
+used here to familiarize the reader with their connection via \equl{freqdiscrete2continuous}.
+
+The filtering in step 2 aims at eliminating the replica at $2.09$~rad. Note that the result still
+shows a peak at 261.3~kHz, as indicated in \figl{amRealDemodSteps12}. It corresponds to the second
+strongest peak when considering the whole bandwidth of the AM stations but becomes prominent
+because it is closer to the filter cutoff frequency than the strongest peak and, therefore,
+less attenuated.
+This same peak shows up in \figl{amRealDemodSteps34} at frequency $261.3-512=-250.7$~kHz as discussed in the sequel. 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/amRealDemodSteps34}
+\caption{PSDs after resampling to 512~kHz and then filtering again.\label{fig:amRealDemodSteps34}}
+\end{figure}
+
+\figl{amRealDemodSteps34} shows the PSD after steps 3 and 4: resampling to $\fs/2=512$~kHz and additional filtering. The function \ci{resample.m} in step 3 implements (using FIR \ci{h4}) a lowpass filtering with cutoff frequency $\pi/2$~rad and then decimates by 2. The decimation
+stretches the frequency axis such that $[-\pi,\pi]$ corresponds now to $[-256,256[$~kHz and
+creates replicas that, in Hz, are located at multiples of 512~kHz. Hence, after getting attenuated
+by the filter \ci{h4}, the peak at 261.3~kHz in \figl{amRealDemodSteps12} shows up at $261.3-512=-250.7$~kHz in \figl{amRealDemodSteps34}. The $10^{\textrm{th}}$ second filter has a cutoff frequency of 
+ 30~kHz and significantly attenuates the frequencies outside this range.
+
+\figl{amRealDemodSteps567} shows the PSDs after steps 5, 6 and 7. Step 5 converts the
+sampling frequency from 512 to 8~kHz, while 6 obtains the ``envelope'' \ci{m} of the received signal \ci{r} already filtered and centered at DC. The third filter has a cutoff frequency of only 1.5~kHz,
+as indicated by the dashed lines in \figl{amRealDemodSteps567}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/amRealDemodSteps567}
+\caption{PSDs of signals already sampled at 8~kHz.\label{fig:amRealDemodSteps567}}
+\end{figure}
+
+The final PSD (bottom plot of \figl{amRealDemodSteps567}) indicates that all the resampling
+and filtering steps led to strong attenuation of out-of-band frequencies. Simpler procedures
+could be adopted without noticeable distortion.
+
+For completeness, note that $x[n]$ is centered 
+	at frequency $f_c=341.33$~kHz but before its A/D conversion, it was located at an RF frequency
+	 of 710~kHz.
+	The acquisition hardware and further processing created a frequency difference of 
+	$368.67$~kHz between the RF and the ``DSP'' frequency $f_c$.  Hence, the corresponding band at 
+	RF was $710 \pm \BW/2$, which corresponds to
+	$[582, 838]$~kHz. These RF frequencies were mapped to DSP frequencies in $x[n]$
+	corresponding to 
+	$[240.67, 496.67]$~kHz. For example, the frequencies $341.33$ and 371.33~kHz of $x[n]$ correspond to RF frequencies of 700 and 740~kHz, respectively. This is further explained
+	in Application~\ref{app:amDemodulationComplex}.
+\eApplication
+
+\bApplication \textbf{Transmission of AM over simulated AWGN channel}.
+\label{app:amOverAWGNChanne}
+Record your own AM signals $x_1[n]$ and $x_2[n]$, and multiplex them into a signal $x[n]$.
+%and simulate the transmission of $x[n]$ over an AWGN channel.
+Both $x_1[n]$ and $x_2[n]$ must have an initial sampling frequency of 8~kHz and $x[n]$ a sampling frequency of 44~kHz. The carrier frequencies adopted for $x_1[n]$ and $x_2[n]$ must be 7 and 16~kHz, respectively. All three signals $x_1[n]$, $x_2[n]$ and $x[n]$ must be saved in WAV files. The multiplex signal $x[n]$ must be transmitted through an AWGN channel that adds noise $\nu[n]$, generating a received signal $\hat x[n]$. The noise power $\calP_{\nu}$ is chosen such that one can control the channel SNR, defined as $\SNR_c = P_x / P_{\nu}$, where $P_x$ is the power of $x[n]$. Write the software to demodulate $\hat x[n]$ and write $\hat x_1[n]$ and $\hat x_2[n]$ as WAV files. The goal is to obtain demodulated signals $\hat x_1[n]$ and $\hat x_2[n]$ with a good quality, but you cannot use non-causal processing (as done in \ci{filtfilt.m}, for instance). The demodulation should be assessed subjectively by listening $\hat x_1[n]$ and $\hat x_2[n]$, and also via $\SNR_d = (\SNR_1+\SNR_2)/2$, where each $\SNR_i, i=1,2$, is given by
+$\SNR_i = \ev[|x_i[n]|^2] / \ev[|x_i[n] - \hat{x}_i[n]|^2]$. A plot should be generated, showing how $\SNR_d$ varies with $\SNR_c$, considering an abscissa $\SNR_c$ in the range $[-5, 30]$~dB. Recall that after filtering, the signals may need to be synchronized (realigned in time).
+\eApplication
+
+\bApplication \textbf{Transmission of AM over the sound board}.
+\label{app:amOverSoundBoard}
+Transmit two AM signals $x_1(t)$ and $x_2(t)$, both with a bandwidth of 4~kHz, over an audio cable using PC sound systems working at $\fs=44.1$~kHz. The two signals must be multiplexed into a signal $x(t)$ at the ``carrier'' frequencies of 7 and 16~kHz, and transmitted simultaneously. The multiplex signal $x(t)$ should be pre-computed and saved as a WAV file. The transmitter should use the Audacity software to continuously transmit $x(t)$ on a loop. An audio cable is the channel between transmitter and receiver, which can be implemented using one or two PCs, depending on their sound board capabilities. The audio gains should be properly adjusted beforehand. The receiver should be implemented on Octave or Matlab. The receiver routine should acquire a pre-specified duration $T$ of the received signal $\hat x(t)$ (e.\,g. 4 seconds), demodulate it and playback $\hat x_1(t)$ and then $\hat x_2(t)$ over the receiver sound system. These three steps should be repeated in a loop. The goal is to obtain demodulated signals $\hat x_1(t)$ and $\hat x_2(t)$ with a good quality. Advanced users can implement a time-alignment procedure based on cross-correlation and estimate the SNR between $x_i(t)$ and their respective demodulated versions $\hat x_i(t), i=1,2$.
+\eApplication
+
+
+\bApplication \textbf{Synchronization of GSM handsets} (adapted from \akurl{http://gnuradio.org}{5gra}).
+\label{app:gsmSync}
+The GSM base station must use\footnote{From Recommendation GSM 05.10, Section 5.1.} a frequency source 
+with absolute accuracy better than 0.05 ppm for both RF frequency generation and clocking the symbols $m_i$. Considering the 900~MHz GSM band, an error of 0.05 ppm is \ci{900e6/1e6*0.05=45}~Hz and, in the 1800~MHz band, it is 90~Hz. This high level of accuracy can be achieved by, e.\,g., temperature-compensated voltage-controlled crystal oscillators (TCVCXO) or oven-controlled crystal oscillators (OCXO), which typically cost more than a hundred American dollars. To lower the cost, a GSM handset may use a less accurate oscillator than the base station's, with an accuracy of 20 ppm, for example (18000 and 36000 Hz for the 900 and 1800 MHz bands, respectively).
+
+Therefore, the base station periodically sends a \emph{beacon}\index{Beacon} signal for helping the handsets to synchronize their signals. When the handset is turned on, it searches for the beacon to adjust its internal signals for timing and carrier recovery.
+After the initial synchronization, keeping the signals locked still requires processing. For example, the Doppler shift from a vehicle moving at 150~km/h is approximately 0.15~ppm and demands phase-locked loops (PLL) or other processing for synchronization.
+
+For the sake of comparison, the IEEE 802.15.4 standard allows $\pm 40$~ppm, which corresponds to approximately $\pm 100$~kHz for a carrier of 2.4835~GHz. Investigate the requirements for distinct communication standards and the price for the respective oscillators.
+\eApplication
+
+
+\ignore{
+\bApplication \textbf{Estimating the power spectrum.}
+\label{app:power_spectrum}
+%
+com xcorr
+\begin{lstlisting}
+randn('state',0); rand('state',0);%reset random generators
+M=16; %modulation order
+N = 400000; % number of symbols
+L=8; %oversampling factor
+indices=floor(M*rand(1,N))+1; %random indices from [1, M]
+alphabet=[-(M-1):2:M-1]; %symbols ...,-3,-1,1,3,5,7,...
+m=alphabet(indices); %obtain N random symbols
+m_upsampled=zeros(1,N*L); %pre-allocate space with zeros
+m_upsampled(1:L:end)=m; %symbols with L-1 zeros in-between
+p=ones(1,L); %shaping pulse with square waveform
+s=conv(m_upsampled,p); %convolve symbols with pulse
+%
+Pm = mean(abs(alphabet).^2) / L;
+Nfft = 4096;
+clf
+if 0
+    [Pxx,w]=pwelch(s,hamming(Nfft),Nfft/2,Nfft,1,'twosided');
+    plot(w*2*pi,abs(Pxx));
+else
+    %s_windowed = s(1:Nfft) .* transpose(hamming(Nfft));
+    %[R,l]=xcorr(s_windowed,'biased');
+    [R,l]=xcorr(s,Nfft,'biased');
+    %istart = find(l == -Nfft+1);
+    %iend = find(l == Nfft-1);
+    %R = R(istart:iend);
+    %[R,l]=xcorr(s,'none');
+    %S=fft(R,Nfft)/sqrt(Nfft);
+    S=abs(fft(R));
+    w3=linspace(0,2*pi,length(S));
+    plot(w3,S)
+end
+hold on
+%
+P=fft(p,Nfft);
+%
+if 1
+    w2=linspace(0,2*pi,Nfft);
+    plot(w2,Pm*abs(P).^2,'r')
+else
+    w2=linspace(0,pi,Nfft/2+1);
+    plot(w2,Pm*abs(P(1:Nfft/2+1)).^2,'r')
+end
+\end{lstlisting}
+%
+I f(x) dx  app   S f(x) D
+D = Fs/N
+PSD = P / Fs
+Power = Soma PSD D
+Power = Soma PSD Fs / N
+\eApplication 
+}
+
+
+\ignore{
+\bApplication \textbf{Synchronization of GSM Handsets}
+\label{app:gsm_synchronization}
+\begin{verbatim}
+---------- Forwarded message ----------
+From: Johnathan Corgan <jcorgan@corganenterprises.com>
+Date: Wed, Feb 4, 2009 at 11:45 PM
+Subject: Re: [Discuss-gnuradio] decimation rate of GSM
+To: Jane Chen <janechen_1979@yahoo.com>
+Cc: discuss-gnuradio@gnu.org
+%
+2009/2/4 Jane Chen <janechen_1979@yahoo.com>:
+%
+> > I have a question about the decimation rate of GSM (channel is 200kHz wide).
+> >
+> > I search the decimation rate of GSM for GNURadio on the Google.  I got some
+> > information from
+> > http://www.segfault.net/gsm/The_Beginners_Guide_to_analyzing_GSM_data_in_MatLab.pdf
+> >
+> > However, I don't understand why they said the sample rate has to be at least
+> > 400 kHz (after Nyquist's theorem).  They used a decimation of 128.
+> > I think through the Nyquist's theorem, the sample rate should be 200kHz
+> > (fs>2fmax, and fmax should be 100kHz). I think the decimation factor is 256.
+> > I am confused. Could anyone please help me?
+%
+Since the USRP performs quadrature downconversion to complex baseband
+samples, the Nyquist limit is *equal* to the maximum passband
+bandwidth.  So a 200 KHz wide signal would need a minimum of 200K
+(complex) samples per second to faithfully represent its spectral
+content.  This is different from dealing with real-valued signals,
+which do require a sample rate of at least twice the frequency
+content.
+%
+However, other factors come in to play.  You will want to allow for
+the fact that the USRP's downsampler has a significant (6dB) droop at
+the passband edges, and this would affect your signal fidelity.   This
+would call for having the baseband sample rate be something higher.
+%
+In addition, if you are going to actually start demodulating the
+signal, you will need at some point in your signal processing chain to
+resample to a sample rate that is related to GSM symbol rate.   There
+are a variety of choices that trade off CPU usage vs. complexity, and
+one of the variables is the USRP decimation rate you start with.
+%
+Johnathan
+%
+Outro site:
+from http://sourceforge.net/apps/trac/openbts/wiki/OpenBTS/Clocks
+%
+About BTS Clocks
+%
+Many of the problems getting phones to ``camp'' in both OpenBTS and OpenBSC have been related to frequency accuracy. To understand this problem, you have to understand clock technologies and you have to understand how a typical GSM phone acquires a signal.
+%
+Let's start with this, from GSM 05.10 Section 5.1: ``The BTS shall use a single frequency source of absolute accuracy better than 0.05 ppm for both RF frequency generation and clocking the timebase. The same source shall be used for all carriers of the BTS.''
+First: What is Supposed to Happen
+%
+An error of 0.05 ppm is 45 Hz in the low bands (850/900) and 90 Hz in the high bands (1800/1900). That is VERY accurate, the kind of accuracy you get from a GPS-disciplined TCVCXO (temperature-compensated voltage-controlled crystal oscillator) or an OCXO (oven-controlled crystal oscillator, a $100-$200 part). Doppler shift in the direct path from a 150 km/h car or train is on the order of 0.15 ppm, so the necessity of this kind of accuracy is questionable, but that's what is in the spec. Given Doppler effects, the observed frequency difference between two carrier-grade basestations is a few hundred Hz, worst case.
+%
+The typical GSM handset has a medium-quality TCVCXO. On a cold start, not locked to any outside clock, this clock has a an accuracy of around 20 ppm, or about 18 kHz in the low bands (850/900) and about 36 kHz in the high (1800/1900) bands. So, starting "cold" with no information, the phone runs a time-consuming frequency search over the whole possible drift range of its own clock and continues this search until it finds a beacon signal from a BTS. Once the phone finds a beacon, it uses the carrier from the BTS to correct its own local clock by adjusting the control voltage on the TCVCXO. From that point on, the TCVCXO is just as accurate os the BTS clock as long as it is receiving the BTS signal. If the BTS signal is lost, the handset's clock will drift within some know worst-case rate. Knowing how long its local clock has been drifting, the handset can calculate the worst-case drift and use that information to narrow next frequency search.
+%
+So, you turn on a handset from "cold", it does a big frequency search until it finds a BTS. If it looses that BTS signal, it searches for another, but this time it does a much smaller frequency search, knowing that the signal from the next BTS will be within a few hundred Hz of its expected frequency and that its own local clock has not drifted much since last seeing a beacon. If the handset finds another beacon during this small search, it will stop searching. (That's critical for the next part of this discussion.) If the handset fails to find a beacon in the small search, it will widen the search range or a multiband phone might try a different band.
+Second: What Goes Wrong When You Use an Inaccurate Clock
+%
+Now, suppose your BTS uses a simple XO (crystal oscillator) clock, which produces an error on the order of a several kHz on your RF carrier. This is the case for OpenBTS with a "stock" USRP and it is also the case with the the Siemens BS-11 (used by OpenBSC) when it is locked to the clock from a typical ISDN-grade E1 interface card. This kind of BTS can fail in three possible ways, depending on just how bad the clock error is and how the system is being used
+Effect of Large Frequency Errors (Several kHz or More) 
+%
+The first type of failure is where the BTS XO error is so large that your BTS beacon falls completely outside the handset's "big" search range. The handset simply never finds the BTS signal. This is the error Fabian Uehlin found when he first tried to operate OpenBTS in the 1800 band. He fixed it by using an external clock with much better accuracy.
+Effect of Modest Frequency Errors (500 Hz to a Few kHz) 
+%
+The second type of failure is when your BTS RF carrier is within the "big" search range but differs from the local "real" networks by more than a few hundred Hz. In this situation, the handset will either see your BTS or it will see the "real" network, but not both. Whatever system the handset sees first will control its clock and make it blind to the other. This kind of failure was discussed in detail in the OpenBSC e-mail list in Spring 2009. It has not been discussed much in the OpenBTS list, but it is safe to assume that it happens if you try to run the BTS in the same band as your local GSM carriers or try to work with multi-band phones. If I am not mistaken, the OpenBSC people fixed this problem by realizing that the VCOCXO in the BS-11 is much better than the XO on their standard E1 card -- if they just leave it alone. In OpenBTS we avoid this problem by operating in non-local bands and disabling other bands in the handsets so that they never see any other network. (OpenBTS can do that because unlike OpenBSC our radio is mostly software and very flexible.)
+%
+The XO errors of the BTS and the handsets will vary with age and temperature, so the failure behavior will be different for every handset at any given time and will vary from hour to hour as things warm up and cool down. That can make it all seem very mysterious and can make diagnosis difficult.
+When You Try to Run a Multi-BTS System 
+%
+Normally, a handset receives a neighbor list from its serving BTS and constantly monitors the signal levels from the beacons of these neighbors. The key feature used for this monitoring is the extended training sequence (XTS) of the synchronization burst. This XTS has a duration of 64 symbols (roughly 0.25 ms). If we search for this XTS with a matched filter, the performance of that matched filter will degrade rapidly for frequency offsets greater than about 1/(4*0.25 ms), or about 1 kHz, because at higher frequencies the relative phases of the XTS and the matched filter will drift by more than 90 degrees over the correlation period. So neighbor monitoring (and therefore mobility itself) starts to fail for per-BTS carrier offsets of more than 500 Hz.
+%
+A 500 Hz error is 0.5 ppm in the low bands and 0.25 ppm in the high bands. While this is an easier requirement than the 0.05 ppm given in the spec, it is much tighter than could be provided by a simple XO. This accuracy can be provided by an OCXO or a good quality TXVCXO with regular calibration.
+Solution to All Problems: Use a Good Clock 
+%
+In the long-term, OpenBTS will fix both of these clock problems completely replacing the XO clock in the USRP with something much more accurate, either a true OCXO or a very high-quality TCVCXO with an automated calibration procedure.
+%
+Several OpenBTS uses have also recommended the kit "FA-SY 1" from Funkamateur, available for about Eu40, for desktop testing.
+Third: When You Violate Clocking Relationships 
+%
+Getting back to 05.10 Section 5.1, the GSM specifications dictate that the RF carrier and the symbol clock in the BTS be derived from a common source.
+%
+In the handset, the symbol clock is disciplined by the BTS RF carrier, just like the carrier clock. So, if your BTS RF carrier is in error by N ppm, the handset symbol clock will also be in error by N ppm. That's OK if the BTS symbol clock has exactly the same error, which it WILL if you derive everything from a common clock that way the specification tells you to.
+%
+But suppose you try to be clever. You know that once your equipment is warmed up, your BTS XO is consistently in error by +11 ppm, giving an RF carrier error of +10 kHz. So you deliberately de-tune your RF carrier by -10 kHz. That fixes the problems described in the previous section, but creates a new problem in the symbol rate clock. The standard GSM symbol clock is 270.833333 kHz. Your BTS XO is really off by +11 ppm, so your BTS symbol clock is really 270.836312 kHz. The handset locks to your BTS RF carrier, which is now spot-on its specified frequency, so the handset generates a correct internal symbol clock of 270.833333 kHz. So now the BTS and handset symbol clocks are slipping against each other at a rate of 11 ppm, or about 3 symbols per second.
+%
+Another variation on this problem is if you ignore the spec and use different clock devices for your RF carrier and your symbol clock. For example, suppose you have two 0.5 ppm OCXOs. Their relative fractional difference will be about 0.5 ppm, giving a drift of about one symbol every 7 seconds or so. (I've actually see this done before, too.)
+%
+Different handsets respond to the slipping symbol clock in different ways. In our experience, Nokia DCT3s just deal with it, apparently re-syncing on every frame, so if we only use DCT3s for testing, we may never realize that it is a serious problem. A Nokia DCT4 may camp to the beacon briefly, but will abort a transaction when the clock slips. In some handset designs, the symbol slipping interacts with the closed-loop timing advance, making that control loop unstable. Again, the error seems mysterious because different handset models respond in different ways and the effect will very with temperature as the XO in the BTS drifts around.
+\end{verbatim}
+%
+\eApplication
+}
+
+
+\bApplication \textbf{The use of heterodyning in spectrum analyzers.}
+Spectrum analyzers are very important when evaluating RF circuits.
+Broadly, they can be categorized as analog or digital. But many modern
+equipment are hybrids, using concepts of both schemes.
+
+The architecture of a digital analyzer is basically composed of a lowpass filter, ADC converter
+operating at $\fs$ and an FFT. In this case, the sampling frequency $\fs > 2 f_{\textrm{max}}$
+imposes the limit of the supported maximum input signal frequency $f_{\textrm{max}}$.
+To expand the range of supported frequencies, spectrum analyzers use heterodyning.
+
+A spectrum analyzer can use a mixer and a tunable bandpass filter, in a gang-tuning scheme, to sweep the input signal spectrum. But, as discussed in Section~\ref{sec:radioReceiverArchitectures}, filtering directly in RF would cause problems such as, given the filter's Q-factor, having distinct bandwidths as the center frequency varies. Therefore, analog spectrum analyzers also use an intermediate frequency (IF) and, similar to \figl{radioReceiver4}, the IF filter determines the so-called analyzer's \emph{resolution} BW (or RBW)\index{Resolution BW (RBW)}. A simplified block diagram is depicted in \figl{analogSpectrumAnalyzer}. In this case, the video signal is the input to an analog output display.
+
+%\begin{verbatim}
+%retirado de
+%C:\ak\Classes\Measurements\SpectrumAnalyzer
+%Rohde_Schwarz_Spectrum Analyzer.pdf
+%\end{verbatim}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth]{FiguresTex/analogSpectrumAnalyzer}
+\caption{Block diagram of an analog spectrum analyzer using heterodyning.\label{fig:analogSpectrumAnalyzer}}
+\end{figure}
+
+Hybrid spectrum analyzers use fast ADCs that can convert signals directly at IF. For example, an ADC with $\fs = 96$~MHz can be used to digitize a RF signal of bandwidth 20~MHz centered in 1.8~GHz. 
+Due to heterodyning, the input frequency range is independent of the ADC rate.
+
+The RBW of an FFT-based spectrum corresponds to the FFT resolution in \equl{fft_freq_resolution} and \equl{fft_total_duration}.
+Hence, the RBW of an FFT-based spectrum is determined by the length of the digitized and stored (in RAM memory) signal. To complement the many good textbooks in spectrum analysis, the reader is invited to read the material made available by manufacturers.\footnote{For example, ``\emph{Spectrum Analyzer
+Fundamentals Primer}'' by Rohde \& Schwarz, 2013, and ``\emph{Spectrum Analysis Basics - AP 150}''
+by Agilent, 2014.}
+\eApplication
+
+\bApplication
+\textbf{Digital down-converter (DDC) and up-converter (DUC) as used in software radios}.
+\label{app:pre-processing}
+A software-defined radio architecture may have the ADC close to the antenna, digitizing almost directly the RF signal. This way, the digitized RF signal itself would already be processed with DSP techniques. However, with current technology, it is more common to use a heterodyne module and digitize the signal at an IF or even apply direct conversion from RF to baseband and digitize the signal at baseband.
+When the (real) signal is digitized at an IF, a digital down-converter (DDC)\index{Digital down-converter (DUC)} is often used to create a baseband complex version centered at zero frequency.
+The DDC uses a numerically-controlled oscillator (NCO) and can also make a ``fine tuning'' of the signal center frequency in a stage where the signal is almost at baseband but there is an offset from zero.
+
+The digital up-converter (DUC)\index{Digital up-converter (DUC)} performs frequency upconversion. Both DDC and DUC are used in the USRP software radio architecture~\akurl{http://www.ettus.com/kb/detail/usrp-bandwidth}{5usr}.
+\eApplication
+
+%A scheme based on a heterodyne is illustrated in \figl{heterodina4}.
+
+%\url{http://www2.electronicproducts.com/Heterodyne_vs_direct_conversion_architecture-article-facn_texasIDEAS_apr2009-html.aspx}. 
+
+%\begin{figure}[htbp]
+%\centering
+%\includegraphics[width=\figwidthLarge]{FiguresNonScript/heterodina4}
+%\caption{Example of digitizing a radio signal using a heterodyne.\label{fig:heterodina4}}
+%\end{figure}
+
+%In \figl{heterodina4}, the signal is processed from right to left. The RF signal is picked up by the antenna and passed through a bandpass filter to reduce noise. After going through a low noise amplifier (LNA), a mixer multiplies the signal with a carrier generated by a local oscillator (LO). The bandpass filter M1 is followed by an amplifier and the signal converted by the ADC. In the digital domain with the signal being processed by a digital signal processor (DSP), a digital down-converter (DDC) positions the signal spectrum at baseband (or DC frequency).
+%It is assumed that the LO can be programmed to sweep the frequency range of interest.
+
+%AK-IMPROVE: dar um exemplo de placa filha, levando-se em conta limitacoes da USRP. Mostrar como funciona.
+
+%For example, if an ADC with sampling frequency $\fs = 96$ MHz is used to digitize a RF signal in 1.8~GHz and of bandwidth 20~MHz, the M1 filter, typically based on surface acoustic wave (SAW) technology is responsible for limiting the bandwidth in 20~MHz. M1 assumes that the center frequency of the IF signal is pre-specified (70~MHz, for example) and often has a better Q-factor than the wide band filter that follows the antenna. The LO must tune the system such that the signal at the output of the mixer M2 has the signal of interest within the M1 band. 
+
+\bApplication \textbf{Extending the noise figure analysis to consider noise sources other
+than thermal noise along the stages of a cascade}.
+\label{app:extendedNoiseFactor}
+The discussion in Section~\ref{sec:noiseFactor} is expanded here by presenting
+the model of 
+\figl{noiseFactorModelak}, which is more general than 
+the one in \figl{noiseFactorModelfriis}.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/noiseFactorModelak}		
+	\caption{Alternative version of \figl{noiseFactorModelfriis} in which the input noise is not only thermal noise and a thermal noise parcel is added at each stage.\label{fig:noiseFactorModelak}}
+\end{figure}
+
+When Friis discussed~\cite{Friis44} noise figure (NF), the assumed model was the one in \figl{noiseFactorModelfriis}, in which 
+the input thermal noise power $\calP_{\textrm{in}}^{t}$ is added only to the first stage.
+But there are situations that require a model in which the thermal noise
+power $\calP_{\textrm{in}}^{t}$ is added at each stage as in \figl{noiseFactorModelak}.
+Besides, the alternative model assumes that the input noise $\nu(t)$ is not composed only by the thermal noise. 
+Therefore, it is convenient to split the input noise power as $\calP_{\textrm{in}}^{\nu} = \calP_{\textrm{in}}^{t} + \calP_{\textrm{in}}^{o}$ between the thermal and ``other'' noise sources. For example, if the input noise power is $\calP_{\textrm{in}}^{\nu}=10$~nW and the thermal noise has power $\calP_{\textrm{in}}^{t}=2$~nW, all other noise sources have power $\calP_{\textrm{in}}^{o}=8$~nW.
+
+For the model of \figl{noiseFactorModelak}, the amplifier output power has an extra parcel $\calP_{\textrm{out}}^{a}$ such that
+\begin{equation}
+\calP_{\textrm{out}}^{\nu} = G \calP_{\textrm{in}}^{\nu} + \calP_{\textrm{out}}^{a}.
+\label{eq:outputNoiseDefinition}
+\end{equation}
+Hence, a more general expression than \equl{amplifierOutputPower} for the output power $\calP_{\textrm{out}}$ is
+\begin{equation}
+\calP_{\textrm{out}} = \calP_{\textrm{out}}^{s} + \calP_{\textrm{out}}^{\nu} = G \calP_{\textrm{in}}^{s} + G \calP_{\textrm{in}}^{\nu} + \calP_{\textrm{out}}^{a}.
+\label{eq:amplifierOutputPowerMoreGeneral}
+\end{equation}
+The value of $\calP_{\textrm{out}}^{a}$ can be conveniently obtained when the noise factor (F) is known given that it depends on the input thermal noise according to
+\begin{equation}
+\calP_{\textrm{out}}^{a} = G (F-1) \calP_{\textrm{in}}^{t}.
+\label{eq:addedNoisePower}
+\end{equation}
+
+For the reader's convenience, the defined nine distinct power values are summarized in \figl{noiseFactorExplaineds}.
+
+\begin{figure}[htbp]
+  \begin{center}
+    \subfigure[$\calP_{\textrm{in}}^{\nu}$ incorporating $\calP_{\textrm{in}}^{t}$.]{\label{fig:noiseFactorExplained}\includegraphics[width=7cm]{FiguresTex/noiseFactorExplained}}
+    \subfigure[Equivalent model.]{\label{fig:noiseFactorExplained2}\includegraphics[width=5cm]{FiguresTex/noiseFactorExplained2}}
+  \end{center}
+  \caption{Power definitions related to the model of \figl{noiseFactorModelak} where the input noise power $\calP_{\textrm{in}}^{\nu} = \calP_{\textrm{in}}^{o} + \calP_{\textrm{in}}^{t}$ has two parcels.\label{fig:noiseFactorExplaineds}}  
+\end{figure}
+
+Two examples of the model of \figl{noiseFactorModelak} are discussed in the sequel.
+
+\bExample \textbf{Using the noise figure for a single amplifier with the alternative model}.
+This example is similar to \exal{singleAmpNF} but uses the model of \figl{noiseFactorModelak} 
+instead of \figl{noiseFactorModelfriis}.
+An amplifier has $G=6$ and $\textrm{F}=3$ and the parcels that compose the input signal $x(t)$ have the following powers (all in nW): 
+$\calP_{\textrm{in}}^{t}=2$, $\calP_{\textrm{in}}^{o}=8$ and $\calP_{\textrm{in}}^{s}=100$, such that $\calP_{\textrm{in}}^{\nu} = \calP_{\textrm{in}}^{t}+\calP_{\textrm{in}}^{o} = 2+8=10$ and $\calP_{\textrm{in}}= \calP_{\textrm{in}}^{s} + \calP_{\textrm{in}}^{\nu}= 100+10=110$. The input SNR is
+$\snr_{\textrm{in}}=10 \log_{10} (\calP_{\textrm{in}}^{s}/\calP_{\textrm{in}}^{\nu})= 10 \log_{10}(100/10)=10$~dB. 
+
+At the output, the amplified input noise power is
+$
+G \calP_{\textrm{in}}^{\nu} =G(\calP_{\textrm{in}}^{t}+\calP_{\textrm{in}}^{o})=6(2+8)=60
+$.
+Using \equl{addedNoisePower}, the amplifier itself adds $\calP_{\textrm{out}}^{a} = G (F-1) \calP_{\textrm{in}}^{t} = 6 (3-1) 2 = 24$. Hence, 
+$
+\calP_{\textrm{out}}^{\nu} = G \calP_{\textrm{in}}^{\nu} + \calP_{\textrm{out}}^{a} = 60 + 24 = 84
+$.
+The output parcel corresponding to the signal of interest has power
+$\calP_{\textrm{out}}^{s} = G \calP_{\textrm{in}}^{s} = 6 \times 100 = 600$. The output SNR is $\snr_{\textrm{out}} = 10 \log_{10} (\calP_{\textrm{out}}^{s} / \calP_{\textrm{out}}^{\nu}) = 10 \log_{10} (600/84) \approx 8.54$~dB.
+
+The following diagram summarizes the total noise powers:
+
+when $\calP_{\textrm{in}}^{t}=2$.
+\eExample
+
+%Examples are discussed in the sequel.
+% to illustrate using \codl{ak_friisCascadeNoiseFactor}.
+
+\bExample \textbf{Noise figure for two cascaded amplifiers with thermal noise added at each stage}.
+\label{ex:cascadeTwoAmplifiers}
+With $\calP_{\textrm{in}}^{t}=2$, $\calP_{\textrm{in}}^{\nu}=10$ and $\calP_{\textrm{in}}^{s}=100$, all in nW, the cascade of two amplifiers, with $G_1=200,\textrm{F}_1=3$ and $G_2=20,\textrm{F}_2=4$, has the following performance when modeled according to \figl{noiseFactorModelak}.
+
+The input SNR is $\snr_{\textrm{in,1}} = 10$~dB.
+At the output of the first amplifier, $\calP_{\textrm{out,1}}^{s}= G_1 \calP_{\textrm{in}}^{s} = 20000$ and 
+$\calP_{\textrm{out,1}}^{\nu}= G_1 \calP_{\textrm{in}}^{\nu} + G_1 (F_1-1) \calP_{\textrm{in}}^{t} = 2000+200(3-1)2=2800$. Hence, its output SNR is $\snr_{\textrm{out,1}} \approx 8.54$~dB.
+
+The noise power at the input of the second amplifier\footnote{Note that, if the cascade was modeled as suggested in \figl{noiseFactorModelfriis}, $\calP_{\textrm{in,2}}^{\nu} = \calP_{\textrm{out,1}}^{\nu}$ and the result would be $\calP_{\textrm{out,2}}^{\nu}=56120$.} is 
+$\calP_{\textrm{in,2}}^{\nu} = \calP_{\textrm{out,1}}^{\nu} + \calP_{\textrm{in,2}}^{t}$, such that $\calP_{\textrm{out,2}}^{\nu} = G_2 \calP_{\textrm{in,2}}^{\nu} + G_2(\textrm{F}_2-1) \calP_{\textrm{in,2}}^{t} = 20 (2800+2) + 20(4-1)2 = 56160$. 
+
+Given that $\calP_{\textrm{out,2}}^{s}=4 \times 10^5$, the SNR at the output of the second amplifier is
+$\snr_{\textrm{out,2}}\approx 8.53$~dB.
+The result is summarized as follows:
+\[
+\calP_{\textrm{in}}^{\nu}=10 \arrowedbox{$G_1=200,\textrm{F}_1=3$} \fbox{$G_2=20,\textrm{F}_2=4$} \rightarrow \calP_{\textrm{out}}^{\nu}=56160
+\]
+and, as expected, differs from the one in \exal{cascadeAmpNF}.
+%
+%The reader is invited to check that by inverting the order of the amplifiers, the performance is modified as indicated by
+%\[
+%\calP_{\textrm{in}}^{\nu}=10 \arrowedbox{$G_1=20,\textrm{F}_1=4$} \fbox{$G_2=200,\textrm{F}_2=3$} \rightarrow \calP_{\textrm{out}}^{\nu}=65200
+%\]
+%The order is therefore important.%, as will be discussed later.
+\eExample
+
+It should be mentioned that the 
+Friis formula for noise factor given in \equl{friisNoiseFactor} does not apply
+to the model of \figl{noiseFactorModelak}.
+\eApplication
+
+
+
+\section{Comments and Further Reading}
+
+Analog communications, including AM, are widely discussed in communication textbooks. Sensible architectures for RF front ends can be found in \cite{Mak07}.
+For a very good treatment of upsampling and downsampling, see the chapter on Multirate DSP in~\cite{Mitra10}.
+
+\section{Exercises}
+%
+\begin{exercises}
+
+\item Given that $\nu(t)$ is  a WGN with amplitude in Volts, sketch graphs of possible (arbitrary but consistent): (a) probability density function, (b) power spectral density and (c) time waveform. Inform the numerical values and units in each graph.
+
+\item Assuming an AWGN channel model, the received signal $r(t) = s(t) + \nu(t)$ is contaminated by WGN $\nu(t)$ with a unilateral PSD $\no=-140$~dBm/Hz.
+The $\snr = \frac{\ev[|s(t)|^2]}{\ev[|\nu(t)|^2]}$ at the output of this AWGN channel must be at least 36~dB. The transmit power is always $-4$~dBm, independent on the receiver bandwidth BW. Find the maximum value of BW to have $\snr \ge 36$~dB.
+
+\item A discrete time signal $z[n]=s[n]+\nu[n]$ is the summation of a sinusoid $s[n]$ of power 10~dBm (corresponding to a continuous-time signal of frequency 3~Hz) and WGN $\nu[n]$. The signals are uncorrelated. Inform: a) the amplitude of $s[n]$, b) the power of $\nu[n]$ such that the SNR is 20~dB.
+
+\item As oscillator has accuracy of 10 ppm when the frequency is 1.8~GHz. What are its minimum and maximum frequencies?
+
+\item Using pages 10 to 14 from \akurl{http://www.piscespacific.org/livesite/files/Link_Budget_Calculation.pdf}{5lbu} as starting point, generate plots of the link margin variation over frequency within the 1 to 5~GHz range for both directions: client to access point and vice versa.
+
+\item The thermal noise at the input of an amplifier is modeled as WGN with a (unilateral) PSD with $\no = -174$~dBm/Hz. Assuming the equipment has a gain of 60~dB and a noise figure of 5~dB, what is the noise PSD level at its output?
+
+\item Modify the code of Example~\ref{ex:nfWithPSD} to calculate the SNR at input and output assuming that the amplifiers have a bandwidth of: a) 10~MHz and b) 100~MHz. Comment on how the bandwidth impacts the noise figure of their cascade.
+
+\item Motivated by Application~\ref{app:signalsadcomm}, the goal here is to confirm the importance of the regeneration capability of digital communication systems. Assume the signal is transmitted from city A to city B, which are separated by 40~km. The signal transmit power is 80~dBm and the path loss is 12~dB/km.
+The transmission chain is composed by three intermediate nodes (or ``stations''), uniformly spaced at intervals of 10~km. The input thermal noise power at all nodes (transmitter, receiver and intermediate stations) is $-70$~dBm and the receiver at city B has sensitivity $-54$~dBm and $\textrm{NF}=4$~dB. Calculate the output SNR at each intermediate node, the link margin and input SNR at city B considering two alternatives for the stations: a) they perform signal regeneration before retransmission by implementing the full demodulation process or b) regeneration does not occur and the stations are repeaters that only implement analog amplification. 
+A regeneration station of a) is modeled as equivalent to the transmitter of city A and receiver of city B, i.\,e., a receiver with $\textrm{NF}=4$~dB and sensitivity $-54$~dBm, and transmitter with output power 80~dBm; while a repeater station of b) is modeled as an amplifier with $\textrm{NF}=4$~dB and 120~dB gain according to \figl{noiseFactorModelak}.
+c) Then consider what would happen if the station gains of b) are only 100~dB.
+
+
+\end{exercises}
+%

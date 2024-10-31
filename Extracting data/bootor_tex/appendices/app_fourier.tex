@@ -1,0 +1,268 @@
+\section{Fourier Analysis: Properties}
+\label{sec:fourierProperties}
+
+In the sequel, it is assumed that $X(f)$, $Y(f)$ and $Z(f)$ are the Fourier transforms of $x(t)$, $y(t)$ and $z(t)$, respectively. A pair (time / frequency) is denoted by $\Leftrightarrow$. The following discussion assumes the Fourier transform, but the properties are valid for all four Fourier tools with subtle distinctions.
+
+\textbf{Linearity}: if  a signal $x(t)=\alpha y(t) + z(t)$ is obtained by multiplying $y(t)$ by a constant $\alpha$ and summing the result to $z(t)$, its transform is $X(f) = \alpha Y(f) + Z(f)$. Linearity can be stated as:
+\begin{equation}
+\alpha x(t) + \beta y(t) \Leftrightarrow \alpha X(f) + \beta Y(f).
+\label{eq:fourierLinearity}
+\end{equation}
+Linearity can be decomposed into two properties: a) \emph{homogeneity} and b) \emph{additivity}, which correspond to the properties $\alpha x(t) \Leftrightarrow \alpha X(f)$ and $x(t) + y(t) \Leftrightarrow X(f) + Y(f)$, respectively.
+
+\textbf{Time-shift}: 
+\begin{equation}
+x(t-t_0) \Leftrightarrow X(f) e^{-j 2 \pi f t_0}.
+\label{eq:fourierTimeShift}
+\end{equation}
+
+%AK-IMPROVE: Provide example of a pulse centered in zero. To calculate in {\matlab} one needs to multiply by linear phase.
+
+\textbf{Scaling}: 
+\begin{equation}
+x(at) \Leftrightarrow \frac{1}{|a|}X(f/a).
+\label{eq:fourierScaling}
+\end{equation}
+
+\textbf{Time-reversal} (scaling with $a=-1$): 
+\begin{equation}
+x(-t) \Leftrightarrow X(-f).
+\label{eq:fourierTimeReversal}
+\end{equation}
+
+\textbf{Complex-conjugate}: 
+\begin{equation}
+x^*(t) \Leftrightarrow X^*(-f).
+\label{eq:fourierComplexConj}
+\end{equation}
+
+\textbf{Combined time-reversal and complex-conjugate}: 
+\begin{equation}
+x^*(-t) \Leftrightarrow X^*(f).
+\label{eq:fourierTimeRevComplexConj}
+\end{equation}
+
+\textbf{Multiplication}:
+\begin{equation}
+x(t) y(t) \Leftrightarrow X(f) \conv Y(f).
+\label{eq:fourierMultiplication}
+\end{equation}
+
+\textbf{Frequency-shift}: 
+\begin{equation}
+x(t) e^{j 2 \pi f_0 t} \Leftrightarrow X(f - f_0).
+\label{eq:fourierFrequencyShift}
+\end{equation}
+
+\textbf{Convolution}:
+\begin{equation}
+x(t) \conv y(t) \Leftrightarrow X(f) Y(f).
+\label{eq:fourierConvolution}
+\end{equation}
+
+%\item Cross-correlation theorem:\\
+%$R_{xy}(\tau) = \int_{-\infty}^{\infty} x(t+\tau) y^*(t) dt \Leftrightarrow X^*(f) Y(f)$ %AK PUTBACK (TO CHECK)
+
+\textbf{Duality}: 
+\begin{equation}
+X(t) \Leftrightarrow x(-f).
+\label{eq:fourierDuality}
+\end{equation}
+Example: $\rect(t) \Leftrightarrow \sinc(f)$, then by duality $\sinc(t) \Leftrightarrow \rect(-f) = \rect(f)$ (because $\rect(\cdot)$ is an even function).
+
+\textbf{Energy and power conservation (Plancherel / Parseval theorem)}.\\
+For energy signals:
+\begin{equation}
+E=\int_{-\infty}^{\infty} |x(t)|^2 dt = \int_{-\infty}^{\infty} |X(f)|^2 df.
+\label{eq:parsevalEnergy}
+\end{equation}
+For periodic (power) signals with fundamental period $T_0$:
+\begin{equation}
+\calP=\frac{1}{T_0}\int_{<T_0>} |x(t)|^2 dt = \sum_{k=-\infty}^{\infty} |c_k|^2,
+\label{eq:parsevalPower}
+\end{equation}
+where $c_k$ are the coefficients of the Fourier series of $x(t)$.
+
+\textbf{Autocorrelation (Wiener-Khinchin theorem)}:
+\begin{equation}
+R_{x}(\tau) = \int_{-\infty}^{\infty} x(t+\tau) x^*(t) dt \Leftrightarrow X^*(f) X(f) = |X(f)|^2.
+\label{eq:Wiener-Khinchin}
+\end{equation}
+
+\ignore{
+%AK-TODO - Fourier tables
+%do not use \Leftrightarrow 
+\begin{table}
+\begin{center}
+	\label{tab:fourier_properties}
+	\caption{Properties of Fourier transforms and series.}
+\begin{tabular}{|c|c|c|}
+\hline
+ & Transform & Series \\ \hline
+\multicolumn{3}{|c|}{Linearity}  \\ \hline
+\multicolumn{3}{|c|}{$\alpha x + \beta y \Leftrightarrow  \alpha X + \beta Y$} \\ \hline
+%
+\multicolumn{3}{|c|}{Time-shift}  \\ \hline
+$x(t-t_d)$ & $X(f) e^{-j 2 \pi f t_d}$ & $ X(f) e^{-j k \aw_0 t_d}$ \\
+$x[n-n_d]$ & $X(e^{j \dw}) e^{-j \dw n_d}$ & $c_k e^{-j k (2 \pi / N) n_d}$ \\ \hline
+%
+\multicolumn{3}{|c|}{Frequency-shift}  \\ \hline
+$x(t) e^{j M 2 \pi f_0 t}$ & $X(f-f_0)$ & $ X(f) e^{-j k \aw_0 t_d}$ \\
+$x[n-n_d]$ & $X(e^{j \dw}) e^{-j \dw n_d}$ & $c_k e^{-j k (2 \pi / N) n_d}$ \\ \hline
+%
+\end{tabular}
+\end{center}
+\end{table}
+}
+
+\section{Fourier Analysis: Pairs}
+
+This section lists few pairs, which are among the most important ones. Both continuous and discrete-time signals are exemplified.
+
+%AK-IMPROVE: Provide code for adding basis functions. This code assumes the equations for analog dente de serra, pulses, etc.
+
+\begin{enumerate}
+
+\item impulse $\Leftrightarrow$ DC level
+\[
+x(t) = \delta(t) \Leftrightarrow X(\aw)= 2 \pi
+\]
+
+\[
+x[n] = \delta[n] \Leftrightarrow X(e^{j \dw})=1
+\]
+
+\[
+x[n] = \frac{1}{2 \pi} \Leftrightarrow X(e^{j \dw})=\sum_{k= -\infty}^\infty \delta(\dw - k 2 \pi)
+\]
+
+\item pulse $\Leftrightarrow$ sinc
+
+Several pairs of pulses and sincs are described below.\footnote{It is easier to prove these pairs by starting with the rectangular pulse instead of the sinc function, as discussed in \url{https://math.stackexchange.com/questions/25903/derive-fourier-transform-of-sinc-function}.}
+
+\begin{equation}
+x(t) = \left\{ {\begin{array}{*{20}c} {A,~-T/2 \le t \le T/2} \\ {~ 0,{~\textrm{otherwise}}} \\ \end{array} \Leftrightarrow } \right. X(f) = A T \sinc(fT)
+\label{eq:sinc_transform}
+\end{equation}
+~\newline
+
+\begin{equation}
+x[n] = \left\{ {\begin{array}{*{20}l} {1,~~0 \le n \le M - 1} \\ {0,{\textrm{otherwise}}} \\ \end{array} \lra } \right. X(e^{j \dw}) = \frac{{\sin (\dw M/2)}}{{\sin (\dw /2)}}e^{ - j\dw (M - 1)/2}
+\label{eq:discrete_sinc_transform}
+\end{equation}
+
+
+%Ran out of space:
+%\frac{ 2 {\sin ( \frac{\pi}{\alpha}n)}}{{n}} = \frac{2 \pi}{\alpha} \sinc \left( \frac{n}{\alpha}\right)
+Due to the duality property, sincs in time-domain lead to pulses in frequency-domain. In continous-time, one has:
+\begin{equation}
+x(t) = \frac{1}{\pi t} \sin(2 \pi F t) = 2 F \textrm{sinc}(2Ft) \Leftrightarrow X(f)= \left\{\begin{array}{lr} 1,&|f| \le F \\ 0,& \textrm{otherwise} \\ \end{array} \right.
+\label{eq:sinc_time_transform_Hz}
+\end{equation}
+where $F$ is given in Hertz, and
+\begin{equation}
+x(t) = \frac{1}{\pi t} \textrm{sin}(Wt) \Leftrightarrow  X(\aw)= \left\{\begin{array}{lr} 1,&|\aw| \le W \\ 0,& \textrm{otherwise} \\ \end{array} \right.
+\label{eq:sinc_time_transform_Rad}
+\end{equation}
+where $W$ is given in rad/s. Note that in \equl{sinc_time_transform_Rad} one has a sine, not a sinc.
+
+Considering discrete-time signals and assuming $\alpha \ge 1$ determines the spectrum bandwidth (recall that it suffices to specify $X(e^{j \dw})$ for $-\pi \le \dw \le \pi$ ) one has:
+\begin{equation}
+x[n] = \frac{2 \pi}{\alpha} \sinc \left( \frac{n}{\alpha}\right)  \lra X(e^{j \dw}) = \left\{ {\begin{array}{*{20}l} {1,~~-\pi/ \alpha \le \dw \le \pi/ \alpha} \\ {0,{\textrm{otherwise}}} \\ \end{array}  } \right.
+\label{eq:sincTimeDomain}
+\end{equation}
+
+Now it is assumed a discrete-time pulse train $x[n]$ with period $N$ and, for the pulse centered in 0, $x[n]=1$ from $n=-M$ to $N=M$ and 0 otherwise. This pulse is replicated: the next is centered in $n=N$ and has non-zero values in the range $[N-M,N+M]$ and so on.
+%AK TODO (TO DO: a picture to clarify).
+The spectrum is
+\[
+X[k]= \frac{1}{N} \frac{\sin \left(k (2M+1) \frac{\pi}{N} \right)}{\sin \left(k \frac{\pi}{N} \right)},
+\]
+where $X[k]=\frac{2M+1}{N},k=0,\pm N, \pm 2N, \ldots$, via L'Hopital's rule.
+
+For a continuous-time pulse train with each pulse of duration $2T_p$ and period $T_0$ (one pulse is centered at $t=0$, with duration from $-T_p$ to $T_p$) one has:
+%(proof via Fourier series):
+%AK-IMPROVE: Continuous-time pulse train
+\ignore{
+\begin{figure}[!htb]
+        \centering
+                \includegraphics[width=7cm]{Figures/squarewavespectrum}        
+        \caption{Continuous-time pulse train.\label{fig:squarewavespectrum}}
+\end{figure}
+\figl{squarewavespectrum}
+%
+\[
+c_k = \frac{1}{T_0} \int_{\langle T_0\rangle} x(t) e^{- j 2 \pi k f_0 t} dt\quad,k=-\infty,\ldots,-1,0,1,\ldots,\infty \\
+\]
+\begin{align*}
+c_k & = & \frac{1}{T_0} \int_{\langle T_0\rangle} x(t) e^{- j 2 \pi k f_0 t} dt \\
+& = & \frac{1}{T_0} \int_{-T_p}^{T_p} e^{- j 2 \pi k f_0 t} dt \\
+& = & -\frac{1}{j T_0 2 \pi k f_0} \left[ e^{- j 2 \pi k f_0 t} \right] \Biggr \vert_{-T_p}^{T_p} \\
+& = & \frac{2 }{T_0 2 \pi k f_0} \left( \frac{e^{j 2 \pi k f_0 T_p} - e^{- j 2 \pi k f_0 T_p}}{2j} \right) \\
+& = & \frac{2 \sin(2 \pi k f_0 T_p) }{T_0 2 \pi k f_0} = \frac{2 \sin(k \dw_0 T_p) }{T_0 k \dw_0}\\
+\label{eq:XXXX}
+\end{align*}
+}
+\[
+c_k = \frac{\sin(2 \pi k f_0 T_p) }{k \pi} =\frac{\sin(k \aw_0 T_p) }{k  \pi} = 2 f_0 T_p \sinc(2 k f_0 T_p) = \frac{2 T_p}{T_0} \sinc \left( \frac{k 2 T_p}{T_0}  \right),
+\]
+where $f_0=1/T_0$ and $\aw_0 = 2 \pi f_0$.
+
+\item exponential $\Leftrightarrow$ rational function
+\[
+e^{-at} u(t) \Leftrightarrow \frac{1}{(j\aw + a)}, a > 0
+\]
+~\newline
+\[
+a^n u[n] \Leftrightarrow \frac{1}{{(1 - ae^{ - j\dw } )}},\left| a \right| < 1
+\]
+
+\item complex exponential $\Leftrightarrow$ impulse
+
+\begin{equation}
+e^{j 2 \pi f_0 t} \Leftrightarrow \delta (f - f_0)
+\label{eq:exponentialImpulseFourierPair}
+\end{equation}
+
+
+\item train of impulses $\Leftrightarrow$ train of impulses
+
+The Fourier series coefficient of an impulse train of period $\Tperiod$, with one of the impulses $\delta(t)$ at the origin $t=0$ is $c_k = 1/\Tperiod$. In case the impulses are shifted in time, a linear phase appears in $c_k$. If the series should be represented in the transform domain, the coefficient values $c_k$ are represented by impulses with area $c_k$ and separated in frequency by multiples of $f_0 = 1/\Tperiod$, creating another impulse train:
+\begin{equation}
+\sum^{\infty}_{l=-\infty} \delta(t-l \Tperiod) \Leftrightarrow \frac{1}{\Tperiod} \sum^{\infty}_{k=-\infty} \delta \left( f - \frac{k}{\Tperiod} \right).
+\label{eq:impulseTrainPair}
+\end{equation}
+In rad/s instead of Hertz, the pair is:
+\begin{equation}
+\sum_{l=-\infty}^\infty \delta(t - l \Tperiod) \Leftrightarrow \frac{2 \pi}{\Tperiod} \sum_{k=-\infty}^\infty \delta \left(\aw - \frac{k 2 \pi}{\Tperiod} \right)
+\label{eq:fourierPropertyImpulseTrain}
+\end{equation}
+For discrete-time, a train of impulses with amplitude one and period $\Nperiod$ leads to series coefficients $X[k]=1/\Nperiod, \forall k$. Representing these coefficients in the transform domain leads to another train of impulses in $\dw$ spaced by $2 \pi / \Nperiod$ with areas $2\pi/\Nperiod$:
+\[
+\sum_{l=-\infty}^\infty \delta[n - l \Nperiod] \Leftrightarrow \frac{2 \pi}{\Nperiod} \sum_{k=-\infty}^\infty \delta \left(\dw - k \frac{2 \pi}{\Nperiod}\right).
+\]
+
+Due to the corresponding Fourier series, note that any periodic impulse train can be written as a sum of of complex exponentials. For instance, in discrete-time:
+\begin{equation}
+\sum_{l=-\infty}^\infty \delta[n-l\Nperiod]=\frac{1}{\Nperiod}\sum_{k=0}^{\Nperiod-1}e^{ j 2\pi k n / \Nperiod}.
+%\label{eq:}
+\end{equation}
+In continuous-time, one can represent the transform $X(f)$ of the impulse train in two distinct ways. One is by calculating the series coefficients $c_k=1/\Tperiod$ and then representing them in the transform domain. The second alternative is via the definition of the Fourier transform of the impulse train, and then using the impulse sifting property. These two alternatives can be written as:
+\begin{equation}
+X(f) = \frac{1}{\Tperiod}\sum^{\infty}_{k=-\infty} \delta \left( f - \frac{k}{\Tperiod} \right) = \sum^{\infty}_{k=-\infty} e^{-j 2 \pi f k \Tperiod}.
+\label{eq:impulsesAndExponentials}
+\end{equation}
+The equality in \equl{impulsesAndExponentials} is not trivial because the continuous-time impulse is a generalized function. In order to get insight on how the sum of these complex exponentials converge to an impulse train, the interested reader can use
+the code \ci{MatlabOctaveCodeSnippets/snip\_appfourier\_impulse\_train.m}.
+
+\ignore{
+To calculate $\sum^{\infty}_{l=-\infty} e^{-j 2 \pi f l \tsym}$, observe that when $x(t) = \sum^{\infty}_{l=-\infty} \delta(t-l \tsym)$ is an impulse train of area 1 and period $\tsym$, its Fourier transform is
+\[
+X(f) = \int^{\infty}_{t=-\infty} \left[ \sum^{\infty}_{l=-\infty} \delta(t-l \tsym) e^{-\dw t} \right] dt = 
+\sum^{\infty}_{l=-\infty} e^{-\dw l \tsym}.
+\]
+Therefore,  $X(f) = \sum^{\infty}_{l=-\infty} e^{-j 2 \pi f l \tsym}$ is the Fourier transform of the mentioned impulse train, which can be alternatively written as $X(f) = 1/\tsym \sum^{\infty}_{k=-\infty} \delta(f - k/ \tsym)$, 
+}
+
+\end{enumerate}  
+

@@ -1,0 +1,131 @@
+The availability of flexible and relatively low cost platforms has been increasing and can also be explored in advanced engineering projects, for teaching at schools or self-learning.
+This text describes just few platforms that rely on GNU Radio. The respective communities generated great material that is freely available and the reader is invited to use this text as an introduction and pointer to the web sites and discussion groups.
+
+A typical hardware interface can be divided in three main system parts: the analog-to-digital (ADC) / digital-to-analog 
+(DAC) conversions; the analog tuner, capable of up/down converting signals; and finally the transport,
+responsible for streaming the signal to/from the converter, constrained by the stream capability ($S_c$) of the connection interface (typically, USB or Ethernet). 
+
+% Kinds of Hardware Interface
+
+Table~\ref{tabela} compares four distinct SDR hardware platforms. In the past years, the Universal Software Radio Peripheral (USRP) has been the most popular hardware used with GNU Radio. It can be purchased from National Instruments (NI) or directly from Ettus (acquired by NI). NI commercializes USRP kits that include educational material. Table~\ref{tabela} includes only two models: \textit{N210} and the\textit{B100} and assumes the current prices suggested by Ettus. 
+Nowadays, there are cheaper yet powerful alternatives to USRPs such as the \textit{Jawbreaker} board developed within the  HackRF project. If only a SDR receiver (without a transmitter) is useful, a DVB-T Dongle is the cheapest alternative. Table~\ref{tabela} lists the \textit{Ezcap EZTV645} dongle, but there is a large number of models and a list of devices compatible with GNU Radio discussed at \akurl{http://sdr.osmocom.org/trac/wiki/rtl-sdr}{artl} and  \akurl{https://www.cgran.org/}{agra}.
+
+\begin{table}
+\caption{\label{tabela}Examples of SDR Hardware Platforms.}
+\begin{center}
+{\scalebox{1}{%
+    \begin{tabular}{|c||c|c|c|c|}\hline
+                & U. N210       & U. B100        & Jawbreaker     & EZTV645        \\\hline\hline
+    $\fs$ (Hz or Msps)      	& $100$     	& $64$  	& $22$       & $4$        \\\hline
+    $b$ (bits)        	& $14$       	& $14$     	& $8$          & $8$         \\\hline
+    $\Delta f$ (GHz)	& $0$-$6$*  	& $0$-$6$* 	& $0.03$-$6$ & $0.064$-$1.7$ \\\hline
+    $S_c$ (Msps)      & $50$      	& $8$        	& $20$       & $2.4$ \\\hline
+    Price (US\$)      & $1700$ 	& $650$ 	& $300$ 	& $20$   \\\hline
+    Obs.        & full-duplex   & full-duplex    & half-duplex    & just receiver     \\\hline
+    \end{tabular}}
+
+    * $\Delta f$ depends on the daughter boards used.
+}
+\end{center}
+\end{table}
+
+
+\subsection{Universal Software Radio Peripheral (USRP)}
+
+The \textit{Universal Software Radio Peripheral} (USRP) is a hardware device conceived to work with the  GNU Radio project. The large majority of the USRP is \textit{open source}, including schematics and layouts, for example. \figl{usrp} illustrates the USRP through a block diagram.
+
+\begin{figure}[htb]
+\centering
+\includegraphics [width=8cm] {./FiguresNonScript/usrp}
+\caption{USRP block diagram.\label{fig:usrp}}
+\end{figure}
+
+The USRP consists of a small motherboard containing up to four 12-bit 64M sample/sec analog-to-digital converters (ADCs), four 14-bit, 128M sample/sec digital-to-analog converters (DACs), a million gate-field programmable gate array (FPGA) and a programmable USB 2.0 controller. Each fully populated USRP motherboard supports four daughterboards, two for receive and two for transmit. RF front ends are implemented on the daughterboards. A variety of daughterboards is available to handle different frequency bands. 
+
+All ADCs and DACs are connected to the FPGA. In its original configuration, the FPGA implements \textit{digital down-converters} (DDC) and \textit{cascaded integrator-comb} (CIC) filters, while \textit{digital up-converters} (DUC) are located in the AD9862 chips.
+
+The USRP interfaces with the world through daughter boards, which are connected to the mentioned slots. There are several USRP daughter boards, with operating frequencies from 0 to 2.5 GHz. It is also possible to develop new daughter boards, for example, to connect baseband signals to the USRP.
+
+%\section{Implementing Wireless Systems}
+%\boldmath
+
+\ignore{
+\subsection{Interfacing to the Analog World}
+%
+In particular, the normalization of basis functions often absorbs gain into the signal
+constellation definition that may tacitly conceal complicated calculations based on transmission-channel
+impedance, load matching, and various nontrivially calculated analog effects.
+%
+The average power is the usual measure of energy per unit time and is useful when sizing the power
+requirements of a modulator or in determining scale constants for analog filter/driver circuits in the
+actual implementation. The power can be set equal to the square of the voltage over the load resistance
+when the modulator (voltage source with internal resistance) has internal resistance matched to the load.
+}
+
+\section{Using GNU Radio and USRP}
+
+%GNU Radio is an open source project that aims to abstract the hardware layer when one develops a digital radio system. It allows the conception and development of applications via the interconnection of the available C++ building blocks. The high-level programming is done in Python, basically connecting blocks to create a graph that represents the data flow.
+
+%\subsection{Implemented Setup}
+
+%, which rely on numerically controlled oscillators, CIC filters and decimators. 
+
+%\section{Experiments}
+
+An experiment is described here to illustrate. Two USRP mother boards were used, each one connected to a FLEX 2400 daughter board, which work in the frequency range from 2.4 to 2.5 GHz.
+The goal is to transmit a given file (for example, a figure in the BMP format) using the GMSK modulation with a carrier frequency of 2.5 GHz. The second USRP receives the signal, demodulates, writes to disk and compares with the original file.
+The data flow graph depicted in \figl{gmsk_blocks} lists the processing blocks, as well as their corresponding output. \figl{usrp_setup} provides a illustration of the involved equipment.
+The first transmitter block reads the file, while its successor block ignores the first bytes (file header) and passes the remaining bytes to an ``unpacker'', which converts bytes into right-justified bits in each output byte.
+The GMSK modulator then sends complex symbols to the USRP, which converts them into a modulated signal. The inverse process takes place at the receiver. The extra Packed to Unpacked block is necessary due to the format adopted by the demodulator. 
+
+%One needs to append the stripped header for visual comparisons of the files as figures.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=3.5in]{FiguresNonScript/gmsk_blocks}
+ \caption{Block diagram describing a wireless system using GMSK. The blocks correspond to objects in Python that interface with GNU Radio code in C++ language.}
+\label{fig:gmsk_blocks}
+\end{figure}
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics [width=8cm] {./FiguresNonScript/usrp_setup}
+	\caption{Experimental setup using two USRPs for getting familiar with GNU Radio. \label{fig:usrp_setup}}
+\end{figure}
+
+\ignore{ 
+%This work describes an on-going effort for generating and freely distributing documentation to allow other groups reproduce the setup and the proposed experiments with GNU Radio and USRP. 
+This setup allows, for example, experiments with modulation classifiers, which aim at identifying the kind of modulation (FSK, PSK, etc.) used in a given spectrum range. %~\cite{Freitas08}.
+%
+\figl{usrp_setup} depicts a basic setup for communicating between two USRPs. Based on this setup, the student is asked to develop a modulator and demodulator for transmitting files between the two computers. First, some basic scripts are provided.
+%
+For example, the C++ code below illustrates a very basic signal acquisition with the DDC set to operate at 2.5 GHz. In a second stage, the student is asked to modify this code and also write a ``glue'' code in Python.
+\lstset{
+	numberstyle=\tiny,
+	basicstyle=\footnotesize,
+	linewidth=\columnwidth,
+	numbers=left,
+	stepnumber=5,
+	language=C++,
+	commentstyle=\color{blue},
+	showstringspaces=false,
+	frame=single,
+	tabsize=2,
+	breaklines=true,
+	backgroundcolor=\color{white},
+}
+\lstinputlisting{./Code/C_Language/cppsnippet.cc}
+%
+The Python code below illustrates how a sound file can be transmitted via USRP using a QAM-8 modulator with a carrier of 2.5~GHz. The class \texttt{my\_message\_source} represents the graph which vertices are the source file (information source), the QAM modulator and the USRP (transmitter). At the constructor, after instantiating the objects, the USRP and the proper \textit{daughterboard} (object \texttt{flexboard}, omitted) are configured with the adequate frequency. The graph is then executed with a call to the method \texttt{run()}.
+%
+%\lstset{language=Python}
+\lstinputlisting[language=Python]{./Code/Python_Language/pythonsnippet.py}
+%
+The choice of QAM was based on the fact that the used GNU Radio version does not have a QAM modem ready for use. Therefore, the student faces the task of building new signal processing blocks in the GNU Radio framework. It is also possible to save the received signal into a file and use Matlab to perform the QAM demodulation.
+}
+%\subsection{A 10 Mbps Digital Radio}  %which GHz?
+%\subsection{A 100 Mbps Digital Radio}
+
+
+%\subsection{DVB-T RTL-SDR dongles}
+%\akurl{http://sdr.osmocom.org/trac/wiki/rtl-sdr}{artl}

@@ -1,0 +1,2202 @@
+\section{To Learn in this Chapter}
+
+\begin{itemize}
+\item The \textbf{main} characteristic of a digital communication\index{Digital communication system} system: the system adopts a finite set of $M$ distinct \emph{symbols} to convey information. Along the process, these symbols can be transformed into analog waveforms, but the essential characteristic is that the receiver will look after information that allows it to estimate one among the $M$ possible symbols. This differs from the strategy of an analog communication system that tries to have the received signal as similar (analogous) to the input signal as possible.
+	\item Basic concepts such as symbol rate, bit error rate, symbol error rate, oversampling, etc.
+
+\end{itemize}	
+
+The main goal of this chapter is to discuss how to generate and interpret a PAM signal.
+
+Digital communications concerns a vast number of techniques. The approach adopted in this chapter, 
+to make concrete some of the fundamental concepts, a hands-on description of an almost complete simulation is presented in the context of simple $M$-ary PAM systems using baseband signals (the spectrum is centered around DC). Later, ASK, PSK and FSK illustrate simple strategies that use frequency upconversion to center the spectrum at a desired high frequency determined by the carrier signal. 
+
+%AK-GUIDELINE: need to define QAM because it is mentioned in chapter about models and other parts.
+When using the multiplication by a sinusoid carrier to perform frequency upconversion of a baseband signal with bandwidth $\BW$, the new passband signal has bandwidth $2 \, \BW$. However, this disadvantage can be compensated. For example, two carriers in phase quadrature such as a cosine and sine of the same frequency can be used to compose a \emph{quadrature amplitude modulation} (QAM)\index{QAM} system from two distinct PAM signals.\footnote{Because the cosine and sine are related by a phase shift of $\pi/2$~rad, this is called a \emph{quadrature amplitude modulation} (QAM) scheme.} QAM is widely adopted in many modern communication systems and PAM can be seen as a simpler special case, which motivates concentrating in PAM in this chapter and deferring the discussion about QAM to Chapter~\ref{ch:qam}.
+
+\section{Definition of a Digital Communication System}
+
+%AK-PUTBACK OUTRA-FIGURA-COM-CHAVE-SELETORA (todofig2). 
+
+The goal of communication systems is to efficiently convey information between two different locations.
+
+%(info.)
+A simplified model of a communication system is depicted below and describes the information  flow in one direction.
+%in \figl{info_flow} 
+%{\small\[\textrm{info.} \arrowedbox{Transmitter (Tx)} s(t) \arrowedbox{Channel} r(t)  \arrowedbox{Receiver (Rx)}  \widehat{\textrm{info.}}\]\par}
+A convenient way of representing the information is through continuous-time signals or waveforms, such that $m(t)$ and $\hat m(t)$ correspond to the transmitted and recovered information, respectively, as indicated by:
+{\small\[m(t) \textrm{~} \arrowedbox{Transmitter (Tx)} s(t) \arrowedbox{Channel} r(t)  \arrowedbox{Receiver (Rx)}  \textrm{~}\hat{m}(t).\]\par}
+The channel is typically an analog system, such as an optic fiber, atmosphere (for wireless propagation), twisted copper-pairs, etc.
+
+Due to historical reasons, there are two main categories of communication systems: \emph{analog} and \emph{digital}.
+%The answer lies in the 
+The distinction between them can be related to the difference between analog and digital \emph{signals}.
+%which can be extended to \emph{communication systems}: 
+For instance, in electronics, \emph{digital signals} are characterized by having a \emph{finite set} of amplitudes while analog signals do not have this restriction. Similarly, communication systems
+can be distinguished by the flexibility on the waveforms that are transmitted during a given interval of time $\tsym$. 
+\emph{Digital communication systems}\index{Digital communication system} are defined as those that use waveforms $s(t)$  that convey information as numbers from a finite set of $M$ ``symbols''.
+In contrast, an \emph{analog communication system}\index{Analog communication systems} can transmit any waveform.
+
+The mapping from symbols to waveforms can be a complicated one, but it is convenient to associate each waveform $s_i(t)$ to a unique \emph{symbol}\index{Symbols in digital communication} $m_i$, with $m_i$ being a real or complex number. 
+For example, assuming $M=4$, the transmitted waveform can be composed by concatenating 
+\[
+s(t) = [s_3(t)\textrm{~}s_1(t)\textrm{~}s_4(t)\textrm{~}s_3(t)\textrm{~}s_2(t)\textrm{~}s_1(t)\textrm{~}s_1(t) \ldots],
+\]
+with each waveform segment $s_i(t)$ lasting\footnote{Later this condition will be relaxed such that a symbol can have duration longer that $\tsym$.} $\tsym$.
+The set $\{m_i\}, i=1,\ldots,M$ of possible symbols is called \emph{constellation}\index{Constellation}. The previous $s(t)$ can be represented by the elements of $\{m_i\}$ that compose a sequence
+\begin{equation}
+m[n] = [m_3\textrm{~}m_1\textrm{~}m_4\textrm{~}m_3\textrm{~}m_2\textrm{~}m_1\textrm{~}m_1 \ldots]
+\label{eq:exampleOfSymbols}
+\end{equation}
+with the implicit mapping from $m_i$ to $s_i$.
+
+%information that the duration of one symbol is $\tsym$. 
+It is assumed that $\tsym$ is in seconds, such that $\rsym = 1/\tsym$ is the number of symbols per second (also called bauds)\index{Bauds}.
+The concepts of symbol and $\tsym$ are not needed when dealing with analog communication systems. In these systems, the source information is typically an analog waveform $m(t)$ that is converted to another analog signal $s(t)$ for transmission.
+
+In digital communication, all \emph{sources of information} are considered to be in a digital format. This is already the case when the information source is, for example, the text typed via a keyboard. If the information is originally conveyed by an analog waveform, an A/D conversion is required before a digital communication system can be used to transmit a digitized (and hopefully fairly accurate) version of this information. For example, the voice captured by a microphone in a voice over IP (VoIP) application has to be first digitized, often using a specialized ADC chip called \emph{codec}.\footnote{Codec stands for coder and decoder.} The A/D process is important because it impacts the quality of the overall digital communication system and is discussed in Chapter~\ref{ch:signals}.
+%, but for the sake of treating uniformly all sources of information, this stage is not included in the model  above, which assumes the information is already represented by bits.%\figl{info_flow}.
+
+In summary, even if the information source is an analog signal $m(t)$, the strategy of using a digital communication system to transmit a digitized version of $m(t)$ has been increasingly popular. 
+%On the other hand, it is not common to use an analog communication system in case the information source is digital.
+
+\section{Concepts and Elements of a Digital Communication System}
+\label{sec:elements_digitalComm}
+
+\subsection{Block diagram of a digital communication system}
+
+%The digital source of information generates bits and the receiver's output is also bits.
+%When compared to \blol{basicDigicomm}, the following block diagram gives more details about the Tx:
+\figl{transmitter} is a block diagram representing a generic Tx of a digital communication system.
+%\begin{align*}
+%&\textrm{Information (speech, video, etc.) } 
+%\arrowedbox{ADC}~
+%b_0 \textrm{~bits}\ldots\\
+%&\ldots b_0 \text{ bits }\arrowedbox{\color{red} \textbf {source coder}}
+%b_1 \textrm{~bits} \arrowedbox{\color{red} \textbf {channel coder}}
+%b_2 \textrm{~bits}\ldots\\
+%&\ldots b_2 \textrm{~bits}\arrowedbox{\color{red} \textbf {modulator}}
+ %s_q[n] \arrowedbox{DAC}
+%\fbox{$h_{\textrm{Tx}}(t)$} \rightarrow s(t).
+%\end{align*}
+The overall task of the Tx is to convert the information into an analog waveform $s(t)$ that is suitable for transmission over a channel $h_c(t)$ (not shown). 
+%The analog filter $h_{\textrm{Tx}}(t)$ is responsible for tasks as the \emph{reconstruction} of $s(t)$ given that $s_q[n]$ is a discrete-time signal with infinite replicas over $\dw$.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\textwidth,keepaspectratio]{FiguresTex/transmitter}		
+	\caption{Block diagram of a generic transmitter.\label{fig:transmitter}}
+\end{figure}
+
+\figl{receiver}
+%The following diagram 
+illustrates a generic\footnote{The diagrams of \figl{transmitter} and \figl{receiver} are just  examples. There are digital communication systems that do not use a source coder (also called encoder), for example, or do not include an ADC.} 	receiver.
+%\begin{align*}
+%&r(t)
+%\arrowedbox{$h_{\textrm{Rx}}(t)$} \fbox{ADC} \rightarrow r_q[n]
+%\arrowedbox{\color{red} \textbf {demodulator}} \hat b_2 \textrm{~bits}  \ldots \\
+%&\ldots \hat b_2 \textrm{~bits} \arrowedbox{\color{red} \textbf {channel decoder}} \hat b_1 \textrm{~bits} \arrowedbox{\color{red} \textbf {source decoder}} \hat b_0 \textrm{~bits}.
+%\end{align*}
+%The analog filter $h_{\textrm{Rx}}(t)$ is responsible for tasks such as anti-aliasing.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\textwidth,keepaspectratio]{FiguresTex/receiver}		
+	\caption{Block diagram of a generic receiver.\label{fig:receiver}}
+\end{figure}
+
+In practice, the analog LTI system denoted by its impulse response $h_{\textrm{Tx}}(t)$ is responsible for filtering and amplification. For example, wireless systems use power amplifiers before the transmitting antennas to achieve the required coverage area. Another role played by $h_{\textrm{Tx}}(t)$ is to perform the D/A ``reconstruction'' filtering. All digital signals are periodic and an analog filter should be used to eliminate undesired replicas, as exemplified in \figl{dacFilter80khz}, and keep only the spectrum frequency range that conveys information. Similarly, the receiver also uses an analog LTI system $h_\textrm{Rx}(t)$ to perform anti-aliasing filtering and reduce the noise power before the A/D conversion. The analog systems $h_\textrm{Tx}(t)$ and $h_\textrm{Rx}(t)$ are clearly important but they are assumed to be ideal filters in most digital communications literature.
+
+Most of the discussion in this text is concentrated on the digital part of the transmitter (i.\,e., on how to generate $s_q[n]$) and, later, at the digital part of the receiver (how to interpret $r_q[n]$ after A/D conversion).
+
+
+\subsection{Number of bits per second can vary over the stages}
+
+\ignore{
+\begin{align*}
+&r(t)
+\arrowedbox{$h_{\textrm{Rx}}(t)$}
+\fbox{ADC} \rightarrow
+r[n]
+\arrowedbox{synchronizer and demodulator}\ldots\\
+&\ldots \arrowedbox{detector} \hat b_2 \textrm{~bits} \arrowedbox{channel decoder} \hat b_1 \textrm{~bits} \ldots\\
+&\ldots 
+\hat b_1 \textrm{~bits} \arrowedbox{source decoder}
+\hat b_0 \textrm{~bits}.
+\end{align*}
+}
+
+Ideally, the number $b_i, i=0,1,2,$ of bits at each stage of the Tx in \figl{transmitter} is the same as its counterpart $\hat b_i$ at the Rx in \figl{receiver}. In practice, however, there are situations that may lead to $\hat b_i \ne b_i$. For example, most video codecs, such as MPEG-4, use a variable rate bitstream, i.\,e., the instantaneous rate (number of bits per second) varies according to the scene contents. Transmission errors can potentially lead to $b_0 \ne \hat b_0$. Another example is that synchronization errors can imply in $b_2 \ne \hat b_2$.
+
+\subsection{Source coding}
+The number $b_0$ of bits (ADC output) is typically high and \emph{source coding} is the stage that tries to eliminate redundancy such that $b_1 < b_0$. When one compresses a file with softwares such as Winzip, Winrar, gzip, etc., it is basically using source coding techniques. An example of the importance of the source coder is the much smaller size of an image in the PNG format when compared to the plain bitmap (BMP) formats. Both PNG and BMP are examples of \emph{lossless} formats, meaning that the process of coding and decoding does not change the original information. When a \emph{lossy} coding technique can be used, the compression ratio is significantly larger. This is the main reason for the popularity of lossy file formats such as DivX, MP3 and JPEG to store video, audio and images, respectively. Source coding is a rather specialized area and is the subject of many textbooks.
+%AK-PUTBACK Chapter~\ref{ch:sourcecoding}.
+
+\subsection{Channel coding}
+It may sound exquisite, but after the effort of the source encoder to eliminate redundancy, the next block, the \emph{channel coder}\index{Channel coding}, adds redundancy such that $b_2 > b_1$ in \figl{transmitter}. Different from the redundancy in the original binary source, this \emph{controlled} redundancy allows the detection and correction of transmission errors.
+
+There are many channel coders (e.\,g., Reed-Solomon, LDPC, etc.) and here the simple \emph{repetition code}\index{Repetition code} is used as an example: if for each bit $x \in \{0,1\}$ to be transmitted, a channel coder adds two extra copies of this bit to form a triple $xxx$, it is intuitive that the receiver could make decisions based on the majority of bits in each triple. For example, 010 could be interpreted as a transmitted 0 that suffered an error in one of its three coded bits. This way, the receiver could detect and correct the occurrence of a single bit error at the expense of an overhead of two extra bits per information bit.
+%AK-PUTBACK Channel coding is discussed in Chapter~\ref{ch:channelcoding}.
+
+Among the schemes for channel coding, \emph{forward error correction}\index{Forward error correction (FEC)} (FEC) is widely used because it does not depend on feedback from the receiver. One important parameter of a FEC is its \emph{code rate}\index{Code rate}, which is the proportion of useful (that are carrying information bits), often denoted as $k/n$. In this case, for $k$ bits of information, the encoder generates $n-k$ bits of redundancy and outputs $n$ bits. Hence, the \emph{net bitrate} (useful information) is the fraction $k/n$ of the gross bitrate.
+
+\subsection{Modulation}
+The digital modulator block typically does not change the number of bits used to represent information,\footnote{There are modulation techniques, such as trellis modulation that incorporate channel coding~\cite{Proakis07}.} i.\,e., $s[n]$ corresponds to $b_2$ bits. As mentioned in Section~\ref{sec:elements_analogComm}, the role of modulation is to create waveforms that can be properly transmitted through the channel and interpreted at the receiver. 
+
+\subsection{Demodulation}
+
+Demodulation is the (eventually complicated) process of converting the received waveform $r(t)$ into bits. As for the term ``modulation'', this definition of demodulation is not universal given that the jargon in telecommunications is far from consensual. For example, some authors prefer to define demodulation as
+synonymous of frequency  downconversion. The former definition is adopted here and demodulation is considered the whole process, which may include obtaining baseband pulses from the received waveform $r(t)$, and  a subsequent \emph{decision} or \emph{detection} process being responsible for converting these pulses into bits in digital communications. There are advantages in adopting this more general definition of demodulation: for example, in {\matlab}, functions such as \ci{pamdemod} simply perform the ``detection'' process, which would be confusing under the light of a definition in which demodulation is restricted to downconversion and does not include detection. 
+
+\figl{basebandReceiver} provides an example of a baseband demodulator. In this case there is
+no need for downconversion because the signal of interest is already centered at DC. The \emph{timing recovery} block uses analog processing (e.\,g., a circuit with a PLL that tracks a sinusoid extracted from $r(t)$ as discussed in Section~\ref{sec:pll}) to drive the \emph{sampler} and obtain $y[n]$ sampled at $\rsym$. 
+The \emph{detector}\index{Detector}\footnote{Some authors call this block ``slicer'' instead of
+detector, but here slicer is the process of chopping a bitstream to feed the mapper, as illustrated in \figl{createMultiplexSignal}.} finds the estimated symbol $\hat m[n]$ that best represents
+$y[n]$ given the constellation and decision criterion (e.\,g., maximum likelihood, as discussed in Section~\ref{sec:MAPandML}). The \emph{demapper} simply converts each constellation symbol to
+its respective binary representation.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthLarge]{FiguresTex/basebandReceiver}
+\caption{Example of baseband demodulator (which in this case implements a complete receiver).\label{fig:basebandReceiver}}
+\end{figure}
+
+The demodulator in \figl{basebandReceiver} is a complete receiver, which can be made more
+sophisticated by the inclusion of channel (de)coding, etc. In fact, there are several 
+alternatives for implementing a receiver with similar functionality. For example, the
+signal $r(t)$ can be digitized at a sampling rate $\fs$ and all timing recovery implemented
+in the digital domain. 
+
+The nomenclature in \figl{basebandReceiver} may vary: the
+detector and demapper are called, respectively, \emph{slicer} and decoder in some textbooks.
+The various architectures and definitions found in the literature can be confusing. It is important to have the Tx / Rx blocks clearly defined according to a consistent nomenclature. 
+\figl{basebandReceiver} informs the one adopted in this text.
+
+%, in the current context of the telecommunications industry and academia, it seems adequate to define demodulation as the whole process of interpreting $r(t)$ as bits. 
+With demodulation defined as the whole process of interpreting $r(t)$ as bits, the demodulator performs at the receiver, operations that are the inverse of the corresponding ones at the modulator (e.\,g., the demapper inverts the mapper) and some extra ones. The receiver is typically more computationally complex than the transmitter. Some of the main actions performed by a demodulator are:
+\begin{itemize}
+	\item synchronization;
+	\item frequency downconversion;	
+	\item detection.
+\end{itemize}
+with frequency downconversion typically depending on the synchronization, as explained in the sequel.
+
+\subsection{Synchronization and Coherent Demodulation}
+
+The two main tasks of a \emph{synchronizer} are \emph{timing} and \emph{carrier recovery}.
+Timing or symbol recovery\index{Timing recovery}\index{Symbol recovery} is the process of choosing the best time instants to  sample a waveform to get good estimates $\hat m[n]$ of the transmitted symbols $m_i$. Timing recovery is a requirement of virtually all digital communication systems. In some cases a clock signal is transmitted apart from the information signal, and in other cases the timing information is embedded or should be extracted from the information signal itself.
+
+Among the systems that use upconversion, some require estimating the carrier at the Rx (recovery) to perform \emph{coherent} demodulation while others adopt noncoherent demodulation. 
+Coherent, also called \emph{synchronous},\footnote{Both words, synchronous and coherent have other meanings in telecommunications as, for example, in \emph{synchronous} digital hierarchy (SDH).} demodulation means that the receiver aims at regenerating both the carrier frequency $f_c$ and phase $\phi_c$ to perform \emph{frequency downconversion}.
+% (or \emph{heterodyning}), 
+ After estimating its parameters and recovering the carrier $\hat c(t)$, the receiver typically implements the downconversion by multiplying the received signal and $\hat c(t)$ and then filtering. 
+% when dealing with radio-frequency (RF) signals, or using similarly-inspired processes in optical communications.
+
+An example of a noncoherent system is the one that uses amplitude modulation (AM) and recovers the information based on the envelope of the received signal as discussed in Application~\ref{app:amDemodulation}. Coherent systems are typically more complex but have a better performance than their noncoherent counterparts. In optical communications, for example, the recent advances in electronics have allowed ADCs with $\fs$ of the order of GHz and fast enough to digitize the signal obtained from the received electrical field. This has enabled many new coherent demodulation schemes and the adoption of digital signal processing techniques to compensate impairments such as nonlinearities.
+
+But it is not trivial to keep the Tx and Rx in synchronism. Their clock generators and oscillators are set to the same nominal values but, due to circuit imperfections, temperature variations, etc., the signals at the Rx can \emph{drift} with respect to the ones at the Tx. 
+The accuracies of clock generators and oscillators are specified in parts per million (ppm) but, even when they are very accurate, closed-loop adaptive techniques such as phase-locked loops (PLLs) are used to continuously track the Tx signals at the receiver. Application~\ref{app:gsmSync} discusses synchronization in GSM cellular networks.
+% and more details are discussed in Application~\ref{app:gsm_synchronization}.
+
+%In all studies in this chapter it is assumed perfect synchronization. 
+%AK-PUTBACK The synchronizer is postponed to Chapter~\ref{ch:synchronization}.
+
+%\begin{figure}[htbp]
+% \centering
+% \includegraphics[width=9cm]{}
+% \caption{Digital source of information -(bits)-- Transmitter (Tx) --s(t)- Channel --r(t)- Receiver (Rx)-(bits)--}
+% \label{fig:info_flow}
+%\end{figure}
+
+%When the information flows only in one direction, the communication system is called
+%systems require action to select the information flow in a scheme similar to a conversation using walkie-talkie. 
+
+
+\subsection{Digital signals in digital communications}
+
+It is possible to implement a digital communication system using analog processing, but it is much more common to use digital signal processing. Hence, it is assumed here that the transmitter creates a digital signal $s_q[n]$, which is converted to an analog waveform via D/A conversion. This waveform is processed by an analog LTI system with impulse response $h_{\textrm{Tx}}(t)$ (the transmitter filter) to generate $s(t)$, which is sent through the channel as depicted below
+\begin{flalign}\label{eq:basicDigicomm}
+\textrm{bits} \arrowedbox{\color{red} \textbf{Digital Tx}} s_q[n] \arrowedbox{DAC} \fbox{$h_{\textrm{Tx}}(t)$} \rightarrow s(t) \,.
+\end{flalign}
+%\rightarrow \fbox{Channel}  &&\raisetag{3.5ex}
+In spite of $s_q[n]$ being a digital signal, it is common to deemphasize the importance of the fact that its amplitude is discrete and represent it as a discrete-time signal $s[n]$. Hence, the subscript $q$ in $s_q[n]$ is omitted hereafter.
+%Be aware: on the other hand, discrete-time signals are sometimes called digital.
+
+%\section{Figures of Merit for Communication Systems}
+
+\subsection{Bit and symbol rates}
+\label{sec:BitSymbolRates}
+
+
+In general, the bit rate $R$ (expressed in bits per second or bps) is 
+\[R=\rsym b,\]
+where
+\[b=\log_2 M\]
+is the number of bits per symbol. Only for the case of a binary system, in which $b=1$, one has $R = \rsym$.
+
+\bExample \textbf{Distinction of bit and symbol rates.}
+For example, assume that a digital system transmits 100 symbols per second ($\rsym = 100$ bauds), with each symbol obtained from an alphabet with $M=256$ symbols. Because $b= \log_2 M = 8$ bits, the rate is $R=\rsym b = 100 \times 8 = 800$ bps.
+\eExample 
+
+\subsection{Error rates: BER and SER}
+
+While analog communication systems try to preserve the waveform across the communication channel, the adoption of a finite set of waveforms allows the construction of digital communication systems that do not need to aim at reproducing the original waveform at the receiver.
+Hence, a digital communication system can be assessed via figures of merit that take into account that the goal is to transmit the bits, as explicitly represented in
+{\small\[\textrm{bits} \arrowedbox{Transmitter (Tx)} s(t) \arrowedbox{Channel} r(t)  \arrowedbox{Receiver (Rx)}  \widehat{\textrm{bits}}.\]\par}
+
+The symbol error rate (SER)\index{SER (symbol error rate)}, denoted by $P_e$, corresponds to the fraction of transmitted symbols that were wrongly recovered at the receiver. Similarly, the bit error rate (BER)\index{BER (bit error rate)} is denoted by $P_b$ and corresponds to the fraction of transmitted bits that were wrongly recovered at the receiver. 
+For example, in a 4-PAM (pulse-amplitude modulation) system ($b=2$ bits per symbol), the transmitted bits, corresponding to four symbols, are [01 11 11 00] and the received symbols are [01 00 10 00]. In this case, the second and third symbols have errors, and $P_e = 2/4 = 0.5$. The three wrong bits correspond to $P_b = 3/8 = 0.375$. Both SER and BER are defined here with the implicit assumption that the number of received symbols and bits, respectively, is equal to the number of transmitted symbols and bits. In practice
+%, synchronization may be a difficult task and 
+these numbers may differ.
+
+Note that
+\begin{equation}
+P_b \le P_e,
+\label{eq:pbBound}
+\end{equation}
+i.\,e., the BER is upper bounded by the SER. Only for binary systems or when all bits are wrong for every symbol error, one has $P_b = P_e$. In fact, when a \emph{Gray code}\index{Gray code} is used, in which neighboring symbols differ by a single bit, and the errors are always caused by a symbol being mistaken by one of its neighbors, one has
+\begin{equation}
+P_b = \frac{P_e}{b}.
+\label{eq:gray_error_prob}
+\end{equation}
+\equl{gray_error_prob} is the best possible $P_b$ for a given $P_e$ and combined with \equl{pbBound} leads to
+\begin{equation}
+\frac{P_e}{b} \le P_b \le P_e.
+\label{eq:pbTwoBounds}
+\end{equation}
+
+Changing the previous example to have the received bits as [01 01 10 00], the new BER would be $P_b=2/8=0.25=P_e/b$.
+
+In case the required information ($p(i)$, $P_e(j|i)$, $n_b(i,j)$) is available, $P_b$ can be calculated by
+\[
+P_b = \frac{1}{b} \sum_{\vphantom{j}i=1}^M \sum_{j, j \ne i} p(i) P_e(j|i) n_b(i,j),
+\]
+where $p(i)$ is the a priori probability of symbol $m_i$, $P_e(j|i)$ is the probability of incorrectly choosing $m_j$ when $m_i$ was transmitted and $n_b(i,j)$ is the number of bits by which the symbols $m_i$ and $m_j$ differ.
+
+
+\section{Types of Communication Systems Simulation}
+
+When simulating physical phenomena, one may need to use differential equations, electromagnetism, etc. But detailed simulations may be too demanding in terms of computational resources. 
+
+For example, avoiding waveforms and using the abstraction of bits is useful to evaluate, for example, channel coders. In this case the transmitter sends bits, which are processed by the channel (can be flipped, erased, etc.) that deliver bits to the receiver. This \emph{bit-based} simulation is also useful when one is not interested in details of the \emph{physical layer}\index{Physical layer}, but in studying network protocols, for example. The open source Network Simulator~\akurl{http://nsnam.isi.edu/nsnam}{5nsn} is an example of a platform that benefits from relatively fast bit-based simulations by abstracting details about the channel propagation and using other simplifying assumptions.
+
+Hence, a good simulation model omits details to save computations but guarantees that the adopted simplifications do not compromise the conclusions. Choosing an efficient model to study a new problem is a big challenge. But for well-known problems in digital communications, 
+%For example, Mathwork's Simulink allows for simulating mechanical systems. However, this
+there are several well-established ``low'' and `high-level'' simulation models. Some of the most popular approaches are discussed in the sequel.
+
+\subsection{Sample versus symbol-based simulations}
+																										
+Simulating at the \emph{sample}-level requires using waveforms to represent the signals. They allow to study the digital communication blocks that are closer to the channel such as equalizers and synchronization blocks.
+
+The symbol-based simulation can be used to save computation. For example, there is no need to use oversampling to generate waveforms and error rates can still be estimated with accuracy. The operation at the symbol rate $\rsym=1/\tsym$  is called \emph{baud-spaced}. Operation at rates higher than $1/\tsym$ are called \emph{fractionally-spaced}.
+
+These two kinds of simulations were contrasted via examples in Section~\ref{sec:symbolVersusSample}.
+
+\subsection{PSD-based simulation}
+
+In some scenarios of practical interest, estimating the SNR is enough for evaluating key
+performance indicators of a communication system.
+For example, knowing the PSDs of interest (e.\,g., of the signal, noise and interference) at a receiver allows
+using equations such as \equl{awgnChannelCapacity} to estimate the average bit rate, as will be detailed later on. In theses cases, 
+it is possible to represent signals by their PSDs. 
+
+Knowing the transmit PSD $S_x(f)$, the PSD $S_y(f)$ at the output of a LTI system with frequency response $H(f)$ is given by \equl{wss_continuous_lti_output_psd} as $S_y(f)=|H(f)|^2 S_x(f)$. Similar reasoning can be used for the PSDs of interference signals and noise, which allows to estimating signal to noise ratios.
+This PSD-based simulation simplifies enormously the computations and still allows for accurate estimation of bit rates. 
+
+However, PSD-based simulations do not address all aspects of a communication system. For example, they are not used to estimate an error probability $P_e$. PSD-based simulations assume a given $P_e$ and use approximations such as \equl{gap_both_pam_qam} to obtain the signal power that should be adopted in order to guarantee the specified $P_e$.
+		
+\subsection{Baseband versus passband simulations}
+
+Simulating passband signals and channels at high-frequency carrier $f_c$ with a sampling frequency $\fs > 2 f_c$ can be prohibitive in terms of computational cost. It is of interest to use the lowest possible $\fs$, which depends on the signals bandwidths, not their carrier frequencies.
+
+%AK-GRAMMAR
+%http://dsp.stackexchange.com/questions/8302/bandpass-signal-vs-passband-signal
+
+An important result is that, when one assumes the processes of upconversion and downconversion are ideal, instead of using 
+a bandpass channel $h_p(t)$ and passband transmit and receive signals, 
+%a QAM signal $x_{\textrm{QAM}}(t)$ at $f_c$, 
+it is possible to downconvert $h_p(t)$ to the baseband and use 
+%the complex envelope $x_{\textrm{ce}}(t)$. 
+baseband versions of all passband signals. This strategy has the potential of leading to equivalent results to
+the case of working with the original bandpass channel and signals but with a much lower computational cost. For example, a GSM system operating at $f_c=900$~MHz with a bandwidth of 25~MHz, can have the channel $h_p(t)$ converted to baseband and simulated with baseband signals represented with a sampling frequency $\fs > 2 \times 25~$MHz much lower than $2 \times 900$~MHz.
+
+\subsection{Link versus system-level simulations}
+
+Especially in wireless communications, it is common to split the simulation task in link and system-level simulations. Due to different time scales when considered the whole network, using a single simulator is often impossible.
+
+A link-level simulation can study for example only the  communication between user equipment and the radio base station, while a system-level can be based on parameters extracted from link-level simulations and study the overall network performance. The link and system-level simulators described at \akurl{http://www.nt.tuwien.ac.at/research/mobile-communications/lte-simulators/}{5lte} are good examples of software for modern wireless communications. %The link level is closer to the physical channel and parameters  such as SNR  must be mapped to facilitate system-level 
+
+
+\section{Digital Versus Analog Communication Systems}
+
+An advantage of digital over analog systems is a more efficient use of the bandwidth. Another important advantage is that, once the system is designed to transmit and receive \emph{bitstreams}, any digital information can flow over the system. A good example is a wireless mobile phone system, which allows an user to send and receive text, voice, video, etc., using the same telecommunication infrastructure (physical layer). 
+
+A pertinent question is:\\
+\textendash \emph{If real-life channels are analog systems, why digital communication systems are becoming so popular if they require ADC and DAC chips}?\\
+The migration from analog to digital system has been done in telephony, radio and TV systems, for example. 
+
+The adoption of a finite set of symbols is typically mapped into the generation of a restricted set of waveforms, which leads to one significant advantage of a digital over an analog system: robust signal \emph{regeneration}\index{Signal regeneration}. Regeneration is a signal processing operation that recovers the original characteristics of a signal. In digital communications, this is facilitated by the fact that the system designer can assume the receiver knows the predefined set of finite symbols $\calM$. Application~\ref{app:signalsadcomm} presents an example to illustrate the concept of regeneration.
+
+Another fact is that digital information can be more efficiently compressed to reduce the requirements for transmission or storage than what can be done in analog systems. For example, MP3 is a file extension for data generated by an audio codec that implements the standard MPEG-1 Audio Layer 3, which is very powerful. Using MP3, an uncompressed audio file can have its size decreased by a factor of more than 10 (compression ratio better than $10:1$) without noticeable degradation. 
+%Similarly, using DVIX a commercial DVD that takes 4.7 GB of space can be compressed to a 700 MB CD with reasonable quality (compression ratio of approximately $7:1$).
+
+There are other good reasons for using digital signals and systems, but the mentioned four are among the most important ones:
+\begin{enumerate}
+	\item more efficient use of the available bandwidth;
+	\item different media (audio, video, text, etc.) can be treated using bits, a generic representation for any information;
+	\item efficient data compression algorithms;
+	\item robust signal regeneration.
+\end{enumerate}
+
+Application~\ref{app:signalsadcomm} discusses the advantage of being able to regenerate a signal in more details.
+
+
+
+
+\section{EVM and MER}
+Two figures of merit often used in digital communications are the \emph{error vector magnitude} (EVM)\index{EVM - Error vector magnitude} and the \emph{modulation error ratio} (MER)\index{MER - Modulation error ratio}. Both are related to the SNR but take in account
+that when using a digital modulation, one can compare the symbols of a signal of interest
+to the constellation symbols (or estimates).
+
+More specifically, let $\tilde s[n]$ denote a sequence of symbols extracted from the signal of
+interest and $s[n]$ be the reference symbols. In many cases, one assumes that
+$s[n]$ are the ``correct'' constellation symbols even if they are simple estimates
+obtained by the constellation nearest-neighbor of $\tilde s[n]$. The error sequence used by
+both EVM and MER is $e[n] = s[n] - \tilde s[n]$ and its average power is $\calP_e = \ev[|e[n]|^2]$. Considering the average power of $s[n]$ is $\calP_s = \ev[|s[n]|^2]$, the MER is given by
+\begin{equation}
+\textrm{MER}_{[\textrm{dB}]}  \defeq 10 \log_{10} \left(\frac{\calP_s}{\calP_e}\right).
+\label{eq:mer}
+\end{equation}
+
+The RMS EVM can be defined as
+\begin{equation}
+\textrm{EVM}  \defeq \sqrt{\frac{\calP_e}{\calP_s}},
+\label{eq:evm}
+\end{equation}
+such that, in linear scale (not using dB):
+\begin{equation}
+\textrm{MER}  = \frac{1}{\textrm{EVM}^2}.
+\label{eq:mer_and_evm}
+\end{equation}
+It is also common to express EVM in dB or in percentage.
+
+Similar to the SNR, there are several distinct definitions for MER and EVM. 
+For example, the maximum power can be used instead of the average power ($\calP_s$) in \equl{evm}.
+Or, alternatively, the reference symbols $s[n]$ may not be available in a nondata-aided scheme, and
+their estimation used instead. This estimation can be done using the nearest-neighbor 
+constellation symbol of each received symbol. But in this case, if there are errors
+(the SER or BER is not zero), obtaining
+the reference $s[n]$ as the nearest-neighbor of $\tilde s[n]$ leads to an optimistic
+estimation because $\calP_e$ would be larger in case the correct symbols were used. 
+But this is not a problem when $\tilde s[n]$ is the transmit signal and the
+nearest-neighbor decision is always correct (SER and BER are zero).
+
+
+%\begin{equation}
+%\textrm{EVM}  \defeq 100 \sqrt{\frac{\calP_e}{\calP_s}}~~~\textrm{\%}.
+%\label{eq:evmPercentage}
+%\end{equation}
+
+\codl{snip_digi_comm_evm_mer} provides an example of MER and EVM estimations for QAM
+modulation. In Line 14, this code illustrates that MER and EVM can be obtained one from
+the other.
+
+\lstinputlisting[lastline=24,caption={MatlabOctaveCodeSnippets/snip\_digi\_comm\_evm\_mer.m},label=code:snip_digi_comm_evm_mer]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_evm_mer.m}
+
+%\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_evm\_mer}{snip_digi_comm_evm_mer}
+
+\codl{snip_digi_comm_evm_mer} compares two options for the reference $s[n]$: using the
+transmit symbols or extracting it from the received signal. If the symbol error rate (SER)
+is zero, the results from these two options coincide. However, for \ci{SNRdB=8}, the output 
+of \codl{snip_digi_comm_evm_mer} is:
+\begin{verbatim}
+EVM=39.8923%, MER=7.9822 dB (correct)
+EVM=18.8403%, MER=14.4983 dB
+SNR=7.9822 dB, SER=0.7647%
+\end{verbatim}
+As discussed, both EVM and MER may be underestimated when the reference symbols
+are estimated from the received ones. In this case, the MER for the second option
+was 14.5~dB while the correct one is only 8~dB. Another observation is that, when
+the channel is AWGN, the MER coincides with the SNR in case the correct transmit
+symbols are used as reference. In the general case, MER and SNR may not coincide
+due to synchronization errors and other impairments.
+
+
+
+
+%It should be noticed that ``symbols'' and ``waveforms'' are distinct concepts and, in digital communication, waveforms are used to represent symbols.% and in more general scenarios their different roles are clear.
+\section{M-PAM: A Concrete Example of Digital Modulation}
+
+Pulse amplitude modulation (PAM) is the generic term adopted for a set of techniques that allow to transport  information via the amplitude of a waveform. For example, in \textbf{analog} PAM systems, an analog waveform $m(t)$ carrying information in its amplitude is multiplied by a periodic pulse train. In this text, the emphasis is on \textbf{digital} $M$-ary PAM systems, which for simplicity are called PAM systems hereafter.
+% with $M=2$ being the special case of binary communication.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/pamExampleFullDutyCycle}
+\caption{Example of received M-PAM signal with symbol duration $\tsym=25$~s and symbols $\calM=\{-3,-1,1,3\}$. The decision thresholds are $\{-2,0,2\}$.\label{fig:pamExampleFullDutyCycle}}
+\end{figure}
+
+\figl{pamExampleFullDutyCycle} shows an example of an $M$-PAM signal $r(t)$ with $M=4$ symbols composing the set $\calM=\{-3,-1,1,3\}$. For each symbol interval $\tsym$, which in this case is $\tsym=25$~s, the amplitude of the PAM waveform is obtained from $\calM$ and is held constant for the corresponding $\tsym$. The PAM signal in \figl{pamExampleFullDutyCycle} is assumed to be arriving at the receiver, which corresponds to the ideal situation of receiving a noiseless signal without any distortion. The set of symbols $\calM$, known by both transmitter and receiver, allows the receiver to use the sensible strategy of guessing which symbol of $\calM$ was transmitted by comparing the amplitude of the received signal to the \emph{decision thresholds} $\{-2,0,2\}$. For example, if the amplitude lies between $-2$ and 0, the receiver assumes the transmitted symbol was $-1$. These decisions must be done periodically at a rate $\rsym=1/\tsym$, which is called the \emph{symbol rate}.
+
+The advantage of departing from binary systems and using $M>2$ symbols is the capability of transporting $b=\log_2 M$ bits per symbol. In the signal of \figl{pamExampleFullDutyCycle}, $b=\log_2 4 = 2$ bits can be mapped such that the amplitudes $\{-3,-1,1,3\}$ can be related to the bits $\{00,01,10,11\}$, respectively. A \emph{constellation} is fully specified by the set $\calM$ and the assignment of bits (or codewords) to the symbols in $\calM$. \figl{pamExampleFullDutyCycleWithBits} is a version of \figl{pamExampleFullDutyCycle} that shows the binary codes used for each amplitude. It can be observed that 
+the demodulated bitstream is \ci{10 11 10 00 10 00 10 00 11 01} and, given the received and transmitted signals are the same in this ideal situation, the bit error rate (BER) is zero. In this case, the bit rate $R$ in number of bits per second (bps) can be found by noting that $\rsym$ symbols are received per second and each symbol carries $b$ bits, which leads to $R = b \rsym = 2(1/25) = 0.08$ bps.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/pamExampleFullDutyCycleWithBits}
+\caption{Version of \figl{pamExampleFullDutyCycle} that shows the pair of bits that the amplitude of each symbol represents.\label{fig:pamExampleFullDutyCycleWithBits}}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/pamExampleDistortedFullDutyCycle}
+\caption{Version of \figl{pamExampleFullDutyCycle} with a dispersive channel that introduces distortion and delays the transmitted signal.\label{fig:pamExampleDistortedFullDutyCycle}}
+\end{figure}
+
+Note from \figl{pamExampleFullDutyCycleWithBits} that due to the assumed ideal situation, it is easy to observe where each symbol starts and ends. However, the practical transmission systems have some degree of \emph{channel dispersion}\index{Channel dispersion}, which loosely speaking means that the channel will delay and distort the signal such that a symbol can interfere with subsequent symbols. Note that channel dispersion can be observed when the channel impulse response differs from an impulse and can be interpreted in frequency-domain as a non-flat frequency response. Hence, a frequency-selective channel corresponds to a dispersive channel. \figl{pamExampleDistortedFullDutyCycle} shows an example where the signal of \figl{pamExampleFullDutyCycle} was transmitted over a system $H(z)$ (a Chebyshev filter obtained with \ci{cheby1}). This is a situation where there is no noise, only channel dispersion, but it is clearly harder to demodulate the signal. The first point is that there is a delay imposed by the channel. For example, the first symbol is not limited to the interval from 0 to 25~s, as in \figl{pamExampleFullDutyCycleWithBits}. 
+
+The delay imposed by a channel is discussed in Applications~\ref{app:groupdelay} and \ref{app:linear_filtering}. For the channel used to generate \figl{pamExampleDistortedFullDutyCycle}, the group delay (estimated with \ci{grpdelay}) is approximately 12~s around DC, increases up to 25~s at 0.06~Hz and is approximately zero for frequencies higher than 0.3~Hz. The overall effect of these influences in the frequency components of the input signal generates the situation of \figl{pamExampleDistortedFullDutyCycle}, where the amplitude of the intended symbol is better visualized almost at the end of the corresponding original time interval. For example, a maximum amplitude of 1.13 corresponding to the first symbol is observed around 20.8~s while the second received symbol has a peak of amplitude 3.23 at 45.4~s.
+
+A pertinent question is how to estimate the channel delay in practice, especially in situations such as wireless communications where this delay varies over time. One approach is based on cross-correlation. As done in Application~\ref{app:crosscorrelation}, using the function \ci{xcorr} for the transmitted and received signals of \figl{pamExampleDistortedFullDutyCycle} indicates that the correlation has a peak at a lag corresponding to 12.6~s. This kind of information can be used by the receiver to determine an instant of reference for demodulating the symbols.
+
+The next paragraphs correspond to a hands-on discussion of PAM-based systems, where the reader is invited to execute short codes in {\matlab} to get familiar with important concepts.
+
+ %the power the transmitter sent over the interval $\tsym$ of a given symbol will 
+
+%As \codl{simpleBinaryModulation} indicates, any waveform can be used for the signals $s_0[n]$ and $s_1[n]$ and any method can be adopted for their generation.\footnote{For example, in \codl{simpleBinaryModulation}, one can use the signals \ci{s0=1:8} and \ci{s1=8:-1:1} to create a valid (although not efficient) digital modulation scheme.}
+%AK-PUTBACK
+%The overall procedure is illustrated in FIGURA-COM-CHAVE-SELETORA (todofig1).
+
+\subsection{Generation of symbols from a PAM constellation}
+\label{sec:pam_constellation}
+
+Any set of $M$ distinct real numbers can be used to constitute a PAM constellation. An example could be $\calM = \{-1.4, 3.2, 16.0\}$, with $M=3$. But in practice, a PAM constellation obeys the following guidelines:
+\begin{itemize}
+	\item the constellation order $M=2^b$ is a power of 2, where $b$ is the number of bits per symbol;
+	\item the distance $d$ between neighboring symbols is the same;
+	\item the symbols average is zero, i.\,e., $\frac 1 M \sum_{m=1}^M m_i=0$;
+	\item when relating the symbols to their binary representation, Gray coding is used to aim at a smaller number of bit errors (BER) when a symbol error occurs.
+\end{itemize}
+
+Using $d=2$ is convenient and adopted in many situations. In case $d=2$, the PAM symbols can be generated in {\matlab} with the command \ci{-(M-1):2:M-1} and later normalized to have a specified distance $d$ or constellation energy 
+\begin{equation}
+\overline E_c \triangleq \ev [ |m_i|^2 ]
+\label{eq:pam_energy_contellation}
+\end{equation}
+Considering that all symbols are equiprobable leads to \equl{vectors_average_energy}.
+%, which is repeated here 
+%\begin{equation}
+%E_c = \frac{1}{M} \sum_{i=1}^M |m_i|^2.
+%\label{eq:constellation_power}
+%\end{equation}
+%Note that $\ev [ ||\bm||^2 ]$ is an expected value over the possible constellation symbols and some authors prefer to interpret it as given in Joules,\footnote{For example, \cite{Ciofficn}.} while here it is interpreted in Watts given that a symbol $m_i$ is assumed to be in Volts and $|m_i|^2$ can be seen as its instantaneous power.
+%It should be distinguished from the expected value $\ev [ x^2[n] ]$ of the instantaneous power of a sequence $x[n]$, which is given in Watts.
+
+While PAM symbols are real numbers, this definition of $\overline E_c$ uses the modulus $| \cdot |$ to take into account that other modulations use complex symbols.
+
+For example, \codl{snip_digi_comm_PAM_constellation} illustrates how to obtain two sets of constellation symbols from symbols spaced by $d = 2$: the first set \ci{cx} with $d = 8$ and another set \ci{cy} with $\overline E_c=20$~J.
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_PAM\_constellation}{snip_digi_comm_PAM_constellation}
+%\begin{lstlisting}
+%M=4 %modulation order
+%canonicalPAMSymbols = -(M-1):2:M-1 %original, Delta = 2
+%cx = canonicalPAMSymbols/2; %intermediate result, Delta=1
+%cx = 8 * cx %convert to the specified Delta=8
+%originalEnergy = mean(abs(canonicalPAMSymbols).^2);
+%cy = canonicalPAMSymbols / sqrt(originalEnergy); %Ec = 1
+%cy = sqrt(20) * cy %convert to the specified Ec=20 J
+%\end{lstlisting}
+
+Note that after transmission over a channel, the received signal can be significantly attenuated and, before the detection stage, it may be necessary to use an AGC or normalize the received symbols to have the energy (or power) assumed by the detection stage.
+
+Up to now, the discussion was restricted to the set of symbols of a constellation. To completely specify the constellation, its symbols must be associated to bits.
+\figl{constellation8pam} shows an example for 8-PAM with $d = 2$.
+%, which corresponds to $b=\log_2 8 = 3$ bits per symbol. In this case the separation between neighboring symbols is 2.
+The assignment of bits to each symbol uses the \emph{natural order}. The first (left-most) symbol $-7$ corresponds to 0 in decimal, $-5$ corresponds to 1, etc. Hence, $-7$ is 000, $-5$ is 001 and so on. One can observe that identifying individual symbols using the decimal or binary representation depends only on convenience. The {\matlab} functions \ci{dec2bin} and \ci{bin2dec} help converting between these two representations. 
+
+In the GNU Radio (GR) platform, as discussed in Application~\ref{app:grpackunpack}, the bits are typically packed into integers that are called \emph{chunks}.
+
+Note that if the symbol $-1$ (representing the bits 011) gets confused at the receiver by its neighbor symbol 1 (bits 100), there are three bit errors. When one considers the presence of noise, it is interesting to use Gray coding and aim at achieving the performance predicted by \equl{gray_error_prob}.
+
+\tabl{graycoding} contrasts the natural and Gray representations. In {\matlab}, the Gray code can be conveniently generated with the command
+\ci{M=8; alphabet = pammod(0:M-1,M,0,'gray')} that results in \co{[-7,-5,-1,-3,7,5,1,3]}. For this constellation, a chunk in Gnu Radio of integer value 2 (or 010 in binary) represents the symbol $-1$. \figl{constellation8pamgray} illustrates a Gray-coded constellation.
+
+%TC:ignore
+\begin{table}
+\centering
+\caption{Example of Gray coding for 8-PAM.\label{tab:graycoding}}
+\begin{tabularx}{\textwidth}{>{\raggedright}p{3cm}*{8}{C}}
+\toprule
+Symbol \emph{m} & -7&-5&-3&-1&1&3&5&7\\ \midrule
+Natural decimal representation & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7\\
+Natural binary representation & 000 & 001 & 010 & 011 & 100 & 101 & 110 & 111 \\
+Gray decimal\linebreak representation & 0 & 1 & 3 & 2 & 6 & 7 & 5 & 4\\
+Gray binary\linebreak representation & 000 & 001 & 011 & 010 & 110 & 111 & 101 & 100 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+%TC:endignore
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/constellation8pam}
+\caption{Example of 8-PAM constellation using natural order.\label{fig:constellation8pam}}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/constellation8pamgray}
+\caption{Gray-coded 8-PAM constellation.\label{fig:constellation8pamgray}}
+\end{figure}
+
+The random generation of a large number of PAM symbols in {\matlab} is relatively simple and can be done with a code such as \codl{snip_digi_comm_random_symbols}.
+
+%\begin{lstlisting}[caption=PAM generation,label={code:simple_pamgen}]
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_random\_symbols}{snip_digi_comm_random_symbols}
+%\begin{lstlisting}
+%M=8; %modulation order
+%N=10000; %number of symbols to be generated
+%indices=floor(M*rand(1,N))+1; %random indices from [1, M]
+%alphabet=[-(M-1):2:M-1]; %symbols ...,-3,-1,1,3,5,7,...
+%m=alphabet(indices); %obtain N random symbols
+%\end{lstlisting}
+
+\codl{snip_digi_comm_random_symbols}
+uses the function \ci{rand} to generate uniformly distributed random \ci{indices} and the syntax \ci{m=alphabet(indices)} to obtain their corresponding symbols.
+
+\subsection{Average energy of PAM constellations}
+Assuming that practical PAM constellations have uniformly-spaced symbols with distance $d$
+between neighbors, the average constellation energy $\overline E_c$ depends only on $d$ and $M$ and \equl{pam_energy_contellation} can be specialized to this case.
+
+To calculate $\overline E_c$ for the uniformly-spaced PAM constellation $\pm \frac{d}{2}, \pm \frac{3d}{2}, \pm \frac{5d}{2}, \ldots, \pm \frac{(M-1)d}{2}$ where $M=2^b$ is an even number, one should note that there are $M/2$ pairs of symbols with energy $k^2 d^2/4$, where $k$ is an odd number: $k=1,3,\ldots,M-1$. Therefore,
+\begin{align}
+\overline E_c &= \left(\frac{1}{M}\right) 2 \sum_{i=1}^{M/2} (2i-1)^2 \frac{d^2}{4} \nonumber \\
+&= \frac{d^2}{2M} \sum_{i=1}^{M/2} (4i^2 - 4i + 1) \nonumber.
+\end{align}
+About the three parcels in the above summation, the second one (corresponding to $-4i$) can be calculated from the arithmetic series $\sum_{i=1}^{M/2} i = \frac{M/2(M/2+1)}{2}$. The first one (corresponding to $4i^2$) can use \equl{sum_of_squares}, which indicates that the sum of squares is $\sum_{i=1}^{M/2} i^2 = \frac{M/2(M/2+1)(M+1)}{6}$. With these two results and after some algebra one gets
+\begin{equation}
+\overline E_c = \frac{d^2 (M^2 - 1)}{12}.
+\label{eq:pamConstellationEnergy}
+\end{equation}
+
+\subsection{PAM detection}
+
+When using the traditional PAM constellations, in which every symbol has the same distance $d$ from its neighbors, the detection is relatively simple, as shown in \codl{pamdemod} for $d = 2$.
+\includecode{MatlabOctaveFunctions}{pamdemod}
+In this case, the PAM detection is equivalent to a uniform quantization. The only distinction between PAM detection and \codl{quantizer} is that the quantization stairs is shifted because ``zero'' is not a PAM symbol.\footnote{The quantizers used in PAM detection are called \emph{mid-riser},\index{Mid-riser quantizer} while the quantizers in \codl{quantizer} are \emph{mid-tread}\index{Mid-tread quantizer}~\cite{Jayant84}.}
+
+If the constellation does not have the same distance among neighboring symbols, the computational cost of detection increases. \codl{genericDemod} illustrates how to choose the decoded symbol for a generic constellation, by picking the symbol with the smallest Euclidean distance to the input value.
+
+\includecode{MatlabOctaveFunctions}{genericDemod}
+
+Note that, for example, the two functions invoked in the following code give the same result, but \ci{ak\_pamdemod} is faster because it can take into account the symbols are uniformly spaced.
+\begin{lstlisting}
+x=[1.1, -4, 7]; %some arbitrary vector to test the two functions
+[a,b]=ak_pamdemod(x,4) %function assumes symbols are uniformly spaced
+[a,b]=ak_genericDemod(x,[-3 -1 1 3])%supports arbitrary constellation
+\end{lstlisting}
+
+%\subsection{Symbol versus sample-based PAM simulation}
+%\label{sec:symbolVersusSample}
+\subsection{Symbol-based PAM simulation}
+\label{sec:symbolVersusSample}
+
+%The goal here is to briefly present simple PAM simulations to get a concrete idea about the concepts.
+As discussed, samples and symbols are distinct elements of a digital communication system. Samples compose waveforms while symbols carry information and are restricted to be elements of a given constellation. Hence, one must distinguish two distinct rates: the sampling frequency $\fs$ and the symbol rate $\rsym$ or, equivalently, the sampling $\ts=1/\fs$ and symbol $\tsym=1/\rsym$ intervals, respectively.
+
+Based on symbols and samples, two important simulation strategies will be discussed: symbol-based and sample-based (or \emph{oversampled}) simulations. For a symbol-based simulation, the vector representing the transmit signal is composed not by samples, but by the symbols themselves, and the time interval between consecutive elements is not $\ts$, but $\tsym$. The symbol-based often demands less computation than the sample-based simulations, as discussed in the sequel.
+
+The \emph{symbol-based} simulation model is based on sending the symbols directly to a channel that accepts symbols at its input and outputs symbols. In this case, the sampling interval $\ts$ is not defined or, if convenient, it can be thought as equal to the symbol rate, i.\,e., $\ts = \tsym$.
+
+As a ``sanity check'', \codl{snip_digi_comm_tx_rx_comparison} provides a transmission example without noise nor distortion. It illustrates a situation where the received symbols are made equal to the transmitted symbols. The variable \ci{numberOfErrors} is zero, as expected in this case.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_tx\_rx\_comparison}{snip_digi_comm_tx_rx_comparison}
+%\begin{lstlisting}
+%M=16; %modulation order
+%numberOfSymbols = 40000; % number of symbols
+%alphabet = [-(M-1):2:M-1]; %M-PAM constellation
+%symbolIndicesTx = floor(M*rand (1, numberOfSymbols ));
+%s = alphabet(symbolIndicesTx +1); %transmitted signal
+%r = s; %no channel: received = transmitted signal
+%symbolIndicesRx = ak_pamdemod(r, M);% demodulate
+%numberOfErrors = sum(symbolIndicesTx ~= symbolIndicesRx)
+%\end{lstlisting}
+
+The AWGN channel can easily operate at the symbol-level. As exemplified in \codl{snip_digi_comm_Symbol_Error_Rate}, random noise \ci{n} can be directly added to the transmitted symbols \ci{s} such that the received symbols are \ci{r=s+n}. Note that, in this case, each symbol can be considered a waveform sample, but it is important to keep distinguishing the concepts of symbol and sample.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_Symbol\_Error\_Rate}{snip_digi_comm_Symbol_Error_Rate}
+
+Executing \codl{snip_digi_comm_Symbol_Error_Rate}  leads to \ci{SER=0.45}, which is rather high. Observing the received constellation with \ci{plot(real(r),imag(r),'x')} would illustrate the noise is too intense.
+%This channel model is called additive white Gaussian noise (AWGN) and will be further studied in Section~\ref{sec:awgn}.
+
+Note that for improved efficiency the signal power $\calP$ was obtained with \ci{mean(alphabet.$\hat~$2)}, which is the constellation energy $\overline E_c$ as dictated by \equl{vectors_average_energy}.\footnote{Given the distinct dimensions of Joules and Watts, this can be confusing, as discussed when presenting \equl{vectors_average_energy}.}
+The power $\cal P$ could also be obtained with \ci{mean(s.$\hat~$2)} but given that $\calP \approx \overline E_c$ in this case, the former method is faster. Note that, asymptotically, when \ci{numSymbols} goes to infinity, $\calP = \overline E_c$ in symbol-based PAM simulations. The more general case of finding the power of sample-based PAM signals is discussed in Section~\ref{sec:powerPAMSignal}.
+%Another comment about the calculation of SNR in this case is that, as indicated in \equl{power_energy_contellation}, the power  $\calP = \calP_c$ of the discrete-time signal \ci{s} coincides with the energy $\calP_c$ of the constellation used to generate the signal.
+
+\subsection{Flat PSD of symbol-based PAM signals}
+
+They are faster than sample-based simulations, but one important limitation of symbol-based simulations is that there is no control of the transmit signal spectrum. The implicit assumption that $\ts = \tsym$ and of statistical independence of the symbols leads to a flat (white) PSD because the signal autocorrelation $R[l]$ is, theoretically, non-zero only at lag $l=0$. Hence, a sequence of PAM symbols has the same PSD as white noise and the concepts in Section~\ref{sec:conversion_awgn} apply here.\footnote{Note that, in this case, the PAM symbols have a white PSD such as AWGN, but their probability distribution is not Gaussian, but impulses representing the probability mass at the symbol values.}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/flat_psd_pam_awgn}
+\caption{Power spectral densities (in dB/rad) for the transmit, noise and received signals.\label{fig:flat_psd_pam_awgn}}
+\end{figure}
+
+For \codl{snip_digi_comm_Symbol_Error_Rate}, the transmit, noise and received signals had power $\calP_s = 85$, $\calP_{\nu} = 2$ and $\calP_r = 87.5$~W, respectively. \figl{flat_psd_pam_awgn} shows the one-sided PSDs obtained by commands \ci{pwelch}.
+ Because the noise and transmitted signals are uncorrelated, one can apply \equl{power_of_sum_uncorrelated} and observe that $\calP_r \approx \calP_s + \calP_{\nu}$.
+The transmit PSD has an average value (recall that, by default, \ci{pwelch} returns unilateral PSDs) of $\no = 10 \log_{10} (85 / \pi) \approx 14.3$~dB/normalized frequency. Similarly, the values of $\no$ for the noise and received signals are 4.4 and 14.7~dB/normalized frequency, respectively, which are indicated by horizontal lines in \figl{flat_psd_pam_awgn}. Note that 
+$\calP_r  = \calP_s + \calP_{\nu}$ is applied with powers in linear scale (Watts), not in dB, and a similar reasoning applies when adding PSDs.
+
+It can be proved that in some cases the performance of a PAM system can be evaluated by an equivalent symbol-based representation.\footnote{See, e.\,g., \cite{Ciofficn,Proakis07}.}
+However, to assess aspects such as channel equalization, it would be a limiting factor to simulate a communication system only with flat PSDs. Oversampling is used to circumvent this restriction.
+The next section discusses sample-based simulations, which allow using signals with non-flat PSDs. PAM is assumed for simplicity.
+
+\subsection{Sample-based (oversampled) PAM simulation}
+
+This section deals with the generation and demodulation of PAM signals with a spectrum imposed by a shaping pulse $p[n]$ (or $p(t)$ in continuous-time). Oversampling is a required condition for having control of the transmit signal spectrum.
+
+In the \emph{oversampled} case, $\tsym > \ts$ and the ratio
+\begin{equation}
+L = \frac{\tsym}{\ts}
+\label{eq:oversampling_factor}
+\end{equation}
+is called the \emph{oversampling factor}\index{Oversampling factor}. Its choice depends on several aspects, such as the bandwidth of the signals used to represent information. In many communication device firmwares, such as the modem of a handset, for example, the oversampling is an integer in the range $L \in [2, 16]$. Higher values of $L$ may be used during simulation-based studies though.
+%, for example, to avoid artifacts caused by windowing and aliasing.
+% or implement discrete-time systems that try to play the role of analog systems.
+
+Assuming discrete-time, $L>1$ samples are used to describe the waveform segment that represents a single symbol. While a symbol-based simulation has $L=1$ and a transmit signal that has a flat spectrum, the extra degree of freedom provided by $L>1$ allows to shape this spectrum, as desired.
+
+%tirei o \delta[n] do abaixo pois ele nao precisa ser localizado no tempo
+The majority of the PAM systems generates the $n$-th waveform segment $s_n(t)$ or $s_i[n]$ via the simple expressions
+\begin{equation}
+s_i(t) = m_i \textrm{~} p(t)
+\textrm{~~~~~~~~~~or~~~~~~~~~~~}
+s_i[n] = m_i \textrm{~} p[n],
+\label{eq:onepamsymbol}
+\end{equation}
+respectively, 
+where $m_i$ is the $i$-th symbol (e.\,g., two values, representing bits 0 and 1 in case of a binary system) and $p(t)$ or $p[n]$ is a formatting pulse. 
+
+%In this case, $m[n]$ can be used instead of $m[n']$ because there is no need for disambiguating the sample rates before and after upsampling.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/linearModulationSampled}
+\caption[{Continuous-time PAM $s(t)$ generated with $\tsym=25$ s.}]{Continuous-time PAM $s(t)$ generated with $\tsym=25$ s. The pulse $p(t)$ has amplitude one and support [0, 12.5[ s.\label{fig:linearModulationSampled}}
+\end{figure}
+
+\figl{linearModulationSampled} illustrates an example of PAM with $\tsym=25$~s ($\rsym=0.04$ bauds) and a pulse $p(t)$ with support from 0 to 12.5 s and amplitude 1. Observe that a new symbol is transmitted at every $\tsym$, but the transmitted waveform $s(t)$ exists for all $t$ and depends on both the symbols and shaping pulse $p(t)$. The pulse in \figl{linearModulationSampled} has support $\tsym/2$ such that $s(t)$ is called a RZ (return-to-zero) signal. If the spectrum of $s(t)$ needs to obey constraints, they can imposed by controlling $p(t)$ and also the statistical properties of the symbols $m[n]$. This leads to 
+%Varying the set $\calM$ of symbols, the pulse $p(t)$ and the method used to generate $s(t)$ one can obtain 
+several distinct families of transmitted signals, which are called \emph{line codes}, as will be seen in Section~\ref{sec:linecodes}.
+
+
+\subsection{Interpreting the shaping pulse as the impulse response of a LIT}
+
+For continuous-time processing and assuming an infinite sequence of symbols $m[i]$, the PAM signal is given by:
+\begin{equation}
+s(t) = \sum_{i=-\infty}^{\infty} m[i] p(t-i \tsym).
+\label{eq:pam}
+\end{equation}
+Similarly, for discrete-time processing:
+% (the symbol index $i$ is used to distinguish from the sample index $n$):
+\begin{equation}
+s[n] = \sum_{i=-\infty}^{\infty} m[i] p[n- i L],
+\label{eq:pam_discrete_time}
+\end{equation}
+where $L$ is the oversampling factor defined in \equl{oversampling_factor}.
+
+%\blol{onepamsymbol} assumes the generation of the waveform corresponding to a single symbol. 
+The generation of an oversampled PAM signal is a little more involved than a symbol-based PAM. It can be interpreted as an interpolation process and, consequently, it may be tempting to use a function such as \ci{interp}, which implements upsampling and filtering. However, it is recommended to explicitly deal with the shaping pulse $p[n]$ (that typically represents $p(t)$) and do not use \ci{interp} or similar functions.
+
+In continuous-time, the PAM generation uses a D/C conversion to obtain a sampled signal $m_s(t)$ with sampling interval $\tsym$ from a discrete-time sequence of symbols $m[n]$, as indicated in
+\begin{equation}
+m[n] \arrowedbox{ D/C } m_s(t) \arrowedbox{$p(t)$} s(t).
+\label{eq:linecodegeneration}
+\end{equation}
+The signal $p(t)$ can be interpreted as the \emph{impulse response of a LTI system}, and this interpretation will be often used hereafter. The convolution of $m_s(t)$ with $p(t)$ provides the PAM signal $s(t)$. The observation of the signals described in \figl{linearModulationSampled}, which depicts $s(t) =  m_s(t) \conv p(t)$, helps to interpret the process.
+
+A similar approach can be used to generate a discrete-time PAM signal $s[n]$. In this case, the D/C conversion is substituted by an \emph{upsampling} operation that inserts zeros between samples of $m[n]$ (do not confuse upsampling with frequency upconversion).
+%, discussed in Section~\ref{sec:elements_digicomm}).
+Hence, 
+%Aiming to expand the representation in \blol{onepamsymbol} to support more than one symbol, 
+%it is convenient to work with a sequence $m[n]$ that uses impulses to locate the symbols in time. After that, o
+one can obtain the signal $s[n]$ by convolving an upsampled symbols sequence $m_u[n]$ with $p[n]$, as illustrated in:
+\begin{equation}
+m[n'] \arrowedbox{ $\uparrow{L}$ } m_u[n] \arrowedbox{$p[n]$} s[n].
+\label{eq:linecodegenerationDiscreteTime}
+\end{equation}
+The notation $m[n']$ indicates that the first signal has an associated sampling interval $\tsym$ that is distinct from the interval $\ts$ adopted for the other two signals.
+
+%Before discussing the details, one can observe 
+The generation of a discrete-time oversampled PAM signal is illustrated in \codl{pamgen}.
+Note that both $p[n]$ and $s[n]$ must be associated to the same sampling frequency $\fs$. In other words, when converted to continuous-time, the interval between the original samples of discrete-time signals is the sampling period $\ts=1/\fs$.
+
+
+\lstinputlisting[caption=./Code/MatlabOctaveCodeSnippets/snip\_digi\_comm\_pam\_generation.m,label=code:pamgen]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_pam_generation.m}
+%\lstinputlisting[caption=./Code/MatlabOctaveCodeSnippets/snip\_digi\_comm\_pam\_generation.m (Oversampled PAM generation) ,label=code:pamgen]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_pam_generation.m}
+%\begin{lstlisting}[caption=Oversampled PAM generation,label={code:pamgen}]
+%M=8; %modulation order (cardinality of the set of symbols)
+%N=10000; %number of symbols to be generated
+%L=3; %oversampling factor
+%indices=floor(M*rand(1,N))+1; %random indices from [1, M]
+%alphabet=[-(M-1):2:M-1]; %symbols ...,-3,-1,1,3,5,7,...
+%m=alphabet(indices); %obtain N random symbols
+%m_upsampled=zeros(1,N*L); %pre-allocate space with zeros
+%m_upsampled(1:L:end)=m; %symbols with L-1 zeros in-between
+%p=ones(1,L); %shaping pulse with square waveform
+%s=conv(m_upsampled,p); %convolve symbols with pulse
+%\end{lstlisting}
+
+The samples of the sequence \ci{m} in \codl{pamgen} are separated by an interval equivalent to $\tsym$. The upsampling operation creates a new sequence \ci{m\_upsampled} in which the samples are separated by an interval of $\ts$. 
+%It would be complicated to directly process in {\matlab} the sequences \ci{m} because of its implicit sampling interval of $\tsym$. 
+%This need for upconversion is important and a detailed discussion is presented in the sequel.
+The command \ci{s=conv(m\_upsampled,p)} obtains the desired PAM signal. Note that, as in the continuous-time case, $p[n]$ can be interpreted as the impulse response of a LTI system. %, and this interpretation will be often used hereafter.
+
+Recall that the convolution of sequences of lengths $N_1$ and $N_2$ generates a sequence of $N_1+N_2-1$ samples. When using \ci{s=conv(m\_upsampled,p)} in \codl{pamgen}, the vector \ci{s} has more samples than \ci{m\_upsampled}. If their lengths should be the same (see Section~\ref{subsec:compensating_filtering}), the convolution tail can be eliminated manually (after \ci{conv}) or by using \ci{filter} (instead of \ci{conv}):
+\begin{lstlisting}
+s=filter(p,1,m_upsampled); %convolve and discard tail
+\end{lstlisting}
+In the previous command, the \ci{filter} command used the fact that the impulse response \ci{p} of a FIR filter coincides with its coefficients, such that \ci{p} and 1 are, respectively, the numerator and denominator of the system function $H(z)$ of this filter.
+
+\figl{linearModulation} shows an example obtained by modifying \codl{pamgen}. In this case, the oversampling factor $L=5$ was made longer than the support of $p[n]$ (3 samples), such that $s[n]$ has two zero-valued samples per symbol.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/linearModulation}
+\caption[{Stages of generating a discrete-time PAM signal.}]{Stages of generating a discrete-time PAM signal: 1) random symbols, 2) upsampling, 3) pulse \ci{p=[1 1 1]}, 4) convolution with pulse. The parameters were \ci{M=4} possible symbols, \ci{N=10} generated symbols, and oversampling \ci{L=5}.\label{fig:linearModulation}}
+\end{figure}
+
+It should be noticed that \figl{linearModulation} and \figl{linearModulationSampled} correspond to distinct representations of signals (discrete and continuous-time, respectively). However, the actual representation when simulating in {\matlab} is the discrete-time version of \figl{linearModulation} given that the simulations represent signals as arrays. For example, 
+\figl{linearModulationSampled} 
+was obtained in {\matlab} using a relatively high oversampling factor $L=500$ for getting plots that better represent continuous-time signals (with sharp transitions).
+Continuous-time signals are more naturally represented by tools such as Simulink.
+%very useful for analytical derivations.
+
+%, as will be seen in the next section
+
+%\bApplication \textbf{Power of a PAM signal.}
+%\label{app:powerPAMSignal}
+\subsection{Power of PAM signals}
+\label{sec:powerPAMSignal}
+
+\equl{powerOutputLTI} can be used to obtain the power of a PAM signal, even if the duration of $p(t)$ (or $p[n]$) is longer than $\tsym$ (or $L$), i.\,e., there is overlap between symbols.
+
+Assuming discrete-time and the PAM of \blol{linecodegenerationDiscreteTime}, 
+if the symbols are independent, \equl{powerOutputLTI} indicates that the power of the PAM signal $s[n]$ is $\calP_s = \calP_u E_p$, 
+where $\calP_u$ is the power of the upsampled signal $m_u[n]$ and $E_p$ is the energy of the shaping pulse $p[n]$.
+
+The upsampling modifies the power of the sequence of symbols and this must be taken in account.
+%as indicated by \equl{powerUpsampledSignal}, such that $P_x$ depends on the oversampling factor $L$.
+For discrete-time PAM, the power $\calP_u$ of the upsampled signal is given by
+\begin{equation}
+\calP_u = \frac{\overline E_c}{L},
+\label{eq:powerUpsampledSignal}
+\end{equation}
+where $L$ is the oversampling factor and $\overline E_c$ the constellation energy (recall \equl{vectors_average_energy}).
+Therefore, the power of the PAM signal is
+\begin{equation}
+\calP_s = \frac{\overline E_c}{L} E_p,
+\label{eq:pamPowerDiscreteTime}
+\end{equation}
+as exemplified in \codl{snip_digi_comm_LTI_power}. 
+
+If a normalized pulse with $E_p=1$ is adopted and $L=1$, then $\calP_s = \overline E_c$ and the units (power and Joules, respectively) must be interpreted with care.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_LTI\_power}{snip_digi_comm_LTI_power}
+%\begin{lstlisting}
+%M=4; %PAM order
+%constellation = -(M-1):2:M-1; %PAM constellation
+%N=10000000; %number of PAM symbols
+%m=constellation(floor(rand(1,N)*M)+1); %random PAM symbols
+%L=4; h=[1:8]; %oversampling and arbitrary impulse response
+%x=zeros(1,L*N); x(1:L:end)=m; %upsampled signal
+%y=filter(h,1,x); %generates PAM signal
+%Eh=sum(h.^2), Px=mean(x.^2), Py=mean(y.^2), 
+%disp(['Px*Eh=' num2str(Px*Eh) ' should be equal to Py='...
+%    num2str(Py)])
+%\end{lstlisting}
+
+As discussed in Section~\ref{sec:sampledSignalEnergyPower}, for continuous-time PAM, the power $\calP_u$ of the upsampled signal is given by
+\begin{equation}
+\calP_u = \frac{\overline E_c}{\tsym}
+\label{eq:powerUpsampledSignalContinuousTime}
+\end{equation}
+and the PAM signal has power
+\begin{equation}
+\calP_s = \frac{\overline E_c}{\tsym} E_p.
+\label{eq:pamPowerContinuousTime}
+\end{equation}
+
+%Investigate this dependence by modifying \codl{snip_digi_comm_LTI_power} and relate the power \ci{Py} of the PAM signal to its constellation energy in Joules.
+
+%\eApplication 
+
+\section{Simple Binary Modulations: ASK, FSK and PSK}
+\label{sec:askfskpsk}
+
+%Before proceeding, it is convenient to discuss - obtained by frequency upconversion 
+PAM is a baseband signal with its power concentrated near DC. Three simple passband signals are now briefly discussed. These signals convey information by using distinct values of a) amplitude, b) frequency  or c) phase and are called amplitude-shift keying (ASK)\index{Amplitude-shift keying (ASK)}, frequency-shift keying (FSK)\index{Frequency-shift keying (FSK)} and phase-shift keying (PSK)\index{Phase-shift keying (PSK)}, respectively. The term ``keying'' is used because the modulation can be implemented by manipulating the carrier via switch(es) turning on and off. 
+
+In some texts, ASK modulation is called PAM, while here PAM corresponds to a baseband signal and ASK is a passband signal obtained by frequency upconversion of a PAM signal. 
+
+%As \codl{simpleBinaryModulation} indicates, any waveform can be used for the signals $s_0[n]$ and $s_1[n]$ and any method can be adopted for their generation.\footnote{For example, in \codl{simpleBinaryModulation}, one can use the signals \ci{s0=1:8} and \ci{s1=8:-1:1} to create a valid (although not efficient) digital modulation scheme.}
+
+
+To simplify the discussion, this section assumes binary systems, in which there are only $M=2$ symbols, representing  bits 0 and 1 via waveforms $s_0[n]$ and $s_1[n]$, respectively.
+%To clarify the concepts, assume a binary system in which $s_0[n]$ and $s_1[n]$ are the waveforms segments that represent bits 0 and 1, respectively. 
+The system designer can choose $s_0[n]$ and $s_1[n]$ such that their duration in seconds is different (shorter or longer) than $\tsym$. 
+%For simplicity, in this first discussion, 
+It is assumed here that both $s_0[n]$ and $s_1[n]$ have exactly $L$ non-zero samples, such that the oversampling $L$ is also the number of samples per symbol in this case. There are very efficient ways of generating the three signals but
+\codl{simpleBinaryModulation} illustrates how to obtain binary ASK, FSK and PSK modulations emphasizing clarity not computational cost. For example, alternatively, the ASK and PSK could be obtained by multiplying a suitable PAM signal by the carrier sinusoid and the FSK by using two sinusoids of distinct frequencies.
+
+%The goal is to discuss simple binary digicomm systems. The task of interest at this moment can be posed as converting input bits into waveforms $s_0[n]$ and $s_1[n]$, which represent bits 0 and 1, respectively. 
+
+\includecode{MatlabOctaveFunctions}{simpleBinaryModulation}
+
+%plot(ak_simpleBinaryModulation('ASK', b),'x-')
+%title(['bits ' num2str(b)])
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/binaryask}
+\caption[{Binary ASK: the information is in the amplitude.}]{Binary ASK: the information is in the amplitude. The oversampling factor is $L=32$, which in this case coincides with the number of samples per symbol.\label{fig:binaryask}}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/binaryfsk}
+\caption{Binary FSK: the information is in the frequency ($L=32$).\label{fig:binaryfsk}}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/binarypsk}
+\caption{Binary PSK: the information is in the phase ($L=32$).\label{fig:binarypsk}}
+\end{figure}
+
+\figl{binaryask} was generated with the commands below and show a segment of an ASK waveform.
+\begin{lstlisting}
+N=10; %number of bits 
+bits=floor(2*rand(1,N)); %generate N random bits
+plot(ak_simpleBinaryModulation('ASK', bits),'x-')
+\end{lstlisting}
+In this case, ASK was generated with $L=16000/500=32$ samples per symbol. One can note that the transmitted bit indicates the amplitude $s[n]$ of a cosine waveform. 
+
+Similarly, \figl{binaryfsk} and \figl{binarypsk} were generated for FSK and PSK modulations, respectively. It should be observed that, in PSK, $s_1[n]$ has a phase shift of $\pi$ rad with respect to the phase of $s_0[n]$. The ASK and PSK modulations use a cosine of frequency $\dw = \pi/16$ rad, which corresponds (see \equl{freqdiscrete2continuous}) to $\aw = \dw \fs = \pi/16 \times 16000 = 1000 \pi$~rad/s or 500~Hz. This FSK represents bits 0 and 1 by cosines of 500 and 1500~Hz, respectively. For all three modulations the average power is 2 W. This requires the peak amplitude of ASK to be larger than the other two modulations to compensate the instantaneous power being
+zero over the duration of the respective bit (bit 0 in \figl{binaryask}).
+
+%##################################################
+\section{Characterizing and Comparing Digital Modulations}
+%##################################################
+
+%\subsection{Memoryless linearly modulated digital signals}
+
+%The next section discusses the analysis of PAM signals in the frequency domain.
+Most of the previous material was restricted to PAM. 
+\ignore{
+This chapter expands the scope to include, for example, 
+passband signals created via upconversion to locate the signal spectrum in high frequencies.
+PAM and ASK signals are closely related, as both use the amplitude to convey information. PAM is the term used when the signal is \emph{baseband} (most of the power concentrated in 0 Hz) while ASK can be seen as a PAM that suffered upconversion such that its spectrum was shifted in frequency as in \figl{psds_ask_fsk_psk}.
+}
+Other modulations and some of their important characteristics are discussed in the sequel.
+
+%\subsection{Popular Digital Modulations}
+
+\ignore{
+-----------------
+%tirei: is given by the convolution of $m_i \delta[n]$ and $p[n]$
+In the case of using a formatting pulse $p[n]$, the modulator outputs $s_i[n] = m_i p[n]$ for each symbol $m_i$. The binary ASK and PSK modulations in \codl{simpleBinaryModulation} are examples of this process. 
+While not explicit in the code, both binary ASK and PSK in \codl{simpleBinaryModulation} adopted a $p[n]$ composed by $L$ samples equal to one. The ASK example adopted $m_0=0$ and $m_1=\sqrt{8}$, while the PSK adopted $m_0=2$ and $m_1=-2$. Because ASK and PSK are passband systems, for both the sequence of concatenated segments $s_i[n]$ was multiplied by a carrier $\cos(\pi n /16)$.
+This section will not discuss upconversion and the next paragraphs concentrate on evolving from binary to $M$-ary (baseband) PAM.
+%
+%Explain ASK e PSK are linear modulation and FSK not
+%
+%When $p[n]$ has a \emph{baseband} spectrum, i.\,e., a spectrum centered around 0 Hz, such as in the case of a $p[n]$ represented by a pulse (e.\,g., \ci{p=ones(1,L)}, where \ci{L} is the oversampling), the scheme is called pulse-amplitude modulation (PAM).
+%
+%Application~\ref{app:InterpretingDigitalModulation} presented the concept of constellation. 
+As discussed in Section~\ref{sec:InterpretingDigitalModulation}, PAM has $D=1$ basis function $p[n]$ (or $p(t)$). 
+------------------
+}
+
+\subsection{Linear versus non-linear modulation}
+
+A digital modulation scheme is said to be linear\index{Linear modulation} if the mapping from the sequence of symbols $m[n]$ to the transmitted signal $s[n]$ (or $s(t)$) is linear.
+%AK-PUT-BACK i.\,e., if the superposition principle applies (HOW ABOUT ADDITIVITY?). 
+% (TO CHECK).
+Otherwise the modulation is nonlinear. ASK and FSK are examples of linearly and non-linearly modulated signals, respectively.
+Two modulations of interest are considered in the sequel: PAM and QAM.
+
+For example, observe in \equl{onepamsymbol} that, for an individual PAM symbol, the homogeneity property applies. 
+And when considering the transmission of several PAM symbols using~\blol{linecodegenerationDiscreteTime}, both upsampling (by $L$) and convolution with $p[n]$ are linear operations (homogeneity and additivity apply).
+As an alternative point of view,  the linearity of PAM modulation can be observed considering that $s_1(t)$ and $s_2(t)$ are the PAM signals corresponding to the symbol sequences $m_1[n]$ and $m_2[n]$, respectively. Then, adopting $m[n]=\alpha m_1[n]+ \beta m_2[n]$ and from \equl{pamEquation2}, the following confirms the linearity:
+%will be seen in \equl{pam}, a continuous-time PAM is given by
+%\[
+%s(t) = \sum_{n=-\infty}^{\infty} m[n] p(t-n \tsym),
+%\]
+%such that
+\begin{equation}
+s(t) = \sum_{n=-\infty}^{\infty} (\alpha m_1[n] + \beta m_2[n]) p(t-n \tsym) = \alpha s_1(t) + \beta s_2(t),
+\label{eq:pam_linearity}
+\end{equation}
+where $\alpha, \beta \in \Re$. 
+
+Note that if $m[n]$ should contain only symbols from a given constellation, the values of $\alpha$ and $\beta$ should be chosen properly, to have $\alpha m_1[n] + \beta m_2[n]$ still belonging to the constellation associated to $m[n]$. But this issue is not important in \equl{pam_linearity}, where our goal is to exemplify the behavior of a linear modulation.
+
+In a similar way, it can be proved that QAM is a linear modulation. As will be seen in \equl{qam}, a QAM can be written as
+\[
+s_{\textrm{QAM}}(t) = s_i(t) \cos(\aw_c t) + s_q(t) \sin(\aw_c t),
+\]
+where $s_i(t)$ and $s_q(t)$ are two PAM signals. Applying \equl{pam_linearity} to both PAMs, one can observe that $s_{\textrm{QAM}}(t)$ is obtained by superposition. 
+
+$M$-ary PSK modulations are also linear simply because they are special cases of QAM. But note that if a phase modulation scheme transmits information via the phase of a single carrier (there is no quadrature scheme with two carriers), this modulation would be nonlinear! An exception to the non-linearity of PSK with a single carrier is a binary PSK with angles 0 and $\pi$ representing the bits. This case is equivalent to a PAM with amplitudes $\pm 1$, which is linear.
+
+FSK (binary or $M$-ary) is a nonlinear modulation because the information signal is within the argument of a sinusoid. 
+
+\subsection{Modulation with memory versus memoryless}
+	
+%The use of \emph{memory} or \emph{memoryless} modulation. 
+%The modulation is memoryless when the transmitted waveform during the interval corresponding to the $n$-th symbol depends only on this $n$-th symbol. 
+When the modulation has memory, the mapping of a symbol to a waveform segment depends on one or more previously transmitted symbols. For example, the PAM modulation given by \equl{pam} is memoryless.
+The memory characteristic is typically introduced for improving the spectrum of the transmitted signal or for improved robustness, and is achieved by encoding the symbol sequences. The next section discusses differential encoding, one of the most used schemes for introducing memory to achieve improved robustness.
+	
+\subsection{Differential encoding}
+\label{sec:differentialEncoding}
+
+Differential encoding takes as input a bit sequence $b[n]$ of 0's and 1's and generates a new bit sequence $d[n]$.
+%Calling $d[n]$ and $b[n]$ these two sequences of 0's and 1's, respectively, t
+More specifically, the conventional differential encoder at the transmitter performs the operation
+\begin{equation}
+d[n] = b[n] \oplus d[n-1],
+\label{eq:differential_encoding}
+\end{equation}
+where $\oplus$ denotes the exclusive-or in modulo-2 arithmetics and an initial value $d[-1] \in \{0,1\}$ is assumed to be known by both transmitter and receiver. At the receiver, the decoding operation is
+\begin{equation}
+\hat b[n] = \hat d[n] \oplus \hat d[n-1],
+\label{eq:differential_decoding}
+\end{equation}
+where $\hat d[n]$ is the received bit sequence and $\hat d[-1]= d[-1]$ is known. If there are no transmission errors along the channel, then $\hat d[n]=d[n]$ and, consequently, $\hat b[n]=b[n]$.
+
+Note that if a transmission error occurs, it does not ``propagate'' by more than two bits.
+\equl{differential_decoding}
+does not have a feedback and as long as both $\hat d[n]$ and $\hat d[n-1]$ are correct, the 
+current bit $\hat b[n]$ coincides with $b[n]$. 
+But differential coding can increase the bit error rate. Consider for example a situation in
+which errors do not occur in consecutive bits: in this case, the adoption of differential coding 
+would double the error rate.
+
+The initial value $d[-1]$ is
+not that important in practice given that $\hat d[-1] \ne d[-1]$ will only affect the decoding of the
+first bit $\hat b[0]$.
+
+\codl{snip_digi_comm_differential_code} gives an example of differential decoding, which generates the array \ci{differentialBits} from the input array \ci{bits}, assuming ``1'' as initial value. The arrays at the transmitter are:
+\begin{verbatim}
+bits =                      [0     1     0     1     1     0     0]
+differentialBits =    ("1") [1     0     0     1     0     0     0]
+\end{verbatim}
+In case the receiver (erroneously) adopt $\hat d[-1] = 0$ in this example, 
+the error $\hat b[0] \ne b[0]$ would occur as can be seen by comparing the original array 
+\ci{bits} with \ci{decodedBits} below:
+\begin{verbatim}
+differentialBitsHat = ("0") [1     0     0     1     0     0     0]
+decodedBits =               [1     1     0     1     1     0     0]
+\end{verbatim}
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_differential\_code}{snip_digi_comm_differential_code}
+
+Observe in \codl{snip_digi_comm_differential_code} that the vector of symbols \ci{m} is created based
+on \ci{differentialBits}, not \ci{bits}.
+
+To better understand the name differential code, it is useful to note that \equl{differential_decoding} is equivalent to performing a first order difference (``derivative'') $\hat x[n]=\hat y[n]- \hat y[n-1]$, but using modulo-2 arithmetic. And to check why decoding works, represent $\hat x[n]= \hat y[n]- \hat y[n-1]$ by $H(z)=1-z^{-1}$ and observe that the receiver performs:
+\[
+\hat y[n] \arrowedbox{$H(z)$} \hat x[n].
+\]
+It is possible to recover the original $x[n]$ because the transmitter 
+%generated $y[n]$ by ``integrating'' the original signal $x[n]$ via 
+used $y[n]= x[n] + y[n-1]$. This corresponds to using the system
+$1/H(z) = 1/(1-z^{-1})$ at the transmitter, i.\,e.
+\[
+x[n] \arrowedbox{$ \frac{1}{H(z)}$} y[n]
+\]
+such that the receiver implements the inverse of the transmitter system.
+The commands \ci{x=rand(1,4),y=filter(1,[1 -1],x),xh=filter([1 -1],1,y)} also help to observe that the receiver is able to recover the original signal. In this case, \ci{filter} assumes that $y[-1]=0$ for both transmitter and receiver. 
+
+One advantage of the differential code is that the transmitted waveform $s(t)$ can be inverted ($-s(t)$) without incurring in decoding errors with the exception of, maybe an error at the first symbol given the receiver would not know it should adopt $-\hat d[n]$ instead of $\hat d[n]$. This is important when the waveform passes through several stages (distinct equipment) and the polarity may be unknown at some of them or when PSK is used and an error in carrier recovery inverts the bits. To observe why this ``polarity insensitive'' property is obtained, note that \equl{differential_decoding} depends on the ``difference'' between $\hat d[n]$ and $\hat d[n-1]$. For example, in case a sequence [0 1] is flipped to [1 0], the result is the same. 
+
+%AK-TOCHECK I think the below is wrong:
+%The differential code represents a bit 1 by alternating the polarity of the pulse and the polarity remains unchanged for bit 0. In other words, a change in the polarity of $s(t)$ represents a bit 1. To find if the polarity needs to be reversed In the example of \figl{linecodesmemory}, the differential waveform presents three transitions in amplitude (polarity inversions) because the bitstream has three bits 1.
+
+The ``polarity insensitive'' property of differential encoding can be checked by changing \codl{snip_digi_comm_differential_code} to use the command
+\ci{decodedBits=xor(\aktilde differentialBits,[initialValue \aktilde differentialBits(1:N-1)])}
+where the {\aktilde} operation inverts the bits. In this example, the first bit will correspond to an error because \ci{initialValue} was not flipped to mimic a realistic operation.
+
+The nomenclature related to differential encoding can be rather confusing 
+because some modulation schemes perform differentiation using the FIR
+typically found at the receiver (instead of the IIR in \equl{differential_encoding}).
+In other words, the transmitter uses \equl{differential_decoding}
+to obtain the so-called \emph{differentially-decoded} sequence\index{Differentially-decoded sequence} $d'[n] = b[n] \oplus b[n-1]$.
+
+\subsection{Brief comparison of modulations}
+
+Linear modulations such as QAM are typically more efficient with respect to required bandwidth than nonlinear modulations such as FSK. On the other hand, FSK is more robust to nonlinearities of the channel and of the transmitter power amplifier. Besides, as discussed in Section~\ref{sec:fskOrthogonalModulation}, FSK can be classified as an \emph{orthogonal} modulation, which are typically power efficient.
+Therefore, linear modulations are often combined with orthogonal modulations in schemes such as the multicarrier discussed in Chapter~\ref{ch:multicarrier}.
+
+Some of the techniques used to improve the performance of linear modulations are:
+\begin{itemize}
+	\item Pulse shaping to improve the spectrum properties.
+	\item Differential modulation to improve robustness to phase uncertainty and enable noncoherent demodulation.
+	\item Gray coding to improve BER for a given SER.
+	\item Offset modulation to have phase transitions avoiding the center of the constellation diagram and remove some design constraints on the power amplifier.
+\end{itemize}
+
+Some examples of digital modulation techniques are listed below, with their variants:
+\begin{itemize}
+\item Phase-shift keying (PSK)
+	\begin{itemize}
+	\item Binary PSK (BPSK), adopts $M=2$ symbols
+	\item Quadrature PSK (QPSK), adopts $M=4$ symbols
+	\item $M$-PSK
+	\item Differential PSK (DPSK)
+	\item Differential QPSK (DQPSK)
+	\item Offset QPSK (OQPSK)
+	\item $\pi$/4-QPSK
+  \end{itemize}    
+\item Frequency-shift keying (FSK)
+	\begin{itemize}
+ 	\item Multi-frequency shift keying ($M$-FSK)
+	\item Continuous-phase frequency-shift keying (CPFSK)
+	\item Gaussian frequency shift keying (GFSK)
+	\end{itemize}  
+\item Amplitude-shift keying (ASK)
+    \begin{itemize}        
+    \item On-off keying (OOK)
+		\end{itemize}    
+\item Quadrature amplitude modulation (QAM)
+\item Continuous phase modulation (CPM) 
+	\begin{itemize}
+  \item Minimum-shift keying (MSK)
+  \item Gaussian minimum-shift keying (GMSK)
+	\end{itemize}
+\item Orthogonal frequency-division multiplexing (OFDM) modulation
+	\begin{itemize}        
+  \item Discrete multitone (DMT)
+	\end{itemize}
+\end{itemize}
+
+Few comments are provided in the sequel.
+DPSK is inexpensive, but has an inefficient use of bandwidth. It is very robust and extensively used in satellite communications. QPSK is twice as spectrally efficient than BPSK but the receiver is more complex. OQPSK reduces the envelope variation. $\pi$/4-QPSK reduces envelope variations to a lesser extent than OQPSK but can be noncoherently detected.
+QAM is suitable for channels with good linearity and that can afford relatively high power, such as telephone channels and point-to-point microwave links. In CPM, the carrier phase varies in a continuous manner and creates a constant envelope. It has a compact spectrum with a narrow mainlobe and fast sidelobe roll-off. MSK is a variation of CPM that adopts a minimum spacing that allows two frequencies to be orthogonal. The GMSK is a MSK with an improved spectral efficiency due to the adoption of a Gaussian lowpass filter.
+DMT is used in DSL while OFDM is used in wireless communications. \tabl{modulations} illustrates standardized systems that adopted some of the mentioned modulations.
+
+\begin{table}
+\centering
+\caption{Modulations used in telecommunication standards.\label{tab:modulations}}
+\begin{tabular}{|l|c|}
+\hline
+Standard(s) & Modulation(s) \\
+\hline
+GSM/DCS1800/PCS1900/DECT (Europe) & GMSK \\
+IS-54/IS-136 (North America)& $\pi/4$-DQPSK \\
+IS-95 (North America) & QPSK / DQPSK \\
+PDC/PHS (Japan) &  $\pi/4$-DQPSK \\
+Bluetooth & GFSK, $\pi/4$-DQPSK, 8-DPSK \\
+IEEE 802.11a/802.11g & PSK, QAM, OFDM\\
+Zigbee & BPSK, OQPSK\\
+ADSL2+, VDSL2, G.fast & DMT \\
+3GPP LTE & OFDM \\
+\hline
+\end{tabular}
+\end{table}
+
+From this very brief discussion, one can note that there are many techniques for improved modulations. This text will adopt the following strategy: it first concentrated on PAM and now on QAM. Later we will focus on OFDM. This strategy allows to study many basic concepts used in current telecommunication standards and the reader can complement her/his knowledge with readings about specific modulation techniques of interest.
+%, and then investigate 
+%AK-IMPROVE: %GMSK and 
+%OFDM/DMT in more detail. 
+%The expected outcome is to have the reader prepared to understand the variations adopted in specific modulation schemes if needed.
+
+%In summary, QAM is a two-dimensional generalization of PAM, with both being memoryless and linear modulation schemes given by
+%\[
+%s_{\textrm{PAM}}(t) = \sum_{n=-\infty}^{\infty} m[n] p(t-n \tsym)
+%\]
+%and
+%\[
+%s_{\textrm{QAM}}(t) = s_i(t) \cos(\aw_c t) + s_q(t) \sin(\aw_c t),
+%\]
+%respectively, where $s_i(t)$ and $s_q(t)$ are two PAM signals, as defined previously. 
+
+\section{Baseband Line Codes}\index{Line codes}
+\label{sec:linecodes}
+
+In this section, the PAM concept is expanded by varying the shaping pulse $p(t)$ to obtain 
+digitally modulated signals in baseband, which are often called \emph{line codes}\index{Line codes}. One important goal of this study is to show how the shaping pulse determines the signal PSD, which then should be compatible with
+the frequency response of the channel in which the signal is transmitted.
+This section assumes binary systems, but $M$-ary versions of line codes are also used.
+
+\figl{linecodes} illustrates three line codes: \emph{polar NRZ}, \emph{unipolar NRZ} and \emph{polar RZ}, all obtained by memoryless linear modulation according to \blol{linecodegeneration}. As mentioned, the term RZ (return to zero) is adopted when the pulse $p(t)$ goes to zero within its duration $\tsym$. The terms polar and unipolar are used when the symbols $m_i$ are signed and unsigned (non-negative), respectively. The Manchester is a line code that uses polar symbols but a $p(t)$ with positive amplitude in half of $\tsym$ and a negative amplitude in the other half. It provides a more robust synchronization at the receiver than the NRZ codes. Consider a long sequence of the same bit 0 or 1, for example. It is easier to learn where a symbol starts when using Manchester when compared to a NRZ signal, which would correspond to a signal with constant amplitude in this case.
+
+\begin{figure}[htbp]
+\centering
+%\includegraphics[width=\figwidth,keepaspectratio]{Figures/linecodes}
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/linecodes}
+\caption[{Polar NRZ, unipolar NRZ, polar RZ and Manchester line codes.}]{Polar NRZ, unipolar NRZ and polar RZ line codes. The symbol interval is $\tsym=4$~s and the bit stream was [0 1 0 1 1 0 0].\label{fig:linecodes}}
+\end{figure}
+
+The line codes in~\figl{linecodes} are memoryless. Two examples of line codes with memory are depicted in \figl{linecodesmemory}: \emph{bipolar} (also called \emph{pseudoternary} and \emph{alternate mark inversion} - AMI) and \emph{differential}. The memoryless polar NRZ is included for convenience, because it provides a reference to interpret the other codes. The bipolar code is obtained by transmitting no pulse for bits 0 and pulses of alternating polarity for bits 1. 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/linecodesmemory}
+\caption[{Line codes NRZ polar, bipolar and differential.}]{Line codes NRZ polar, bipolar and differential. The last two have memory. The symbol interval was $\tsym=4$ s and the bit stream was [0 1 0 1 1 0 0] as in \figl{linecodes}. For the differential code, the initial bit was assumed equal to 1 and the differential bit stream was  [1 0 0 1 0 0 0].\label{fig:linecodesmemory}}
+\end{figure}
+
+An important advantage of bipolar is that it contains no DC component even if a long string of 0's or 1's occur.  \codl{snip_digi_comm_bipolar_code} illustrates the procedure for the bipolar code when generating its plot in \figl{linecodesmemory}.%\newpage
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_bipolar\_code}{snip_digi_comm_bipolar_code}
+%\begin{lstlisting}
+%bits=[0 1 0 1 1 0 0]; %bits to be transmitted
+%N=length(bits); %number of bits
+%m=zeros(1,N); %pre-allocate space for symbols
+%currentPolarity = 1;%assumption: positive polarity first
+%for i=1:N %loop over bits
+%    if bits(i)==1
+%        m(i)=currentPolarity;
+%        currentPolarity = -currentPolarity; %invert 
+%    end %no need for "else": m(i) is initialized as zero
+%end
+%\end{lstlisting}
+
+The differential line code in \figl{linecodesmemory} was generated with 
+\codl{snip_digi_comm_differential_code}, which was discussed in Section~\ref{sec:differentialEncoding}.
+
+In summary, some considerations for selecting line codes (i.\,e., signaling schemes) are:
+\begin{itemize}
+\item Power spectral density, particularly its value at 0 Hz (DC level) and bandwidth;
+\item Ease of clock signal recovery for symbol synchronization;
+\item Error detection properties.
+\end{itemize}
+
+\section{PSDs of Digitally Modulated Baseband Signals}
+\label{sec:PSDsOfDigitalSignals}
+%\label{sec:calculating_psds}
+%\subsection{PSDs of memoryless digitally modulated signals}
+
+The next paragraphs concern the PSDs of PAM and some line codes. Some of the results are valid
+for other modulations but this section focuses on baseband, linear and memoryless modulations.\footnote{Calculating the PSD of line codes that use memory is more involved and can be studied in digital communication textbooks such as~\cite{Proakis07} or \cite{Peebles86}.} Modulations that use upconversion to create a passband signal are discussed in Chapter~\ref{ch:qam}, which discusses QAM.
+Besides, most of the results are valid for \equl{signalComposedByLinearCombination}
+but PAM is assumed for simplicity. 
+
+%Generalizations should be simple if symbols are uncorrelated and zero-mean.
+
+The model adopted here for continuous-time is the following:
+\begin{equation}
+m[n] \arrowedbox{ D/C } m_s(t) \arrowedbox{random phase} q_s(t) \arrowedbox{$p(t)$} s(t).
+\label{eq:forPSDCalculation}
+\end{equation}
+Basically, the PAM generation of \blol{linecodegeneration} is expanded with the ``random phase'' from \blol{randomPhaseContinuousTime}. Similarly, the discrete-time version is obtained from \blol{linecodegenerationDiscreteTime} and \blol{randomShiftTrick}.
+
+Recall that PSDs are
+defined only for WSS random processes.
+The need for the ``random phase'' block is that $m_s(t)$ is \textbf{not WSS}, but wide-sense cyclostationary (WSC). In this case, its autocorrelation depends not only on the ``lag'' but
+on the absolute time too, and the PSD cannot be obtained via a Fourier transform of such bidimensional autocorrelation as for WSS processes (see \figl{phaseRandomization}).
+Randomizing the phase is a well-known procedure to transform a WSC process into a WSS, as discussed in Appendix~\ref{sec:uniformRandomPhase} without resorting to advanced mathematics.\footnote{Appendix~\ref{sec:cyclostationarity} can be used to improve understanding about cyclostationarity but Appendix~\ref{sec:uniformRandomPhase} suffices for the purposes here.}
+
+\blol{forPSDCalculation} indicates that a discrete-time signal $m[n]$ representing the symbols is converted to a sampled signal $m_s(t)$ and later, when the symbols are represented by $q_s(t)$, they are convolved with the shaping pulse $p(t)$ to obtain the modulated signal $s(t)$. The goal is to find an expression for the PSD $S_s(f)$ of $s(t)$ (or $S_s(e^{j \dw})$ in discrete-time).
+
+
+ %and the two mentioned properties cannot be directly applied. Ciclostationarity is discussed in Appendix~\ref{sec:cyclostationarity}.
+
+
+%It is first assumed baseband signals, given that upconversion to a passband signal can be later taken in account.
+%The development is based on \blol{linecodegeneration} (or its discrete-time counterpart \blol{linecodegenerationDiscreteTime}). 
+\ignore{
+Because the signal $m_s(t)$ is random, it is modeled as a realization of a random process.
+The PSDs of interest are calculated based on two properties (see Section~\ref{sec:randomLTIInput}) of WSS random processes:
+\begin{itemize}
+	\item The PSD is the Fourier transform of the autocorrelation.
+	\item A WSS process with PSD $S_x(f)$ filtered by a LTI system with impulse response $p(t)$ generates another WSS process with PSD $S_y(f) = |P(f)|^2 S_x(f)$, where $P(f)$ is the Fourier transform of $p(t)$.
+\end{itemize}
+Having available the PSD $S_q(f)$ of $q_s(t)$ in \blol{forPSDCalculation}, the PSD $S_s(f)$ can be
+obtained with $S_s(f) = |P(f)|^2 S_q(f)$, where $P(f) = \calF \{ p(t)\}$.
+%
+One could try to get rid of the ``random phase'' block by obtaining the autocorrelation $R(\tau)$ of $m_s(t)$, calculating its PSD via the Fourier transform $\calF \{ R(\tau) \}$ and directly ``filtering'' it through the LTI system $p(t)$. But strictly, this is not possible and the 
+procedure is discussed in the next section.
+}
+%\subsection{PSD expressions for linear and memoryless baseband modulations}
+
+\tabl{psdExpressions}
+summarizes some PSD expressions for linear and memoryless baseband modulations.
+%\section{PSD of PAM, ASK, FSK and PSK signals}
+It can be noted that these PSDs are primarily imposed by the shaping pulse $p[n]$ (or $p(t)$), but the symbols also influence the spectrum via their autocorrelation $R_m[l]$. %The associated theory will be presented in Section~\ref{sec:calculating_psds} while at the moment only the intuition will be developed via simulation results.
+
+\begin{table}
+\centering
+\caption{Summary of PSD expressions for linear and memoryless baseband modulations.\label{tab:psdExpressions}}
+\begin{tabular}{|l|c|}
+\hline
+Continuous-time (CT): general expression & $S_s(f) = \frac{1}{\tsym} |P(f)|^2 \sum_{l=-\infty}^{\infty} R_m[l] e^{-j 2 \pi f \tsym l}$ \\
+\hline
+CT for uncorrelated \& zero-mean symbols & $S_s(f) = \frac{\overline E_c}{\tsym} |P(f)|^2$ \\
+\hline \hline
+Discrete-time (DT): general expression & $S_s(e^{j \dw}) = \frac{1}{L} |P(e^{j \dw})|^2 \sum_{l=-\infty}^{\infty} R_m[l] e^{-j \dw L l}$ \\
+\hline
+DT for uncorrelated \& zero-mean symbols & $S_s(e^{j \dw}) = \frac{\overline E_c}{L}  |P(e^{j \dw})|^2$ \\
+\hline
+\end{tabular}
+\end{table}
+
+In \tabl{psdExpressions}, $\tsym$ is the symbol interval, $P(f)$ is the Fourier transform of the shaping pulse $p(t)$, $\overline E_c$ is the average constellation energy, $P(e^{j \dw})$ is the DTFT of the shaping pulse $p[n]$ and $L$ is the oversampling factor. 
+
+The general PSD expression for continuous-time in \tabl{psdExpressions} correspond to 
+using (see Section~\ref{sec:randomLTIInput}) $S_s(f) = |P(f)|^2 S_q(f)$, where $P(f) = \calF \{ p(t)\}$ and $S_q(f)$ is given by \equl{upsampledPSDContinuousTimeHz}.
+Similarly, the discrete-time version uses \equl{randomShiftPSD2}. 
+
+These two PSD expressions can be simplified in the case the autocorrelation $R_m[l]$ of the transmit symbols is non-zero only at the origin, i.\,e., $R_m[l]=0, l \ne 0$. This corresponds to uncorrelated and zero-mean symbols (recall from \equl{uncorrelatedness} that $R_m[l]=(\ev[m])^2$ for $l \ne 0$), which lead to a white PSD. 
+More specifically, this case leads to the simplified expressions in \tabl{psdExpressions} because $R_m[0]=\overline E_c$, where $\overline E_c$ is the constellation average energy given by \equl{vectors_average_energy}.
+
+%\subsection{Calculating PSDs}
+%\label{sec:calculating_psds}
+
+\ignore{
+Finally, because $q_s(t)$ is WSS, one can obtain the PSD of $S_s(f)$ by:
+\begin{equation}
+S_s(f) = |P(f)|^2 S_q(f) = \frac{1}{\tsym} |P(f)|^2 \sum_{l=-\infty}^{\infty} R_m[l] e^{-j 2 \pi f l \tsym}.
+\label{eq:psd_linecodes}
+\end{equation}
+%
+In the special case that the symbols are un XX correlated, i.\,e., $R_m[l]=0, l \ne 0$, \equl{psd_linecodes} simplifies to
+\begin{equation}
+S_s(f) = |P(f)|^2 S_q(f) = \frac{1}{\tsym} |P(f)|^2 R_m[0] = \frac{1}{\tsym} |P(f)|^2 E_c,
+\label{eq:psd_uncorrel  atedLinecodes}
+\end{equation}
+given that $R_m[0]$ is the average energy constellation $E_c$.
+%
+In many cases of interest, the modulation process is linear and memoryless. In this case, if the autocorrelation of the transmit symbols is non-zero only at the origin (have a white PSD), the PSD of the transmit waveform $s(t)$ is given by \equl{psd_uncorrelatedLinecodes}, i.\,e.
+\begin{equation}
+S_s(f) = \frac{1}{\tsym} |P(f)|^2 E_c,
+\label{eq:psd_uncorrelatedLinecodeRepeated}
+\end{equation}
+where $\tsym$ is the symbol interval, $P(f)$ is the Fourier transform of the shaping pulse and $\overline E_c$ is the average constellation energy. 
+%
+%\subsection{Finding expressions for theoretical PSDs}
+%
+%AK the below is unpolite
+%\footnote{Note that some people do not pay attention that the sampled signal is not wide-sense stationary, e.\,g.,~\url{http://calliope.uwaterloo.ca/~ggong/411S03/D-baset2.pdf}.}
+%
+Assuming the symbols are i.\,i.\,d., the PSD of a continuous-time PAM signal is a special case of \equl{psd_linecodes} and is given by:
+\begin{equation}
+S(f) = \frac{\overline E_c}{\tsym} |P(f)|^2,
+\label{eq:psdPAM}
+\end{equation}
+where the average constellation energy $\overline E_c$ is given by \equl{vectors_average_energy} and $P(f)$ is the Fourier transform of the shaping pulse $p(t)$. In this case, $\overline E_c / \tsym$ is just a scaling factor and $|P(f)|^2$ shapes the PSD $S(f)$.
+%
+A similar result holds for a discrete-time PAM:
+\begin{equation}
+S(e^{j \dw}) = \frac{\overline E_c}{L}  |P(e^{j \dw})|^2,
+%\label{eq:}
+\end{equation}
+where $P(e^{j \dw})$ is the DTFT of the shaping pulse $p[n]$ and $L$ is the oversampling factor 
+%$\calP_m = \ev[|m_i|^2]$.
+}
+
+%\subsection{PSDs of line codes}
+
+As mentioned, \tabl{psdExpressions} illustrates the dependence of the PSD of the transmit signal on two factors:
+\begin{itemize}
+	\item the spectral characteristics of the shaping pulse via $P(f)$;
+	\item the spectral characteristics of the pre-coded information sequence via the DTFT of $R_m[l]$.
+\end{itemize}
+Hence there are two opportunities to control the PSD of the transmit signal.
+
+\subsection{Examples of PSDs}
+
+This section discusses few PSD examples. The Fourier transform of a rectangular $p(t)$ with amplitude $A$ and support $\tsym$ given by \equl{sinc_transform} is a useful result for these examples. In this case, $|P(f)|^2 = (A \tsym)^2 \sinc^2(f \tsym)$.
+When $p(t)$ is the mentioned rectangular pulse, one just needs to calculate $R_m[l]$ for the signal of interest. Here, the random sequence $m[n]$ is assumed to be composed by independent and equiprobable symbols. In this situation, it is interesting to contrast the case the symbols
+have zero-mean or not. This is done in the sequel using a polar and unipolar line codes, respectively.
+
+\bExample \textbf{PSD of NRZ polar and unipolar line codes}.
+\label{ex:psdsNRZs}
+The polar and unipolar line codes are discussed in \exal{polarUnipolarWSS}, where their
+autocorrelations are obtained. Similar procedure is repeated here.
+For the polar code with symbols $\pm B$, the autocorrelation at $l=0$ is $R_m[0]=\overline E_c = B^2$.  For calculating $R_m[1]$, consider the product of all possible pairs of symbols: $(-B,-B),(-B,B),(B,-B),(B,B)$, which leads to $B^2$ and $-B^2$ with probability 0.5 each. Therefore $R_m[1]=0$ and, similarly, $R_m[l]=0, \forall l \ne 0$. Hence, for the NRZ pulse with amplitude $A$ and polar symbols:
+\begin{equation}
+S_s(f) = \frac{|P(f)|^2}{\tsym} \sum_{l=-\infty}^{\infty} R_m[l] e^{-j 2 \pi f l \tsym} = \frac{|P(f)|^2}{\tsym} R_m[0] e^{0} = A^2 B^2 \tsym \sinc^2(f \tsym).
+\label{eq:polarPSD}
+\end{equation}
+
+For the unipolar code, $R_m[0]=B^2/2$ and averaging the products among all possible pairs $(0,0),(0,B),(B,0),(B,B)$ leads to $R_m[l]=B^2/4$, for $l \ne 0$.
+Hence,
+\begin{align}
+\sum_{l=-\infty}^{\infty} R_m[l] e^{-j 2 \pi f l \tsym} &= \frac{B^2}{2} + \sum^{\infty}_{l=-\infty,l \ne 0} \frac{B^2}{4} e^{-j 2 \pi f l \tsym} \nonumber \\
+&= \frac{B^2}{4} \left( 1 + \sum^{\infty}_{l=-\infty} e^{-j 2 \pi f l \tsym} \right) \nonumber \\
+&= \frac{B^2}{4} \left( 1 + \frac{1}{\tsym} \sum^{\infty}_{k=-\infty} \delta \left( f - \frac{k}{\tsym} \right) \right).
+\label{eq:unipolarPSDParcel}
+\end{align}
+where the last step used \equl{impulseTrainPair} and the previous one incorporated the 
+term corresponding to $l=0$ into the summation.
+When multiplying the previous expression by $|P(f)|^2/\tsym$, it should be noted that all the impulses but the one at $f=0$ cancel with the nulls of the $\sinc$ of $P(f)$ (this happens for the NRZ $p(t)$), leading to the PSD for the unipolar code:
+\[
+S_s(f) =  \frac{A^2 B^2} 4 \delta(f) + \frac{A^2 B^2 \tsym} 4 \sinc^2(f \tsym).
+\]
+
+\figl{psdlinecodes} shows the PSDs of both polar and unipolar NRZ line codes for signals with power of 1~W (i.e, amplitudes 1 and $\sqrt{2}$ for polar and unipolar, respectively).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/psdlinecodes}
+\caption[{PSDs of the polar and unipolar NRZ line codes, both with signaling rate of 6 bauds.}]{PSDs of the polar and unipolar NRZ line codes, both with signaling rate of 6 bauds and power of 1~W.\label{fig:psdlinecodes}}
+\end{figure}
+
+Note from \figl{psdlinecodes} that one fourth of the power of the unipolar code
+is concentrated at DC. Also, the only impulse for the unipolar code is at DC.
+The cancellation of impulses and nulls of the sinc is further discussed in \exal{psdRZUnipolar}.
+\eExample
+
+\bExample \textbf{Comparing theoretical and estimated PSDs of the NRZ polar code}. 
+PSD estimation techniques such as Welch's routine, discussed in Chapter~\ref{ch:frequency}, can
+be used for evaluating the line codes in frequency domain.
+\figl{psdspolar} compares the PSDs from the theoretical expression \equl{polarPSD} and an estimation for the NRZ polar code of \figl{linecodes}. The results were obtained with \codl{snip_digi_comm_polar_psd}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/psdspolar}
+\caption{Comparison of estimated and theoretical PSDs for the polar NRZ line code.\label{fig:psdspolar}}
+\end{figure}
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_polar\_psd}{snip_digi_comm_polar_psd}
+
+Note from \figl{psdspolar} that in this case the nulls of the sinc are at frequencies that are multiples
+of the symbol rate $\rsym = 6$~bauds, as also indicated in \figl{psdlinecodes}, which uses 
+the ordinate in linear scale (while \figl{psdspolar} is in logarithmic scale).
+\eExample 
+
+
+\bExample \textbf{PSD of a RZ unipolar line code}.
+\label{ex:psdRZUnipolar}
+Different from the NRZ unipolar code of \exal{psdsNRZs}, when the support of $p(t)$ is shorter
+than $\tsym$ (a RZ code), the impulses of the parcel in \equl{unipolarPSDParcel} may not be
+canceled by the zeros of the squared sinc of $|P(f)|^2$. The current example assumes a RZ pulse
+$p(t)$ with amplitude $A$ and support $\tsym/M$ from $t=-\tsym/(2M)$ to $\tsym/(2M)$. From 
+\equl{sinc_transform}, the Fourier transform  of $p(t)$ in this case is 
+$P(f)= (A \tsym/M) \sinc(f \tsym / M)$ with nulls at frequencies multiple of $M/\tsym$ while \equl{unipolarPSDParcel} has impulses spaced by $1/\tsym$. Combining $|P(f)|^2/\tsym$ with \equl{unipolarPSDParcel} leads
+to the following PSD for the RZ unipolar:
+\begin{equation}
+S_s(f) = \frac{A^2 B^2 \tsym}{4 M^2} \sinc^2 \left(\frac{f \tsym}{M} \right) \left[ 1 + \frac{1}{\tsym} \sum^{\infty}_{k=-\infty} \delta \left(f - \frac{k}{\tsym} \right) \right].
+\label{eq:rzUnipolarPSD}
+\end{equation}
+In this case, the PSD presents the impulses of \equl{unipolarPSDParcel} that are not located 
+at frequencies multiple of $M \rsym$.
+\figl{psd_rz_unipolar_small_variance} presents  \equl{rzUnipolarPSD} for $A=B=1$, $\rsym=6$~bauds and $M=4$, superimposed to the estimated PSD. 
+
+\begin{figure}[htbp]
+\centering
+%\includegraphics[width=\figwidth,keepaspectratio]{Figures/linecodes}
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/psd_rz_unipolar_small_variance}
+\caption[{PSD of RZ unipolar code.}]{PSD of RZ unipolar code with symbol interval $\tsym=1/6$~s and shaping pulse with support $\tsym/4$.\label{fig:psd_rz_unipolar_small_variance}}
+\end{figure}
+
+Note in \figl{psd_rz_unipolar_small_variance} that the peaks of the estimated PSD coincide
+with the impulses, but not with their areas. This is expected given that the infinite amplitude
+of the impulses is not realizable. Besides, the PSD value depends on the FFT bin width used in
+the estimation process. To highlight this dependence, \figl{psd_rz_unipolar_large_variance} 
+was obtained with a PSD estimated via the same procedure that generated \figl{psd_rz_unipolar_small_variance} but with a smaller FFT bin width (1024 times smaller, which corresponds to $10 \log_{10} 1024 \approx 30$~dB).
+
+\begin{figure}[htbp]
+\centering
+%\includegraphics[width=\figwidth,keepaspectratio]{Figures/linecodes}
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/psd_rz_unipolar_large_variance}
+\caption[{PSD of RZ unipolar code estimated with smaller FFT bin width.}]{PSD of RZ unipolar code estimated with smaller FFT bin width than \figl{psd_rz_unipolar_small_variance}.\label{fig:psd_rz_unipolar_large_variance}}
+\end{figure}
+
+Comparing \figl{psd_rz_unipolar_small_variance} and \figl{psd_rz_unipolar_large_variance}, it can
+be seen that the PSD peaks corresponding to impulses increased by approximately 30~dB while
+the variance of the estimated PSD also increased significantly. This issue is discussed
+in Chapter~\ref{ch:frequency}.
+\eExample 
+
+\bExample \textbf{Comparing theoretical and estimated PSDs of a PAM signal}. 
+A typical PAM constellation obeys the guidelines listed in Section~\ref{sec:pam_constellation}.
+Consequently, the uncorrelated and zero-mean symbols lead to an autocorrelation that is non-zero 
+only at lag $l=0$, with this value $R[0] = \overline E_c$ coinciding with the constellation
+average energy. Hence, from \tabl{psdExpressions}, the PSD for such PAMs is
+\begin{equation}
+S_s(f) = \frac{\overline E_c}{\tsym} |P(f)|^2.
+\label{eq:pamPSD}
+\end{equation}
+
+\codl{snip_digi_comm_PAM_PSD} compares a theoretical curve for the PSD of a discrete-time PAM signal and an estimated PSD.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_PAM\_PSD}{snip_digi_comm_PAM_PSD}
+
+\begin{figure}
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/pam_spectrum_th_em}
+\caption{Comparison of theoretical and estimated curves for the PSD of a 16-PAM discrete-time signal
+with oversampling $L=8$.\label{fig:pam_spectrum_th_em}}
+\end{figure}
+
+\figl{pam_spectrum_th_em} confirms that the modulation order $M$ of a PAM simply scales the
+PSD via $\overline E_c$, while the PSD shape (number of nulls, etc.) is imposed by the pulse
+$p(t)$.
+%Application~\ref{app:power_spectrum} further explores spectral analysis.
+\eExample
+
+\bExample \textbf{PSDs of binary ASK, FSK and PSK}.
+The PSDs of ASK, FSK and PSK can be obtained from frequency upconversion of their corresponding 
+baseband signals. This fact is discussed in this example.
+
+%In general, for independent values, $R_z[0] = \ev[z^2[n]]$ and $R_z[k] = \ev^2[z[n]], k>0$ (see Peebles, page 115).
+
+\figl{psds_ask_fsk_psk} illustrates the PSDs of all three modulations. The time-domain
+signals were obtained with \ci{ak\_simpleBinaryModulation.m} using a symbol rate
+of $\rsym=500$~bauds. 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/psds_ask_fsk_psk}
+\caption[{PSDs for the given binary ASK, FSK and PSK.}]{PSDs for the given binary ASK, FSK and PSK.\label{fig:psds_ask_fsk_psk}}
+\end{figure}
+
+%in \codl{simpleBinaryModulation}. They were obtained with the command \ci{pwelch}. For example, \codl{snip_digi_comm_ASK_PSD} was used for getting a PSD for the given ASK.
+%\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_ASK\_PSD}{snip_digi_comm_ASK_PSD}
+%\begin{lstlisting}
+%N=100000; %number of bits
+%bits=floor(2*rand(1,N)); %generate N random bits
+%%pwelch parameters:
+%window=8192;noverlap=window/2;fftsize=window;fs=16000; 
+%s=ak_simpleBinaryModulation('ASK', bits); %get waveform
+%pwelch(s,window,noverlap,fftsize,fs); %estimate PSD
+%\end{lstlisting}
+
+In \figl{psds_ask_fsk_psk}, there are peaks at 500 Hz for ASK, 500 and 1500 for FSK and no peak for PSK. All these peaks correspond to impulses in the theoretical expressions (see \figl{psdlinecodes}).
+Note that ASK and PSK are obtained from baseband unipolar and polar (NRZ) line codes.
+Similarly, the FSK can be seen as the sum of two unipolar signals that were previously multiplied
+by distinct carrier frequencies.
+Therefore, a PSK does not have an impulse in its PSD because it corresponds to an 
+upconverted version of the NRZ polar. In contrast, ASK has one impulse at the carrier frequency 
+and FSK has two impulses positioned at the respective two frequencies.
+This fact is emphasized in \figl{pamvsask} for PAM and ASK, in which
+ASK was generated by multiplying the PAM by a carrier with frequency $f_c \approx 4.17$~Hz.
+In practice, due to the finite duration of the simulated signals, the theoretical ASK impulse 
+shows up as a peak at $f_c \approx 4.17$~Hz in the ASK PSD.
+
+%One can notice the peak at 500 Hz for ASK, 500 and 1500 for FSK and no peak for PSK. 
+%Section~\ref{sec:calculating_psds} explains in more details these PSDs.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/pamvsask}
+\caption{Binary baseband PAM and its corresponding passband ASK signal. The left plots are the waveforms and the right plots their PSDs.\label{fig:pamvsask}}
+\end{figure}
+
+%The term PAM is sometimes dedicated to baseband signals while ASK is used for passband signals. Adopting this nomenclature, 
+\figl{pamvsask} provides an example where the bitstream is \ci{[1 0 1 0 1 1 1 0]}. The PAM uses oversampling $L=48$ and $\fs=100$ Hz. The ASK uses a carrier at $\dw_c=2 \pi / 24$ rad, which corresponds to $f_c=\fs/24 \approx 4.17$ Hz. The PSDs were estimated with low frequency
+resolution but the effect of frequency upconversion can be easily noted.
+\eExample 
+
+%\section{Communications via Passband Signals}
+%AK-IMPROVE: Example of demodulation. Do not assume matched filtering. Simply practice sync. Up and downconversion.
+
+
+%This hands-on part aimed at demonstrating via {\matlab} code the implementation of simple communication systems. 
+
+%AK-IMPROVE: Acho que podia mostrar o conceito de implementar produto interno atraves de convolucao, e mostrar que se teria que esperar rum Tsym maior do que a duracao da resposta ao impulso equivalente `a funcao-base.
+\section{Signal Spaces and Constellations}
+This section concerns the representation of waveforms by vectors. Converting waveforms into vectors facilitates the analysis of communication systems. The discussion will introduce the \emph{vector-space} interpretation of signals, which are originally in an eventually infinite dimension \emph{signal space}\index{Signal space}.
+The vector and signal spaces will be related with the aid of a \emph{signal constellation}.
+
+It should be noted that all the discussion concerns a single channel use, i.\,e., the transmission of a single symbol. The implicit assumption is that the relations among signal samples at distinct time instants are not of interest or proper steps have been taken to eliminate such relations.
+%any filtering effect the channel may impose to signals.
+
+%get from Proakis 2.2 - SIGNAL SPACE REPRESENTATION OF WAVEFORMS
+%\subsection{Representing signals via linear combination of orthogonal functions}
+\subsection{Signals as linear combinations of orthogonal functions}
+
+First, assume a single channel use, i.\,e., the transmission of a single symbol $\bm$. Recall that, for PAM, as exemplified in \equl{exampleOfSymbols}, this symbol is a scalar because the PAM dimension is $D=1$. In the general case, the $n$-th \emph{symbol} is a vector $\bm[n]=[m_1[n], \ldots, m_D[n]]$ and, instead of a single PAM shaping pulse $p(t)$, there is a function $\varphi_j(t)$ to be multiplied by the $j$-th symbol element $m_j[n]$. 
+
+It is imposed that the $D$ basis functions $\varphi_j(t)$ 
+compose an orthonormal set $\{\varphi_j(t)\}$ such that $\ip{\varphi_j(t)}{\varphi_k(t)} = 1$ if $j=k$, and 0 otherwise.
+The set $\{\varphi_j(t)\}$ can be obtained, e.\,g., via the Gram-Schmidt procedure discussed in Section \ref{sec:Gram-Schmidt}, adapted to using continuous-time signals instead of vectors.
+
+Hence, the information corresponding to constellation symbol $\bm[n]$ is conveyed by a signal created by the linear combination
+\begin{equation}
+s_n(t) = \sum_{j=1}^D m_j[n] \varphi_j(t)
+\label{eq:signalComposedByLinearCombination}
+\end{equation}
+and the following signal represents an infinitely long sequence of symbols:
+\begin{equation}
+s(t) = \sum_{n=-\infty}^{\infty} s_n(t) = \sum_{n=-\infty}^{\infty} \sum_{j=1}^D m_j[n] \varphi_j(t - n \tsym).
+\label{eq:totalSignalComposedByLinearCombination}
+\end{equation}
+For PAM, \equl{totalSignalComposedByLinearCombination} simplifies to
+\begin{equation}
+s(t) = \sum_{n=-\infty}^{\infty} m[n] p(t-n \tsym)
+\label{eq:pamEquation2}
+\end{equation}
+because $D=1$ and the only basis function $\varphi_1(t)=p(t)$ is the shaping pulse.
+
+%With the given set $\{\varphi_i(t)\}$ of basis functions, $s(t)$ can be conveniently represented by the vector $\bm=[m_1, \ldots, m_D]$ that corresponds to a \emph{symbol}, as exemplified in (\ref{eq:exampleOfSymbols}). 
+
+\subsection{Constellations}
+
+As discussed for PAM in Section~\ref{sec:pam_constellation}, for a given modulation scheme, the set $\{ \bm_1, \ldots, \bm_M \}$ of $M$ distinct vectors of dimension $D$, or symbols, is called \emph{signal constellation}\index{Signal constellation}.
+As implied by \equl{onepamsymbol}, PAM adopts dimension $D=1$, while
+ \figl{qam_constellation} depicts the symbols of a constellation for a specific 16-QAM modulation ($M=16$), which has dimension $D=2$.
+% and with a shaping pulse $p(t)$, the basis functions are $\varphi_1(t) = p(t) \cos(\aw_c t)$  and $\varphi_2(t) = p(t) \sin(\aw_c t)$.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/qam_constellation}		
+	\caption{Example of QAM constellation with $D=2$ dimensions and $M=16$ symbols.\label{fig:qam_constellation}}
+\end{figure}
+
+As indicated in \figl{qam_constellation}, the 16-QAM constellation can be interpreted as the 
+Cartesian product of two 4-PAM constellations.
+
+Constellations are useful when representing waveforms as vectors. This representation allows the establishment of several connections between signal and vector spaces. For example, the inner products between symbols (vectors in $\Re^D$) can be made equal to the inner products between the continuous-time signals that represent these symbols, i.\,e.,
+\[
+\left< \bm_1, \bm_2 \right> = \left< s_1(t), s_2(t) \right>,
+\]
+for the first and second symbols, for example.
+%The constellation is a set of symbols that, together with the basis functions, fully describe the symbols $\bX$ and discrete-time waveforms $\bx$.
+
+%in \exal{qam_modulation}.
+
+%\section{Continuous-Time Waveform Models Represented as Vector Channel Models}
+
+It is convenient to represent signals by constellation symbols $\bm_i$ and abstract (or even ignore) the details of the respective waveforms $s_i(t)$. For example, as long as the basis functions $\varphi_j(t)$ in \equl{signalComposedByLinearCombination} are orthonormal,
+%Parseval's identity implies that 
+the average energy of a signal constellation is invariant to the choice of
+these functions. In fact, a given constellation can be associated to several distinct sets of orthonormal basis functions with the same properties in terms of robustness to errors under AWGN, for example. 
+
+\figl{createMultiplexSignal} shows an example of generating a signal $s(t)$ using a 4-QAM constellation and $D=2$ orthonormal basis functions. When $D=2$, it is mathematically convenient to represent the symbols $\bm = [m_1, m_2]$ as a complex-valued symbol $\bm = m_1 + j m_2$.
+
+As depicted in \figl{createMultiplexSignal}, the slicer organizes the bitstream and feeds the mapper with 2 bits at each iteration $n$. The mapper uses a 4-QAM constellation to convert the binary input into symbols $\bm$. For example, at iteration $n=0$ the bits are ``01'', which is
+mapped via the defined constellation to the symbol $1+j$. The real parcel (1 in this case) of this symbol multiplies $\varphi_1(t)$ while the imaginary part (also 1) multiplies $\varphi_2(t)$. This way, the real and imaginary parcels of the complex-valued symbols $\bm$ multiply the corresponding basis function $\varphi_j(t), j=1,2$, to create $s(t)$. Note that $\tsym$ is the duration of each iteration $n$.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{FiguresTex/createMultiplexSignal}
+\caption{Creating a signal using a 4-QAM constellation and $D=2$ orthonormal basis functions.\label{fig:createMultiplexSignal}}
+\end{figure}
+
+
+\subsection{Recovering the symbols via correlative decoding} 
+\label{sec:correlativeDecoding}
+
+\subsubsection{Orthogonal basis allows inner products to recover the symbols}
+
+Inner products are key elements to represent waveforms as vectors, as discussed in Section~\ref{sec:innerProductsForTransforms} and Appendix~\ref{sec:orthogonalBasis}. Given that the set $\{\varphi_j(t)\}$ of orthonormal basis functions used to generate the transmit waveform is known to the receiver, the symbol $ \bm $ can be obtained using \emph{correlative decoding}\index{Correlative decoding} as indicated by \equl{coefficientViaInnerProduct}.
+
+%falta mudar $n$ por $D$ na figura abaixo. Pedi outra para a Vitoria.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth]{FiguresTex/correlative_decoding}
+\caption{Correlative decoding, which when applied to $s(t)$ of \equl{totalSignalComposedByLinearCombination} and properly sampled at its outputs, can recover the symbols $\bm_i = [m_1,\cdots,m_D]$.\label{fig:correlative_decoding}}
+\end{figure}
+
+\figl{correlative_decoding} depicts the correlative decoding process, which is capable of recovering the constellation symbols $\bm_i$ used to create $s(t)$ in \equl{totalSignalComposedByLinearCombination}. 
+A clock synchronized with the symbol rate $\rsym=1/\tsym$ is required to calculate inner products, each with a time interval $\tsym$. Considering a given symbol, the process can be written in a simplified form as
+\begin{equation}
+m_j = \left< s(\tau), \varphi_j(\tau) \right> = \int_{<\tsym>} s(\tau) \varphi_j(\tau) d\tau,
+\label{eq:correlativeDecoder}
+\end{equation}
+where $m_j$ is the $j$-th element of the current symbol $\bm_i$.
+The use of an inner product between signals as in \equl{correlativeDecoder} is analogous to
+its use between vectors, as discussed in \exal{linearCombinationCoefficients}.
+
+\bExample \textbf{Obtaining the symbols of a linear combination of basis functions}.
+Using a procedure similar to \exal{linearCombinationCoefficients}, consider that
+the transmitter uses $D=3$ basis functions to embed the $n$-th information symbol 
+$\bm[n] = [3,-5,2]$ into a
+segment of the transmit waveform $s_n(t)=3 \varphi_1(t) - 5\varphi_2(t) + 2\varphi_3(t)$ according to \equl{signalComposedByLinearCombination}. Now the task is to recover the symbol $\bm[n] = [m_1,m_2,m_3]$ via 
+the correlative decoder of \figl{correlative_decoding}.
+
+Assuming the received signal coincides with the transmitted $s(t)$, to recover the
+first element $m_1$ of the $n$-th symbol, the inner product between $s_n(t)$ and $\varphi_1(t)$
+can be used as follows:
+\begin{align*}
+m_1 = \langle s_n(t), \varphi_1(t) \rangle &= 
+\langle 3 \varphi_1(t) - 5\varphi_2(t) + 2\varphi_3(t), \varphi_1(t) \rangle \\
+ &= 3 \langle \varphi_1(t), \varphi_1(t) \rangle - 5\langle \varphi_2(t), \varphi_1(t) \rangle + 2\langle \varphi_3(t), \varphi_1(t) \rangle \\
+ &= 3 \times 1 - 5 \times 0 + 2 \times 0 = 3,
+\end{align*}
+where the second step was obtained due to the linearity of an inner product and the third one
+due to the orthonormality of the basis functions. The other elements of $\bm[n]$ can be 
+retrived via $m_2 = \langle s_n(t), \varphi_2(t) \rangle$ and $m_3 = \langle s_n(t), \varphi_3(t) \rangle$, as suggested by \figl{correlative_decoding}.
+\eExample
+
+The previous example assumed a single symbol, but a receiver has the more complicated task
+of dealing with a signal that represents a sequence of symbols. 
+In practice, the receiver chooses a time instant $t_0$ (or a sample in discrete-time) called \emph{cursor}\index{Cursor}, which serves as a time reference to the start of a symbol, and periodically makes a decision at a rate $1/\tsym$. The cursor and baud rate may
+have to be continuously adjusted in a closed loop for tracking small variations.
+
+\subsubsection{Correlative decoding maximizes SNR when the channel is AWGN}
+
+When the channel is AWGN, correlative decoding achieves the optimum performance.
+The proof to this is deferred to Section~\ref{sec:MFOptimalityProofSketch} and it will
+be based on the equivalence between correlative decoding and matched filtering.
+
+In the sequel, the goal is to simply develop some intuition about how correlative decoding
+performs when the input signal is
+not the transmit signal $s(t)$ as in \figl{correlative_decoding}, but a
+signal $r(t)=s(t)+ \nu(t)$ contaminated by noise $\nu(t)$.
+For that, it suffices to consider the
+transmission of a single symbol $m$. For simplicity, it is assumed PAM with $D=1$ and
+$\varphi_1(t)=p(t)$ being a shaping pulse with unitary energy.
+
+As discussed in Section~\ref{sec:correlation}, correlation is a measure of similarity. Because the receiver knows that the transmitted signal was composed by repeatedly scaling the shaping pulse $p(t)$ by symbol values, it is sensible to perform the correlation between the received signal $r(t)$ and the shaping pulse $p(t)$ itself. This way, when there is no noise ($\nu(t)=0$) and $r(t)=m p(t)$, the correlation is 
+\begin{equation}
+\langle r(t),p(t) \rangle = m || p(t) ||^2 = m
+\label{eq:mfParcelOfInterest}
+\end{equation}
+%and the value of $m$ can be recovered at the receiver because $|| p(t) ||^2$ is known. 
+More importantly, when AWGN is present and $r(t)=m p(t) + \nu(t)$, the correlation is
+\begin{equation}
+\langle r(t),p(t)\rangle  = \langle m p(t),p(t)\rangle  + \langle \nu(t),p(t) \rangle  = || p(t) ||^2 m + \rvn = m + \rvn,
+\label{eq:mfNoisySignal}
+\end{equation}
+where the random variable $\rvn$ has variance $\sigma^2 = \no / 2$, as suggested by \equl{discretizingWhiteNoiseViaUnitaryEnergy}, which adopts a filtering notation instead of correlation.
+This is the minimum noise power that can be observed given the receiver architecture of \figl{correlative_decoding}.
+
+The noise parcel $\rvn$ is uncorrelated with $m$, such that the power of their sum in
+\equl{mfNoisySignal} is the sum of their individual powers.
+By definition, the power associated to parcel $m$ in \equl{mfNoisySignal} is the 
+constellation energy $\overline E_c = \ev[|m|^2]$. Hence, the SNR at the AWGN output is
+\begin{equation}
+\snr = \frac{\overline E_c}{\no/2},
+%\label{eq:}
+\end{equation}
+because $\overline E_c$ and $\no/2$ are the power of the discrete-time signals
+derived from the signal of interest $mp(t)$ and noise $\nu(t)$, respectively.
+
+If the transmit pulse $p(t)$ does not have unitary energy, the correlative decoder can
+use a normalized version of $p(t)$ without any penalty in performance. In fact, any
+scaling at the receiver affects both the signal of interest and noise, such that the SNR
+is not altered, as will be discussed in Section~\ref{sec:equivalentAWGNAtMFOutput}. In contrast, scaling $p(t)$ at the transmitter can lead to a stronger
+signal of interest at the receiver and improve performance. Hence, to simplify the notation,
+it is convenient to assume unitary energy pulses and control the transmit power via
+the constellation energy $E_c$.
+
+\subsection{Interpreting digital modulation as transforms}
+\label{sec:InterpretingDigitalModulation}
+%\bApplication \textbf{Interpreting Digital Modulation as Transforms}
+%\label{app:InterpretingDigitalModulation}
+%\label{ex:qam_modulation}
+
+Correlative decoding has this name because the cross-correlation between the input signal $s(t)$ and each basis function $\varphi_i(t)$ is repeatedly calculated, as indicated in \figl{correlative_decoding}. is similar to finding the coefficients using an inverse transform as discussed in the sequel.
+
+%Digital modulation concerns how the information is conveyed by waveforms and 
+It is useful to make the connection between modulation / demodulation and transforms. 
+The correlative decoding of \figl{correlative_decoding} uses inner products that can be made equivalent to a transform $\bX = \bA^H \bx$. In digital communications, one can interpret the generated ``time-domain'' signals $\bx$ (or $s(t)$ in the continuous-time case) as inverse transforms of a finite number of possible coefficient vectors $\bX$. 
+
+When compared to other applications of transforms, the following characteristics of their use in digital communications are emphasized:
+\begin{itemize}
+\item The number of basis functions is finite and relatively small (two, for example).
+%Given a set of signals of interest, the following subsection discusses a procedure to obtain an orthonormal basis.
+
+\item  The transform matrices $\bA$ and its inverse are not square. 
+
+%\subsection{Inner Product of Infinite Duration Signals}
+
+%\subsection{Vector-space interpretation of signals}
+%\label{subsec:vectorspace}
+
+%Application~\ref{app:signalsadcomm} commented on advantages of designing a
+\item While some applications of transforms do not impose restrictions to the coefficient values, in the context of digital communication system, the transform coefficients $\bX$ are restricted to the finite set of symbols called constellation.
+
+\item
+The basis are often real functions and $\bA^H$ is simply the transpose of $\bA$ such that the functions $\varphi(t)$ that appear in \figl{correlative_decoding} are used in both transmitter and receiver.
+\end{itemize}
+
+%Another distinction is that the set of possible coefficient vectors is finite. This characteristic suggests explicitly identifying the pairs of possible $\bX$ by a constellation as in \figl{qam_constellation}. 
+%\eExample
+%\eApplication
+
+The following example uses QAM modulation to illustrate the analogy.
+
+\bExample \textbf{QAM modulation interpreted as a transform.}
+%\label{ex:qam_modulation}
+Assume a digital communication system uses simultaneously the amplitudes of a cosine and a sine to convey information to the receiver. Assume also that the possible amplitude values for both cosine and sine, are $-3,-1,1,3$, corresponding to a 4-PAM for each of the two dimensions of the QAM. 
+%This denotes a quadrature amplitude modulation (QAM)\index{Quadrature amplitude modulation (QAM)} scheme. 
+Assume also that in a discrete-time implementation, each message (or symbol) is represented by $S=32$ samples and both sinusoids have a period of 8 samples. Hence, each symbol in time-domain is given by
+\[
+x[n] = \sqrt{\frac{2}{S}} \left[A_c \cos \left( \frac{2 \pi}{8} n\right) + A_s \sin \left( \frac{2 \pi}{8} n\right) \right],~~~~n=0,\ldots,S-1,
+\]
+where $A_c$ and $A_s$ are the amplitudes of the cosine and sine, respectively, and the scaling factor $\sqrt{\frac{2}{S}}$ normalizes the basis functions to have unity energy (as in the DCT).
+Note that for each block of $S=32$ samples there is a pair $(A_c,A_s)$. Because there are $M=16$ possible pairs $(A_c,A_s)$, each symbol can carry $b=\log_2 16 = 4$ bits.
+
+In an analogy to block transforms, the amplitudes $A_c$ and $A_s$ play the role of the coefficients, and the transform matrix $\bA$ has dimension $S \times D$, with $D=2$ columns consisting of the cosine and sine samples. In this case the matrix transform is not square and a pseudoinverse should be adopted for mathematical consistency when obtaining the inverse of $\bA$. In practice, given that the columns are orthonormal, the pseudoinverse of $\bA$ is $\bA^H$. Hence, given a vector $\bx$ representing the samples of $x[n]$, the coefficients $\bX=[A_c,A_s]^T$ can be obtained by $\bX = \bA^H \bx$. \codl{snip_digi_comm_digital_mod_transf} illustrates the procedure.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_digital\_mod\_transf}{snip_digi_comm_digital_mod_transf}
+%\begin{lstlisting}
+%S=32;       %number of samples per symbol
+%Period=8;   %period of sinusoids
+%n=(0:S-1)'; %time index
+%%inverse matrix:
+%A=[cos(2*pi/Period*n) sin(2*pi/Period*n)]*sqrt(2/S); 
+%innerProduct=sum(A(:,1).*A(:,2)) %are columns orthogonal?
+%if 1  %test two alternatives to obtain Ah from A
+%	Ah=A'; %the pseudoinverse is the Hermitian
+%else
+%	Ah=pinv(A); %equivalently, use pseudoinverse function
+%end
+%Ac=3; As=-1;
+%x=Ac*A(:,1)+As*A(:,2); %compose the signal in time domain
+%X=Ah*x  %demodulation at the receiver: recover amplitudes
+%\end{lstlisting}
+
+It should be noted that the period of 8 samples was chosen such that $S=32$ corresponds to an integer number of periods and the sinusoids are orthogonal. Try to use a period of 9 in the previous script and you will note that the original amplitudes cannot be perfectly recovered. 
+\codl{snip_digi_comm_correlative_decoding} provides another, and more complete, example of using transforms for correlative decoding.
+%AK the thing below analyzes only for continuous-time, not discrete:
+%More details will be discussed in subsection~\ref{subsec:orthogonality_sinusoids}.
+\eExample
+
+
+%\section{Simulating and Analyzing PAM over AWGN}
+\section{Simple example of M-PAM simulation over AWGN}
+\label{sec:simplePAMsimul}
+%\bApplication \textbf{Simple example of M-PAM simulation over AWGN}
+%\label{app:simplePAMsimul}
+
+%\subsection{Simple example of a system for the AWGN channel}
+This section starts by analyzing M-PAM transmission over AWGN using a simulation on {\matlab}. The reader is encouraged to run and understand the simulation before proceeding.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/serberWaveformSimulationOfPAMInAWGN}
+\caption{Results of a simple PAM simulation obtained with repeatedly invoking \codl{waveformSimulationOfPAMInAWGN} with different noise powers. The plot at the right is a version using \ci{semilogy.m} of the one at the left.\label{fig:serberWaveformSimulationOfPAMInAWGN}}
+\end{figure}
+
+The function \ci{ak\_waveformSimulationOfPAMInAWGN.m} listed below presents a simple PAM simulation. The channel simply adds Gaussian noise (no filtering, the channel impulse response is $h_c(t)=\delta(t)$) and the receiver makes its decision based on a single sample, arbitrarily extracted from the middle of each symbol interval.
+\lstinputlisting[caption={[MatlabOctaveFunctions/\protect\linebreak ak\_waveformSimulationOfPAMInAWGN.m]MatlabOctaveFunctions/ak\_waveformSimulationOfPAMInAWGN.m},label=code:waveformSimulationOfPAMInAWGN]{./Code/MatlabOctaveFunctions/ak_waveformSimulationOfPAMInAWGN.m}
+Using this code and varying the noise power, the error probabilities in \figl{serberWaveformSimulationOfPAMInAWGN} are obtained.
+
+In \figl{serberWaveformSimulationOfPAMInAWGN}, the plot at the right is a version using \ci{semilogy.m} of the one at the left. Note that {\matlab} cannot show the log of 0 and the right abscissa is smaller than the left one because there are zero errors for SNR larger than approximately 17 dB. To reliably estimate the SER for larger SNR, the number of transmitted symbols would have to be increased.
+
+\section{Applications}
+
+\bApplication \textbf{Signal regeneration: Analog versus digital communications}
+\label{app:signalsadcomm}
+This application illustrates the idea of signal regeneration in digital communication systems. Assume the information is conveyed by the signal amplitude. Because a finite set of amplitudes is used by the transmitter, small variations on the received signal amplitudes can be identified and corrected. Assume an original digital signal $x_q[n]$, with $\calM=\{-2,-1,0,1,2\}$, is contaminated by additive noise $n[n]$, and a new signal $z[n]=x_q[n]+n[n]$ is created. This noise contamination can happen when transmitting a signal in telecommunication or copying a CD, for example. If the magnitude $\lvert n[n]\rvert$ is not too large (in this case, $\lvert n[n]\rvert<0.5$), it is possible to successfully recover $x_q[n]$ by approximating the samples of $z[n]$ to the nearest value in $\calM$.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{Figures/regeneration_snr_plus3}		
+	\caption[Example of successful regeneration of a digital signal at $\text{SNR}=3$~dB]{Example of successful regeneration of a digital signal at $\text{SNR}=3$~dB. The top-left plot is the transmitted signal $x_q[n]$, the top-right is the noise $n[n]$, the bottom-left is the regenerated signal $y_q[n]$ and the bottom-right is the error $y_q[n]-x_q[n]$.\label{fig:regeneration_snr_plus3}}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{Figures/regeneration_snr_minus3}		
+	\caption[{Example of unsuccessful regeneration of a digital signal at $\text{SNR}=-3$~dB.}]{Example of unsuccessful regeneration of a digital signal at $\text{SNR}=-3$~dB. Three errors can be observed at $n=3, 6$ and 8.
+	\label{fig:regenerationsnrminus3}}
+\end{figure}
+
+\figl{regeneration_snr_plus3} depicts samples of these signals in the case that the signal-to-noise ratio\index{Signal-to-noise ratio} (SNR) is 3~decibels (dB), i.\,e., the power of $x_q[n]$ is approximately twice the power of $n[n]$ (see Appendix~\ref{app:decibel} for an explanation about the decibel). In this case, $x_q[n]$ was recovered without errors. To complement the example, \figl{regenerationsnrminus3} was generated at similar conditions but with SNR$=-3$~dB. 
+Note $\lvert n[n]\rvert>0.5$ for $n=0,3,6,8$ but $x_q[0]=-2$ could be recovered because $n[n]$ was negative and $-2$ is the nearest value for all received amplitudes larger than $-1.5$.
+Hence, three errors were created in the process.
+\eApplication
+
+%AK-IMPROVE: slice devia ser usado apenas para demod 
+\bApplication 
+\textbf{Packing the data into $b$ bits and vice-versa}.
+\label{app:matlabpackunpack}
+Before discussing the transmission, it is important to consider an appropriate procedure to convert the input data into the required number of bits.
+
+There are many possible implementations of such procedure. The companion code \ci{ak\_sliceBytes.m} and \ci{ak\_unsliceBytes.m} illustrate a simple implementation that assumes the information to be transmitted is originally organized in bytes. This is a sensible assumption given that most programming languages provide support to reading and writing bytes from/to files and networks.
+
+%the modulation order $M$ (number of possible symbols) or, equivalently, 
+The implemented function has, as input argument, the number $b$ of bits per symbol. The task is to convert each byte (0 to 255 in decimal) to \emph{chunks} of $b$ bits each. Hence, each chunk corresponds to a number in the range $[0, 2^{b}-1]$ in decimal. For example, the command
+\begin{lstlisting}
+inputBytes = [4, 255, 22]; b=4;
+chunks = ak_sliceBytes(inputBytes, b)
+\end{lstlisting}
+outputs \co{chunks =[0 4 15 15 1 6]}. Note that 3 bytes (24 bits) were properly split into 6 chunks of 4 bits each. The last byte, 22 in decimal, corresponds to 00010110 in binary. Hence, it is split into chunks 0001 and 0110 in binary or, equivalently, 1 and 6 in decimal. In all these manipulations, {\matlab} internally treats these values as integer numbers (and may use 64 bits to represent each number, either a ``byte'' or a ``chunk''), but for the sake of digital communication simulations, the important aspect is the dynamic range of the number. The range indicates how many bits are necessary to represent that number.
+It should be noted that \ci{ak\_sliceBytes.m} has a simple implementation: it is very slow and limited to $b \in \{1,2,4,8\}$.
+
+The function \ci{ak\_unsliceBytes.m} performs the inverse operation.
+The command
+\begin{lstlisting}
+outputBytes = ak_unsliceBytes(chunks, b)
+\end{lstlisting}
+recovers the bytes such that \co{outputBytes=[4, 255, 22]}.
+
+When dealing with sequences of 0's and 1's, the functions \ci{ak\_sliceBitStream} and \ci{ak\_unsliceBitStream} can be used. For example, the command \ci{ak\_sliceBitStream([0 0 1 1 1 1], 3)} (the second argument is the number of bits per symbol) outputs \co{[1 7]}, while the command \ci{ak\_unsliceBitStream([1 7], 3)} recovers the bit stream.
+\eApplication 
+
+\bApplication \textbf{Packing data into bits and vice-versa using GNU Radio}.
+\label{app:grpackunpack}
+
+In GNU Radio (GR), the bits are typically packed into integers that are called \emph{chunks}\index{Chunks in GR}. For example, taking \codl{snip_digi_comm_tx_rx_comparison} as reference,
+the elements of \ci{symbolIndicesTx} and \ci{symbolIndicesRx} are the chunks.
+One distinction between {\matlab} and GR is that in the former the first array index
+is 1 while it is 0 in GR.
+
+When using GR, the procedures discussed in Application~\ref{app:matlabpackunpack} 
+are performed by the blocks within the group `Misc Conversions' named `\emph{Unpacked to Packed}' and `\emph{Packed to Unpacked}' (assuming GR version 3.6.2). 
+The configuration of these blocks include the input data type (32-bits int, 16-bits short, byte), ordering convention (MSB or LSB) and number of input/output ports.
+
+A simple setup is illustrated in Figure~\ref{fig:unpack_pack_setup}, with some \emph{File Sink} blocks added for convenience to save the data (bytes, as binary files).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{./FiguresNonScript/unpack_pack}
+\caption{Example of un/pack operations in GNU Radio (from \ci{ak\_unpack\_pack.grc}).\label{fig:unpack_pack_setup}}
+\end{figure}
+
+The generated files can be inspected using Python, for example:
+% TODO: Create the following script in matlab.
+\begin{lstlisting}[language=Python]
+# reading file sink result
+from numpy import *
+input = list(fromfile(open('input.dat'), dtype=uint8))
+unpacked = list(fromfile(open('unpacked.dat'), dtype=uint8))
+packed = list(fromfile(open('packed.dat'), dtype=uint8))
+\end{lstlisting}
+where \ci{uint8} indicates the representation as bytes. This code generates the following output:
+\begin{lstlisting}[language=Python]
+>>> input
+[4, 255, 22]
+>>> unpacked
+[0, 4, 15, 15, 1, 6]
+>>> packed
+[4, 255, 22]
+\end{lstlisting}
+with the output file {packed.dat} having the same contents of \ci{input.dat}.
+Learning how to perform packing and unpacking is essential to understand GR.
+\eApplication
+
+\bApplication
+\textbf{Some code to estimate SER and BER.}
+The function \ci{ak\_calculateSymbolErrorRate.m} listed in \codl{calculateSymbolErrorRate} estimates the SER.
+\includecode{MatlabOctaveFunctions}{calculateSymbolErrorRate}
+
+Similarly, the function \ci{ak\_estimateBERFromBytes.m} calculates the bit error probability (BER)\index{BER (bit error rate)}, or $P_b$, between two sequences of bytes. For example, the command \ci{ber = ak\_estimateBERFromBytes([0 254],[255 255])} informs \co{ber = 0.5625}, which correctly corresponds to 9 different bits out of 16, i.\,e., a BER of 56.25\%. If the elements are restricted to values 0 or 1, the function \ci{ak\_estimateBERFromBits.m} can be used. The code \ci{ak\_estimateBERFromBytes.m}, for calculating the BER when the data is organized in bytes, is a little more involved and slower than the codes for calculating the SER and \ci{ak\_estimateBERFromBits.m}.
+\eApplication 
+
+
+\bApplication \textbf{Transmitting the bytes of a file.}
+\label{app:bytes_transmission}
+Here the channel is assumed noise-free and with unlimited bandwidth. Therefore, it can transmit an infinite number of bits per second without errors. 
+\codl{ex_pam_idealchannel} provides an example using $\rsym=\fs=100$ Hz and $b=4$ bits/symbol. The rate is $R = \rsym \times b = 400$ bps.
+\includecodelong{MatlabOctaveBookExamples}{ex\_pam\_idealchannel}{ex_pam_idealchannel}
+A software such as Linux's \ci{diff} can be used to compare the transmitted and received files (for example, \ci{diff received.bin myfile.bin}), which must be exactly the same.
+
+Note that the sampling frequency $\fs$ was defined in \codl{ex_pam_idealchannel} but not effectively used. One could simply increase its value to $\fs=10$ MHz, for example, to have $R=40$ Mbps. The BER would still be zero. Similarly, $b$ could be increased without bounds but the ones imposed by implementation issues (\ci{ak\_sliceBytes} limits $b$ to 8). Therefore there are two degrees of freedom to achieve infinite high rates under this ideal channel. In the sequel, it will be seen that, roughly, band-limited channels restrict the maximum $\rsym$ while AWGN restricts the maximum $b$ for a given BER.
+\eApplication
+
+\bApplication \textbf{PAM transmission}.
+Other chapters discuss more about how to use group delay, equalization and matched filtering. But before that, it is useful to try an almost complete PAM transmission system. Some concepts may not be clear at this point, but the scripts can be executed again after reading more about the theory.
+
+\codl{ak_pamSimple} is a complete simulation of a 8-PAM transmission with AWGN added at the receiver with an SNR of 50~dB. The channel is bandpass with a 800~Hz bandwidth (from 3 to 3.8~kHz) and the transmitted signal is upconverted to a carrier frequency of 3400~Hz. The symbol rate is $\rsym=250$~bauds such that the bit rate is $R=\log_2 8 \times 250 = 750$~bps. All these parameters can be changed to study their impact on the system.
+%\includecode{MatlabOctaveFunctions}{calculateSymbolErrorRate}
+
+\lstinputlisting[caption={../Applications/PAMSimple/ak\_pamSimple.m},label=code:ak_pamSimple]{./Code/Applications/PAMSimple/ak_pamSimple.m}
+
+The variable \ci{channelNumber} is used by the function \ci{ak\_getChannel}, which allows to choose among 4 channels. The companion script \ci{figs\_pamSimple} shows the transmitted (TX) and received (RX) PSDs, the channel frequency response and group delay, etc. The script uses a zero-forcing equalizer designed in line \ci{h\_equalizer=impz(A\_channel,B\_channel,Nequ+1)}, which simply inverts the channel. This strategy is problematic if the channel is not minimum-phase because the zeros of the channel outside or on the unit circle will be poles of the equalizer that will make it unstable (see Application~\ref{app:minimumPhase}). Because of that, the function \ci{ak\_forceStableMinimumPhase} is used to eventually modify the original channel and make it minimum-phase, which allows to use such simple equalization strategy. A more practical method is to force the equalizer to be stable, even if the channel is not minimum-phase.
+
+There are several filtering stages and each one adds a delay to its input signal. The variable \ci{delayInSamples} keeps track of the total delay (in samples) and allows to perform a simple timing recovery.
+
+Using the original code (without modifications), it should be noticed that \ci{channelNumber=3}, which corresponds to having a FIR filter as channel, leads to a symbol error rate (SER) of 0. However, \ci{channelNumber=2}, which corresponds to using an elliptic IIR filter as channel, leads to a nonzero SER. The reason is that this receiver does not use matched filtering and its default synchronization relies on \ci{delayInSamples}, which is a fragile timing recovery strategy when the group delay varies significantly in the signal bandwidth. In fact, realigning the demodulated and transmitted symbols by just one symbol using
+\ci{plot(r\_hat(1:end-1)-pamSymbols(2:end))}
+leads to the desired zero SER. It helps to see the received constellation to realize that the problem was timing, because the received symbols were clustered around the transmitted symbols. And to find the lag to use to realign, the \ci{xcorr} function can be used. However, the goal is always to have an algorithm running an automatic estimation and not rely on manual adjustments.
+A more accurate timing recovery, vastly used in practice, can be obtained with cross-correlation by setting \ci{useCorrelationForSync=1}, which then uses the method discussed in Application~\ref{app:crosscorrelation}.
+
+Note that the cross-correlation can be used in the symbol or sample-domain, i.\,e., using sequences at rate $\rsym$ or $\fs$, respectively. It is more accurate to work with the samples at $\fs$ but more computationally complex. \codl{ak_pamSimple} illustrates with \ci{[R,lags]=xcorr(xp,xphat,10*delayInSamples)} a strategy that is commonly used in practice: restrict the cross-correlation calculation to a specific (the narrowest possible) range of lags, in this case \ci{10*delayInSamples}.
+\eApplication
+
+%\bApplication \textbf{Simple communication system using two computers and a stereo audio cable}.
+%Construct or purchase a 3.5~mm Male To 3.5~mm Male Stereo Audio Cable...
+%\figl{audioCableConnection}
+%\begin{figure}
+%	\centering
+%		\includegraphics[width=\figwidth,keepaspectratio]{FiguresNonScript/audioCableConnection}
+%	\caption{Setup for a simple communication system using two computers and an audio cable.\label{fig:audioCableConnection}}
+%\end{figure}
+%\eApplication
+
+
+\ignore{
+\bApplication \textbf{Synchronization of GSM Handsets}
+\label{app:gsm_synchronization}
+\begin{verbatim}
+---------- Forwarded message ----------
+From: Johnathan Corgan <jcorgan@corganenterprises.com>
+Date: Wed, Feb 4, 2009 at 11:45 PM
+Subject: Re: [Discuss-gnuradio] decimation rate of GSM
+To: Jane Chen <janechen_1979@yahoo.com>
+Cc: discuss-gnuradio@gnu.org
+%
+2009/2/4 Jane Chen <janechen_1979@yahoo.com>:
+%
+> > I have a question about the decimation rate of GSM (channel is 200kHz wide).
+> >
+> > I search the decimation rate of GSM for GNURadio on the Google.  I got some
+> > information from
+> > http://www.segfault.net/gsm/The_Beginners_Guide_to_analyzing_GSM_data_in_MatLab.pdf
+> >
+> > However, I don't understand why they said the sample rate has to be at least
+> > 400 kHz (after Nyquist's theorem).  They used a decimation of 128.
+> > I think through the Nyquist's theorem, the sample rate should be 200kHz
+> > (fs>2fmax, and fmax should be 100kHz). I think the decimation factor is 256.
+> > I am confused. Could anyone please help me?
+%
+Since the USRP performs quadrature downconversion to complex baseband
+samples, the Nyquist limit is *equal* to the maximum passband
+bandwidth.  So a 200 KHz wide signal would need a minimum of 200K
+(complex) samples per second to faithfully represent its spectral
+content.  This is different from dealing with real-valued signals,
+which do require a sample rate of at least twice the frequency
+content.
+%
+However, other factors come in to play.  You will want to allow for
+the fact that the USRP's downsampler has a significant (6dB) droop at
+the passband edges, and this would affect your signal fidelity.   This
+would call for having the baseband sample rate be something higher.
+%
+In addition, if you are going to actually start demodulating the
+signal, you will need at some point in your signal processing chain to
+resample to a sample rate that is related to GSM symbol rate.   There
+are a variety of choices that trade off CPU usage vs. complexity, and
+one of the variables is the USRP decimation rate you start with.
+%
+Johnathan
+%
+Outro site:
+from http://sourceforge.net/apps/trac/openbts/wiki/OpenBTS/Clocks
+%
+About BTS Clocks
+%
+Many of the problems getting phones to ``camp'' in both OpenBTS and OpenBSC have been related to frequency accuracy. To understand this problem, you have to understand clock technologies and you have to understand how a typical GSM phone acquires a signal.
+%
+Let's start with this, from GSM 05.10 Section 5.1: ``The BTS shall use a single frequency source of absolute accuracy better than 0.05 ppm for both RF frequency generation and clocking the timebase. The same source shall be used for all carriers of the BTS.''
+First: What is Supposed to Happen
+%
+An error of 0.05 ppm is 45 Hz in the low bands (850/900) and 90 Hz in the high bands (1800/1900). That is VERY accurate, the kind of accuracy you get from a GPS-disciplined TCVCXO (temperature-compensated voltage-controlled crystal oscillator) or an OCXO (oven-controlled crystal oscillator, a $100-$200 part). Doppler shift in the direct path from a 150 km/h car or train is on the order of 0.15 ppm, so the necessity of this kind of accuracy is questionable, but that's what is in the spec. Given Doppler effects, the observed frequency difference between two carrier-grade basestations is a few hundred Hz, worst case.
+%
+The typical GSM handset has a medium-quality TCVCXO. On a cold start, not locked to any outside clock, this clock has a an accuracy of around 20 ppm, or about 18 kHz in the low bands (850/900) and about 36 kHz in the high (1800/1900) bands. So, starting "cold" with no information, the phone runs a time-consuming frequency search over the whole possible drift range of its own clock and continues this search until it finds a beacon signal from a BTS. Once the phone finds a beacon, it uses the carrier from the BTS to correct its own local clock by adjusting the control voltage on the TCVCXO. From that point on, the TCVCXO is just as accurate os the BTS clock as long as it is receiving the BTS signal. If the BTS signal is lost, the handset's clock will drift within some know worst-case rate. Knowing how long its local clock has been drifting, the handset can calculate the worst-case drift and use that information to narrow next frequency search.
+%
+So, you turn on a handset from "cold", it does a big frequency search until it finds a BTS. If it looses that BTS signal, it searches for another, but this time it does a much smaller frequency search, knowing that the signal from the next BTS will be within a few hundred Hz of its expected frequency and that its own local clock has not drifted much since last seeing a beacon. If the handset finds another beacon during this small search, it will stop searching. (That's critical for the next part of this discussion.) If the handset fails to find a beacon in the small search, it will widen the search range or a multiband phone might try a different band.
+Second: What Goes Wrong When You Use an Inaccurate Clock
+%
+Now, suppose your BTS uses a simple XO (crystal oscillator) clock, which produces an error on the order of a several kHz on your RF carrier. This is the case for OpenBTS with a "stock" USRP and it is also the case with the the Siemens BS-11 (used by OpenBSC) when it is locked to the clock from a typical ISDN-grade E1 interface card. This kind of BTS can fail in three possible ways, depending on just how bad the clock error is and how the system is being used
+Effect of Large Frequency Errors (Several kHz or More) 
+%
+The first type of failure is where the BTS XO error is so large that your BTS beacon falls completely outside the handset's "big" search range. The handset simply never finds the BTS signal. This is the error Fabian Uehlin found when he first tried to operate OpenBTS in the 1800 band. He fixed it by using an external clock with much better accuracy.
+Effect of Modest Frequency Errors (500 Hz to a Few kHz) 
+%
+The second type of failure is when your BTS RF carrier is within the "big" search range but differs from the local "real" networks by more than a few hundred Hz. In this situation, the handset will either see your BTS or it will see the "real" network, but not both. Whatever system the handset sees first will control its clock and make it blind to the other. This kind of failure was discussed in detail in the OpenBSC e-mail list in Spring 2009. It has not been discussed much in the OpenBTS list, but it is safe to assume that it happens if you try to run the BTS in the same band as your local GSM carriers or try to work with multi-band phones. If I am not mistaken, the OpenBSC people fixed this problem by realizing that the VCOCXO in the BS-11 is much better than the XO on their standard E1 card -- if they just leave it alone. In OpenBTS we avoid this problem by operating in non-local bands and disabling other bands in the handsets so that they never see any other network. (OpenBTS can do that because unlike OpenBSC our radio is mostly software and very flexible.)
+%
+The XO errors of the BTS and the handsets will vary with age and temperature, so the failure behavior will be different for every handset at any given time and will vary from hour to hour as things warm up and cool down. That can make it all seem very mysterious and can make diagnosis difficult.
+When You Try to Run a Multi-BTS System 
+%
+Normally, a handset receives a neighbor list from its serving BTS and constantly monitors the signal levels from the beacons of these neighbors. The key feature used for this monitoring is the extended training sequence (XTS) of the synchronization burst. This XTS has a duration of 64 symbols (roughly 0.25 ms). If we search for this XTS with a matched filter, the performance of that matched filter will degrade rapidly for frequency offsets greater than about 1/(4*0.25 ms), or about 1 kHz, because at higher frequencies the relative phases of the XTS and the matched filter will drift by more than 90 degrees over the correlation period. So neighbor monitoring (and therefore mobility itself) starts to fail for per-BTS carrier offsets of more than 500 Hz.
+%
+A 500 Hz error is 0.5 ppm in the low bands and 0.25 ppm in the high bands. While this is an easier requirement than the 0.05 ppm given in the spec, it is much tighter than could be provided by a simple XO. This accuracy can be provided by an OCXO or a good quality TXVCXO with regular calibration.
+Solution to All Problems: Use a Good Clock 
+%
+In the long-term, OpenBTS will fix both of these clock problems completely replacing the XO clock in the USRP with something much more accurate, either a true OCXO or a very high-quality TCVCXO with an automated calibration procedure.
+%
+Several OpenBTS uses have also recommended the kit "FA-SY 1" from Funkamateur, available for about Eu40, for desktop testing.
+Third: When You Violate Clocking Relationships 
+%
+Getting back to 05.10 Section 5.1, the GSM specifications dictate that the RF carrier and the symbol clock in the BTS be derived from a common source.
+%
+In the handset, the symbol clock is disciplined by the BTS RF carrier, just like the carrier clock. So, if your BTS RF carrier is in error by N ppm, the handset symbol clock will also be in error by N ppm. That's OK if the BTS symbol clock has exactly the same error, which it WILL if you derive everything from a common clock that way the specification tells you to.
+%
+But suppose you try to be clever. You know that once your equipment is warmed up, your BTS XO is consistently in error by +11 ppm, giving an RF carrier error of +10 kHz. So you deliberately de-tune your RF carrier by -10 kHz. That fixes the problems described in the previous section, but creates a new problem in the symbol rate clock. The standard GSM symbol clock is 270.833333 kHz. Your BTS XO is really off by +11 ppm, so your BTS symbol clock is really 270.836312 kHz. The handset locks to your BTS RF carrier, which is now spot-on its specified frequency, so the handset generates a correct internal symbol clock of 270.833333 kHz. So now the BTS and handset symbol clocks are slipping against each other at a rate of 11 ppm, or about 3 symbols per second.
+%
+Another variation on this problem is if you ignore the spec and use different clock devices for your RF carrier and your symbol clock. For example, suppose you have two 0.5 ppm OCXOs. Their relative fractional difference will be about 0.5 ppm, giving a drift of about one symbol every 7 seconds or so. (I've actually see this done before, too.)
+%
+Different handsets respond to the slipping symbol clock in different ways. In our experience, Nokia DCT3s just deal with it, apparently re-syncing on every frame, so if we only use DCT3s for testing, we may never realize that it is a serious problem. A Nokia DCT4 may camp to the beacon briefly, but will abort a transaction when the clock slips. In some handset designs, the symbol slipping interacts with the closed-loop timing advance, making that control loop unstable. Again, the error seems mysterious because different handset models respond in different ways and the effect will very with temperature as the XO in the BTS drifts around.
+\end{verbatim}
+%
+\eApplication
+}
+
+\bApplication \textbf{Comparing theoretical SER with the ones obtained by symbol-based PAM simulation.}
+Having the possibility of comparing to the theoretical SER is useful to validate implementations. To do that, it is necessary to generate signals with a given SNR. This can be done by properly scaling the signal or the noise. Most times it is not important which one is scaled. \codl{snip_digi_comm_theoretical_SER} provides an example that scales the noise to obtain the SNRs of interest.
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_theoretical\_SER}{snip_digi_comm_theoretical_SER}
+%\begin{lstlisting}
+%M=16; %modulation order
+%snrsdB=-3:30; %specified SNR range (in dB)
+%snrs=10.^(0.1*(snrsdB)); %conversion from dB to linear
+%numberOfSymbols = 40000; %number of symbols
+%alphabet = [-(M-1):2:M-1]; %symbols of a M-PAM
+%symbolIndicesTx = floor(M*rand(1, numSymbols)); %randomly
+%s = alphabet( symbolIndicesTx +1); %transmitted signal
+%signalPower = mean(alphabet.^2); %signal power (Watts)
+%for i=1:length(snrs) %loop over all SNR of interest
+%    noisePower = signalPower/snrs(i); %noise power (Watts)
+%    n = sqrt(noisePower)*randn(size(s));%white Gaus. noise
+%    r = s + n; %add noise to the transmitted signal
+%    symbolIndicesRx = ak_pamdemod ( r, M); %decision
+%    SER_empirical(i) = sum(symbolIndicesTx ~= ...
+%        symbolIndicesRx)/numberOfSymbols%Symbol error rate
+%end
+%%Compare empirical and theoretical values of SER:
+%SER_theoretical=2*(1-1/M)*qfunc(sqrt(3*snrs/(M^2-1)));
+%semilogy(snrsdB,SER_theoretical,snrsdB,SER_empirical,'x');
+%\end{lstlisting}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall]{Figures/16pam_ser_empirical_theo}
+\caption{Symbol error rate (SER) for distinct SNR values for 16-PAM.\label{fig:16pam_ser_empirical_theo}}
+\end{figure}
+
+The theoretical SER for PAM over AWGN is discussed later and given by \equl{pam_pe_snr}, which is implemented with the command
+\begin{lstlisting}
+SER_theoretical=2*(1-1/M)*qfunc(sqrt(3*snrs/(M^2-1)));
+\end{lstlisting}
+in this case.
+
+\figl{16pam_ser_empirical_theo} was generated with the previous code and shows a good match between the simulated (empirical) SER and its theoretical expression \equl{pam_pe_snr} for the given range of SNRs. These simulations are called \emph{Monte Carlo} simulations\index{Monte Carlo simulations} and the empirical results sometimes are labeled Monte Carlo results.
+\eApplication
+
+\bApplication \textbf{Correspondences between convolution, correlation and inner product when using orthogonal expansions for transmission.}
+\label{app:correspondencesInnerProduct}
+The goal here is to understand how correlative decoding can be implemented in software.  This can be achieved with cross-correlations, convolutions or even transforms.
+
+\codl{snip_systems_convolution_correlation} already demonstrated the correspondence between convolution and correlation. Now, \codl{snip_digi_comm_inner_product} shows an example where an inner product is obtained via a single value of a cross-correlation or a convolution.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_inner\_product}{snip_digi_comm_inner_product}
+
+The inner products in \figl{correlative_decoding} can also be organized as a matrix multiplication. This gives a direct relation between the architecture of \figl{correlative_decoding} and a block transform. 
+To illustrate that, \codl{snip_digi_comm_correlative_decoding} uses matrices obtained via a Gram-Schmidt orthonormalization procedure to implement correlative decoding. Other transforms could be used, as long as the basis functions $\varphi_i$ of \figl{correlative_decoding} are properly mapped to the basis functions of the transform.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_correlative\_decoding}{snip_digi_comm_correlative_decoding}
+
+Besides the transform-based implementation, \codl{snip_digi_comm_correlative_decoding} also illustrates how a convolution and cross-correlation can be used for correlative decoding, providing the same result as an inner product. Choosing \ci{demodulationMethod} in \codl{snip_digi_comm_correlative_decoding}, three distinct but equivalent (with respect to the output result) signal processing chains can be tested. For the suggested SNR of 30~dB, the system achieves a symbol error rate that is equal to zero.
+
+\begin{figure}
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/correlativeDecoderFunctions}
+\caption{Gram-Schmidt inputs and outputs: four transmit signals and two corresponding basis functions.\label{fig:correlativeDecoderFunctions}}
+\end{figure}
+
+In \codl{snip_digi_comm_correlative_decoding}, the $M=4$ waveforms in matrix \ci{x} can be represented by two basis functions derived by the Gram-Schmidt procedure. \figl{correlativeDecoderFunctions} depicts both the waveforms in \ci{x} (top plot) and the basis functions. The first waveform (row of \ci{x}) is \ci{ones(1,D)} and is the middle plot in \figl{correlativeDecoderFunctions}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/correlativeDecoderConstellation}
+\caption{Constellation and received symbols ($\snr=30$~dB) of \codl{snip_digi_comm_correlative_decoding}.\label{fig:correlativeDecoderConstellation}}
+\end{figure}
+
+\figl{correlativeDecoderConstellation} shows the corresponding constellation 
+with symbols $[4;0]$, $[-4;0]$, $[2;2]$, $[2;-2]$. Because \ci{x} was chosen just to provide a simple example, the resulting  constellation is non-orthodox because it does not follow the guidelines discussed in Section~\ref{sec:pam_constellation} (in the context of PAM constellations). For example, its average is not at the origin!
+
+\begin{figure}
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/correlativeDecoderConvOutput}
+\caption{Output samples for each basis functions and .\label{fig:correlativeDecoderConvOutput}}
+\end{figure}
+
+Using \figl{correlative_decoding} as reference, the basis functions $\varphi_1$ and $\varphi_2$ in \codl{snip_digi_comm_correlative_decoding} are stored in \ci{A(:,1)} and \ci{A(:,2)}, respectively. The received signal is processed using each basis functions, in parallel, as suggested by \figl{correlative_decoding}. In case the method is \ci{'xcorr'} or \ci{'conv'}, this parallel processing is explicit, but it is equivalent to the multiplication by the transform matrix in \ci{rxSymbols = Ah*rxSamples}.
+
+\figl{correlativeDecoderConvOutput} shows the convolution output for both basis functions. The symbols (indicated as circles) are obtained with a decimation by \ci{D=16}. It can be seen from \figl{correlativeDecoderConvOutput} (or inspecting \ci{m\_hat}) that the first four decoded symbols are $[2;2]$, $[-4;0]$, $[-4;0]$, $[4;0]$. To obtain these results, the symbols must be extracted with the proper timing. For example, for the \ci{'conv'} method, the first symbol is at sample $n=16$ and, after that, at intervals of \ci{D=16} samples, the convolution outputs coincide with the desired inner product of the received signal \ci{r} with the basis functions.
+\eApplication
+
+\bApplication \textbf{Cyclostationary analysis in frequency domain.}
+\label{app:cyclostationary}
+The next paragraphs explore the \emph{spectral-correlation density function} (SCD)\index{Spectral-correlation density function (SCD)}, which allows to observe ``hidden'' periodicities that are not observable via the PSD~\cite{Gardner91}. The SCD is also discussed in Section~\ref{sec:cyclostationarity} and a motivation for using cyclostationary analysis for carrier recovery is described in \codl{ex_fftBasedPAMCarrierRecovery}.
+
+\codl{snip_psd_cyclostationary} illustrates the SCD estimation using the companion \ci{autofam.m} function, which implements the FFT Accumulation Method (FAM)~\cite{Roberts91} and is similar to the one implemented in the GNU Radio Spectral Estimation Toolbox  \akurl{https://www.cgran.org/wiki/SpecEst}{9grs}.
+
+\lstinputlisting[lastline=33,caption={MatlabOctaveCodeSnippets/snip\_psd\_cyclostationary.m},label=code:snip_psd_cyclostationary]{./Code/MatlabOctaveCodeSnippets/snip_psd_cyclostationary.m}
+%\includecodelong{MatlabOctaveCodeSnippets}{snip\_psd\_cyclostationary}{snip_psd_cyclostationary}
+
+%The motivation for using cyclostationary analysis follows the discussion that explains \codl{ex_fftBasedPAMCarrierRecovery} and is detailed in \cite{Gardner91}.
+
+The SCD is a two-dimensional function that depends on frequency $f$ and ``cycle'' frequency $\alpha$. 
+After executing \codl{snip_psd_cyclostationary}, the SCD in \figl{cyclostationary_scd} (see, e.\,g., \cite{Gardner91} for further discussion) was obtained with the command
+\begin{lstlisting}
+mesh (alphao,fo, Sx, 'EdgeColor', 'interp');
+\end{lstlisting}
+%\figl{cyclostationary_scd} indicates the pattern that is explained in \cite{Gardner91}. 
+
+\begin{figure}
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/cyclostationary_scd}
+\caption{Spectral-correlation density function (SCD) for 16-PAM signal with a carrier frequency of $f_c=1$~kHz.\label{fig:cyclostationary_scd}}
+\end{figure}
+
+Given that 
+the carrier frequency is $f_c=1$~kHz, one can observe spectral lines at the cycle frequency $\alpha=2 f_c=2$~kHz.
+The maximum value over all frequencies $f$ for each $\alpha$ can be used to define a cyclic or $\alpha$-\emph{profile} that can then used to identify the adopted modulation~\cite{Reed05}.
+
+\begin{figure}
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/cyclostationary_cyclic_prefix}
+\caption{Cyclic profile for the 16-PAM signal in \figl{cyclostationary_scd}, which has a carrier frequency $f_c=1$~kHz. Note the spectral line at $2 f_c$.\label{fig:cyclostationary_cyclic_prefix}}
+\end{figure}
+
+\figl{cyclostationary_cyclic_prefix} shows the result of converting \figl{cyclostationary_scd} to  the one-dimensional representation provided by its respective cyclic profile.
+\eApplication 
+
+
+\section{Comments and Further Reading}
+
+This was an introductory chapter with hands-on simulation exercises. There are several good references to complement this discussion. For example, \cite{Johnson11} provides plenty of Matlab code to deal with practical aspects such as carrier recovery, equalization, etc.
+Another implementation-oriented book is \cite{Grayver13}, which briefly describes the USRP and GNU Radio, including its scheduler and few other topics that are difficult for those who want to write their own blocks, not only use the already available ones. %In~\cite{Wyglinski10} there are appendices about GNU Radio and USRP.
+It also compares software-defined radio software and hardware platforms.
+%A signiinformation regarding GNU Radio is \akurl{http://gnuradio.org}{5gra}
+
+%describing the output buffer of a GNU Radio block as thread-safe single- writer and multiple-reader circular buffer are important for those programming new blocks in GNU Radio. Understanding its 
+A detailed discussion of baseband waveforms (or line codes), including their power spectra, can be found, e.\,g., in~\cite{Peebles86}, Sections 3.6 and 3.7, and in~\cite{Proakis07}.
+
+The term ``pre-coding'' in line codes is used because this operation occurs before transmission but there
+are several other ``pre-coding'' techniques, such as the ones used in MIMO systems.
+
+Another application of cyclostationary analysis is the blind estimation of synchronization parameters such as baud rate, as discussed in \cite{Gardner91,Mosquera08}. A talk regarding blind signal analysis\index{Blind signal analysis} of satellite signals using GNU Radio and concepts of cyclostationary analysis can be found at \akurl{http://www.youtube.com/watch?v=pltmBkQSy7w}{9see}.
+
+\section{Exercises}
+%
+\begin{exercises}
+
+\item An FSK modem uses eight distinct frequencies for signaling. How many symbols per second (in bauds) this modem must transmit to reach a 2.4 kbps bit rate?
+
+\item Assume a digital binary signal $m(t)$ in which the duration of 1 bit is equal to 1 second, modulating a sinusoidal carrier $c(t)$ of frequency 6~Hz and peak amplitude of 1~V. For $m(t)$ representing a sequence of five bits \ci{\{1 1 0 0 1\}} using rectangular pulses, draw carefully the output waveforms $m(t)c(t)$ of two modulators: (a) ASK with $m(t)$ having amplitudes 1 and 0, (b) PSK with $m(t)$ having amplitudes 1 and $-1$.
+
+\item Being tired of symmetric constellations, a student designed $\{-5, 1, 3, 4\}$ as its PAM constellation. Considering that the shaping pulse $p(t)$ has unitary energy and the symbols, transmitted at 4 bauds, are independent and uniformly distributed: a) what is the average energy of a transmit symbol? b) what is the transmit signal power? c) can you criticize the chosen constellation? If yes, in what aspects?
+
+\item A binary communication system uses antipodal signals $p(t)$ and $-p(t)$, with $p(t) = A \sin (\pi t/\tsym)$ with $0 \le t \le \tsym$ or 0 otherwise, and $A \in \{ \pm 1 \}$. Find a reasonable value for $\tsym$ assuming the symbol rate must be 400~bauds. For the chosen value of $T$, sketch the transmit waveform corresponding to the information bits \ci{[0 1 0 0 1 0]}, where bit 1 corresponds to $A=-1$ and bit 0 to $A=1$.
+
+\item The generation of a 4-PAM discrete time signal  $s[n]$ is modeled by the convolution between the symbols $m[n']$ upsampled by a factor of $L$ and a shaping pulse $p[n]$. Assume $p[n] = 3 \delta[n] + 4 \delta[n-1] + 5 \delta[n-2]$, L=4, and symbols $\{-3, -1, 1, 3\}$ with Gray mapping to bits $\{00, 01, 11, 10\}$, respectively. Draw carefully the signal $s[n] $ for the transmit bitstream \ci{11 01 10 11 00}. 
+
+\item \tabl{graycoding} and the associated \figl{constellation8pamgray} and \figl{constellation8pam} contrast Gray and natural coding for 8-PAM. Assume the noise at the receiver has a relatively low power and that in all errors, a symbol is confused by one of its neighbor symbols. The symbols are equiprobable and the probability of symbol error is $P_e = 0.01$. Estimate the bit error probability $P_b$ for each constellation.
+% assuming that 1000 bits were transmitted.
+
+\item Assume the 8-PAM constellation of \figl{constellation8pamgray} is in Volts and the symbols 7 and $-7$ have probability 0.3 each, while the remaining symbols are equiprobable. The basis function $p(t)$ has unitary energy and the transmitted signal $s(t)$ is obtained by multiplying the constellation symbols by $p(t)$. The symbol period is $\tsym = 2$ s. Calculate: (a) the average power of $s(t)$ and (b) the number of bits per second.
+
+\item What are the theoretical power values that should be obtained with \codl{snip_digi_comm_random_symbols} (consider an infinite number \ci{N} of PAM symbols) for the sequences: a) \ci{m}, b) \ci{m\_upsampled} and c) \ci{s}.
+
+\item An M-PAM system uses $\rsym=500$~bauds and a shaping pulse $p(t)$ with energy $E_p$ such that the transmit PAM signal power $\calP$ coincides with the average energy constellation $\overline E_c$. Design this constellation to maximize the bit rate constrained to use a transmit power of 25~dBm and a modulation order $M$ that is a power of 2. The symbols must be uniformly spaced by a distance $d$. The path loss is 15~dB and the noise power at the receiver is such that the separation between neighboring PAM symbols at the receiver must be at least $\Delta=60$~mV to achieve the desired BER of $10^{-3}$. Inform: a) the number $M$ of symbols, b) the respective bit rate, c) the corresponding $\overline E_c$ and d) the value of each symbol in Volts. You may find useful that the M-PAM constellation $\pm \frac{d}{2}, \pm \frac{3d}{2}, \pm \frac{5d}{2}, \ldots, \pm \frac{(M-1)d}{2}$ has an average energy $\overline E_c$ given by \equl{pamConstellationEnergy}.
+%$\overline E_c = \frac{d^2 (M^2 - 1)}{12}$.
+
+\item Sketch the block diagram of a binary FSK digital communication system using only analog signal processing (do not use DSP, ADC nor DAC). Provide a high-level description using a block diagram with e.\,g. filters and amplifiers.
+
+\item Using unsigned bytes (i.\,e., from 0 to 255): a) inform the bitstream corresponding to unpacking a 16-PAM organized as the bytes sequence \ci{0, 255, 15, 1}.
+
+\item Create a constellation for 16-PAM with zero-mean and average energy of $E_c = 4.5$~J. You can list the code or the obtained symbols.
+
+\item Modify the code of Application~\ref{app:bytes_transmission} to use $b=8$ bits per symbol and include an AWGN channel in your simulation. Pick a file for testing, with size larger than 5~MB. Assuming $\rsym=100$~bauds, what is the minimum SNR that you still achieve error-free transmission? (if you do not have \ci{diff}, transmit a zip file and check if you can uncompress the received version).
+
+\item Assume that a binary FSK system must be implemented with synchronous modulation using digital signal processing. The receiver has the following specifications: two frequencies in the uplink are 980 and 1180~Hz, the sampling rate is $\fs=9.6$~kHz and $\rsym=3000$~bauds, 
+such that three samples represent each basis function. Assume the code below is used to obtain the two corresponding basis functions and explain: a) if they are orthogonal or not, b) the Octave/Matlab commands to normalize them for having unitary energy and check if they are orthonormal.
+\begin{lstlisting}
+T_sample = 1/Fs; t = 0:T_sample:1/Rsym-T_sample; %discretized time
+basis0=cos(2*pi*980*t); basis1=cos(2*pi*1180*t); %basis functions
+\end{lstlisting}
+
+%\item Explain why, in \figl{psds_ask_fsk_psk}, there is a peak at 500 Hz for ASK, 500 and 1500 for FSK and no peak for PSK. 
+
+\item Assume a NRZ polar code with a pulse of amplitude $A=5$~V, symbols with values $B=\pm 1$~V and $\tsym=1$~ms, such that the PSD is $S_s(f) = A^2 B^2 \tsym \sinc^2(f \tsym)$. Provide detailed graphs of the shaping pulse's Fourier transform magnitude $|P(f)|$ and $S_s(f)$.
+
+\item Obtain an analytical expression for the PSD of the Manchester code used in the first generation of IEEE 802.3 Ethernet standards such as 10BASE-T. Assume $\pm 2.5$~V as the voltage levels.
+
+\item Generate a version of \figl{sampledSignalACFPolar} describing the autocorrelation of an upsampled cyclostationary  polar signal $m_u[n]$ with $L=3$.
+
+\item A coworker designed a new line code and your task is to calculate its PSD. The code has $M=4$ equiprobable symbols: $-3, -1, 1$ and 3. The shaping pulse $p(t)$ returns to zero (RZ): it has amplitude $A$ over the interval $[0, \tsym/2]$ and zero amplitude over $]\tsym/2, \tsym[$, where $\tsym$ is the symbol period. Provide an analytical expression to the corresponding PSD.
+
+\end{exercises}
+%

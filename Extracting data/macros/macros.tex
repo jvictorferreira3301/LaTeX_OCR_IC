@@ -1,0 +1,910 @@
+%This package must be friendly to all users at LaPS
+%If a command is agressive to the template you are using, take it out, but comment in the SVN log, so that other users will know what was excluded.
+%For example, I (AK) moved all commands "\usepackage" to the file usepackages.tex.
+
+\newcommand\arrowedbox[1] {{\rightarrow\boxed{#1}\rightarrow}} %draw box with arrow
+
+%Command "define" from http://www.latex-community.org/forum/viewtopic.php?f=46&t=15406
+\newcommand\defeq{\stackrel{\text{def}}{=}}
+\newcommand\defeqsmall{\stackrel{\mathsmaller{\mathsf{def}}}{=}}
+
+%use labels starting with eq: and fig: for equations and figures
+\newcommand\blol[1] {{Block~(\ref{eq:#1})}}
+\newcommand\equl[1] {{Eq.~(\ref{eq:#1})}}
+\newcommand\figl[1] {{Figure~\ref{fig:#1}}}
+\newcommand\tabl[1] {{Table~\ref{tab:#1}}}
+%use labels starting with ak_ for listings
+\newcommand\codl[1] {{Listing~\ref{code:#1}}}
+\newcommand\exal[1] {{Example~\ref{ex:#1}}}
+
+
+%Expected value
+\newcommand\ev{\mathbb{E}}
+
+\renewcommand{\Re}{{\mathbb R}}
+\newcommand\ebt{{\varepsilon_b}}
+\newcommand\eba{{\overline\varepsilon_b}}
+%\newcommand\ekt{{\varepsilon_k}}
+\newcommand\ekt{\varepsilon_{\scriptscriptstyle K}}
+\newcommand\eka{\overline\varepsilon_{\scriptscriptstyle K}}
+\newcommand\deck{{F}}
+\newcommand\decb{{f}}
+\newcommand\bH{{\bf H}}
+\newcommand\bM{{\bf M}}
+\newcommand\bw{{\bf w}}
+\newcommand\bt{{\bf t}}
+\renewcommand{\Re}{{\mathbb R}}
+%\def \svmlight {{$\text{SVM}^{Light}$}}
+\def \abM    {{$\alpha$~vs.~$\beta$}}
+\def \svmlight {{$\text{SVM}^{Light}$}}
+%\newcommand\eka{\overline\varepsilon_{\scriptscriptstyle K}}
+%\def\x{{\mathbf x}}
+%\def\L{{\cal L}}
+%\def \abM    {{$\alpha$~vs~$\beta$}}
+%\def \svmlight {{$\text{SVM}^{Light}$}}
+%\newcommand\Num {\textrm{Num}}
+%\newcommand\Den {\textrm{Den}}
+%\newcommand\tji {{\theta_{ji}}}
+%\newcommand\tki {{\theta_{ki}}}
+%\newcommand\aij {{a_{ij}}}
+%\newcommand\Nji {{N_{ji}}}
+%\def \kernelxxi {\calK(\bx,\bx_i)}
+%\newcommand\sign {\textrm{sign}}
+%\newcommand\bonea{\overline{B_1}}
+\newcommand\ci[1] {\textsf{#1}}
+\newcommand\co[1] {\textsf{#1}}
+
+\newcommand\myattention[1] {\textcolor{red}{\LARGE #1}}
+
+\def \rvX     {{\bf X}}
+\def \rvY     {{\bf Y}}
+\newcommand\Rd      {{R^{d}}}
+\newcommand\Rg      {{R^{g}}}
+\newcommand\Thetad      {{\Theta^{d}}}
+\newcommand\Thetag      {{\Theta^{g}}}
+
+\newcommand\bSigma{\mbox{\boldmath$\Sigma$}}
+\newcommand\bmu{\mbox{\boldmath$\mu$}}
+\newcommand\bpi{\mbox{\boldmath$\pi$}}
+\newcommand\bnu{\mbox{\boldmath$\nu$}}
+
+%this one is beautiful for partial derivative:
+\def \parder#1#2{{ \frac {\partial #1} {\partial #2}}}
+%\def \tp#1#2#3{{\theta_{{#1 #2}}^{#3}}}
+\newcommand\tp[3]{{\theta_{{#1 #2}}^{#3}}}
+
+\ifdefined\bm
+\else
+\newcommand\bm[1]{{\mbox{\boldmath $#1$}}}
+\fi
+
+\newcommand\Line[0]{%
+  \rule{0cm}{0cm}\\\hrule\rule{0cm}{0cm}%
+}
+
+%Alon Orlitsky
+% Theorem-like environments
+
+\def \qed     {\Box}  % here because other styles don't use box.
+
+\ifdefined\Theorem
+\else
+\newtheorem{Theorem}{Theorem}
+\fi
+
+\newtheorem{Theorem*}{Theorem}
+
+\newtheorem{Application}{Application}
+\newtheorem{Application*}{Application}
+\newtheorem{Claim}{Claim}
+\newtheorem{Claim*}{Claim}
+
+\ifdefined\Corollary
+\else
+\newtheorem{Corollary}[Theorem]{Corollary}
+\fi
+
+\newtheorem{CounterExample*}{$\overline{\hbox{\bf Example}}$}
+
+\ifdefined\Example
+\else
+\newtheorem{Example}{Example}
+\fi
+
+\newtheorem{Example*}{Example}
+\newtheorem{Exercise}{Exercise}
+\newtheorem{Intuition*}{Intuition}
+\newtheorem{Joke*}{Joke}
+
+\ifdefined\Lemma
+\else
+\newtheorem{Lemma}[Theorem]{Lemma}
+\fi
+
+
+\newtheorem{Lemma*}{Lemma}
+\newtheorem{Model}{Model}
+\newtheorem{Model*}{Model}
+\newtheorem{Open problem}{Open problem}
+\newtheorem{Proposition}{Proposition}
+\newtheorem{Property}{Property}
+\newtheorem{Question}{Question}
+\newtheorem{Question*}{Question}
+\newtheorem{Remark*}{Remark}
+\newtheorem{Result}{Result}
+
+% Begin / End Theorems
+
+\def \bthm#1{\begin{#1}\upshape\quad}
+\def \ethm#1{\rqed\end{#1}}
+\def \ethmp#1{\end{#1}}     % No box, when ends in displayed equation
+
+%AK This has been redefined in dsl_definitions.tex in .\dslbook. If you need them
+%copy and paste into your tex. Do not uncomment them here.
+%\def \bApplication {\bthm{Application}}
+%\def \eApplication {\ethm{Application}}
+\def \bClaim     {\bthm{Claim}}
+\def \eClaim     {\ethm{Claim}}
+\def \eClaimp    {\ethmp{Claim}}
+\def \bCorollary {\bthm{Corollary}}
+\def \eCorollary {\ethm{Corollary}}
+\def \eCorollaryp{\ethmp{Corollary}}
+\def \bCounter   {\bthm{CounterExample*}}
+\def \eCounter   {\ethm{CounterExample*}}
+\def \eCounterp  {\ethmp{CounterExample}}
+%AK This has been redefined in dsl_definitions.tex in .\dslbook. If you need them
+%copy and paste into your tex. Do not uncomment them here.
+%\def \bExample   {\bthm{Example}}
+%\def \eExample   {\ethm{Example}}
+\def \eExamplep  {\ethmp{Example}}
+\def \bExercise  {\bthm{Exercise}}
+\def \eExercise  {\ethm{Exercise}}
+\def \eExercisep {\ethmp{Exercise}}
+\def \bIntuition {\bthm{Intuition}}
+\def \eIntuition {\ethmp{Intuition}}
+\def \bJoke      {\bthm{Joke}}
+\def \eJoke      {\ethm{Joke}}
+\def \bLemma     {\bthm{Lemma}}
+\def \eLemma     {\ethm{Lemma}}
+\def \eLemmap    {\ethmp{Lemma}}
+\def \bModel     {\bthm{Model}}
+\def \eModel     {\ethm{Model}}
+\def \bOpen      {\bthm{Open problem}}
+\def \eOpen      {\ethm{Open problem}}
+\def \eOpenp     {\ethmp{Open problem}}
+\def \bProperty  {\bthm{Property}}
+\def \eProperty  {\ethm{Property}}
+\def \bQuestion  {\bthm{Question}}
+\def \eQuestion  {\ethm{Question}}
+\def \bRemark    {\bthm{Remark}}
+\def \eRemark    {\ethm{Remark}}
+%defined in dsl_definitions
+%\def \bResult    {\bthm{Result}}
+%\def \eResult    {\ethm{Result}}
+\def \bTheorem   {\bthm{Theorem}}
+\def \eTheorem   {\ethm{Theorem}}
+\def \eTheoremp  {\ethmp{Theorem}}
+
+\def \bSubexa    {\begin{subexa}}
+\def \eSubexa    {\ethm{subexa}}
+
+% Environments
+
+\ifdefined\Problem
+\else
+\newenvironment{Problem}{\textbf{Problem}\\ \begin{enumerate}}{\end{enumerate}}
+\fi
+
+
+\newenvironment{Problems}{\textbf{Problems}\\ \begin{enumerate}}{\end{enumerate}}
+
+%\newenvironment{Problems}{\begin{trivlist}\item[]{\textbf{Problems}}{\end{trivlist}}}
+
+% Headers
+
+\def \skpbld#1{\par\noindent\textbf{#1}\quad}
+\def \skpblds#1{\skpbld{#1}\par\noindent}
+
+\def \Answer   {\skpbld{Answer}}
+\def \Answers  {\skpblds{Answers}}
+\def \Basis    {\skpbld{Basis}}
+\def \Check    {\skpbld{Check}}
+\def \Intuition{\skpbld{Intuition}}
+\def \Method   {\skpbld{Method}}
+\def \Methods  {\skpblds{Methods}}
+\def \Outline  {\skpbld{Outline}}
+\def \Proof    {\skpbld{Proof}}
+\def \Proofs   {\skpblds{Proofs}}
+%\def \Problem  {\skpbld{Problem}}
+%\def \Problems {\skpblds{Problems}}
+\def \Proline  {\skpbld{Proof Outline}}
+\def \Remark   {\skpbld{Remark}}
+\def \Remarks  {\skpblds{Remarks}}
+\def \Solution {\skpbld{Solution}}
+\def \Solutions{\skpblds{Solutions}}
+\def \Verify   {\skpbld{Verify}}
+\def \Step     {\skpbld{Step}}
+
+% Ignores
+
+\newcommand\ignore[1]{{}}
+
+%\newcommand\problem[1]{#1}
+%\newcommand\problem[1]{}
+
+%\newcommand\solution[1]{\mbox{}\\ \medskip\noindent{\bf Solution\medskip}#1}
+%\newcommand\solution[1]{{\bf Solution}\quad #1}
+%\newcommand\solution[1]{#1}
+%\newcommand\solution[1]{}
+
+%\newcommand\source[1]{(Taken from~\cite{#1})}
+%\newcommand\source[1]{}
+
+\newcommand\takenfrom[1]{(Taken from~\cite{#1})}
+
+% Formating
+
+\newcommand\joke[1]{\footnote{#1}}
+\newcommand\trivia[1]{\footnote{#1}}
+
+% Handouts
+
+\newcommand\hohead[3]{
+\hfill\begin{minipage}{3.5cm}
+\bf
+#1\\ % class # (CSE20) (perhaps + term)
+#2\\ % term (Fall 2K+1) or name (Alon Orlitsky)
+%Handout #3\\
+\end{minipage}
+}
+
+\newcommand\solhead[3]{ % CSE20 -- Discrete Math; Fall 2K+1; 1
+\begin{center}
+  \Large #1\\[1ex]
+  \normalsize #2\\[3ex]
+  Solutions for Homework Assignment \##3\\
+\end{center}
+}
+
+% Blackboard fonts
+
+\newcommand\EE{\mathbb{E}}
+\newcommand\CC{\mathbb{C}}
+\newcommand\NN{\mathbb{N}} % \dN
+\newcommand\QQ{\mathbb{Q}} % \dQ
+\newcommand\RR{\mathbb{R}} % \dR
+\newcommand\ZZ{\mathbb{Z}} % \dZ
+
+% Numbers
+
+\newcommand\complex{\CC}
+\newcommand\integers{\ZZ}
+\newcommand\naturals{\NN}
+\newcommand\rationals{\QQ}
+\newcommand\reals{\RR}
+\newcommand\RRp{\reals^+}
+\newcommand\integersp{\ZZ^+}
+\newcommand\integerss[1]{\ZZ_{\ge{#1}}}
+
+% boldface
+\def \bzeroM {{\bf 0}}
+\def \bff     {{\bf f}}
+
+\def \bA {{\textbf A}}
+\def \bB {{\textbf B}}
+\def \bC {{\textbf C}}
+\def \bD {{\textbf D}}
+\def \bE {{\textbf E}}
+\def \bF {{\textbf F}}
+\def \bG {{\textbf G}}
+\def \bH {{\textbf H}}
+\def \bI {{\textbf I}}
+\def \bJ {{\textbf J}}
+\def \bK {{\textbf K}}
+\def \bL {{\textbf L}}
+\def \bM {{\textbf M}}
+\def \bN {{\textbf N}}
+\def \bO {{\textbf O}}
+\def \bP {{\textbf P}}
+\def \bQ {{\textbf Q}}
+\def \bR {{\textbf R}}
+\def \bS {{\textbf S}}
+\def \bT {{\textbf T}}
+\def \bU {{\textbf U}}
+\def \bV {{\textbf V}}
+\def \bW {{\textbf W}}
+\def \bX {{\textbf X}}
+\def \bY {{\textbf Y}}
+\def \bZ {{\textbf Z}}
+
+\def \ba {{\textbf a}}
+\def \bb {{\textbf b}}
+\def \bc {{\textbf c}}
+\def \bd {{\textbf d}}
+\def \be {{\textbf e}}
+\def \bf {{\textbf f}}
+\def \bg {{\textbf g}}
+\def \bh {{\textbf h}}
+\def \bi {{\textbf i}}
+\def \bj {{\textbf j}}
+\def \bk {{\textbf k}}
+\def \bl {{\textbf l}}
+\def \bm {{\textbf m}}
+\def \bn {{\textbf n}}
+\def \bo {{\textbf o}}
+\def \bp {{\textbf p}}
+\def \bq {{\textbf q}}
+\def \br {{\textbf r}}
+\def \bs {{\textbf s}}
+\def \bt {{\textbf t}}
+\def \bu {{\textbf u}}
+\def \bv {{\textbf v}}
+\def \bw {{\textbf w}}
+\def \bx {{\textbf x}}
+\def \by {{\textbf y}}
+\def \bz {{\textbf z}}
+
+\def \bmx {{\mathbf x}}
+
+% caligraphics
+
+\def \calA {{\cal A}}
+\def \calB {{\cal B}}
+\def \calC {{\cal C}}
+\def \calD {{\cal D}}
+\def \calE {{\cal E}}
+\def \calF {{\cal F}}
+\def \calG {{\cal G}}
+\def \calH {{\cal H}}
+\def \calI {{\cal I}}
+\def \calJ {{\cal J}}
+\def \calK {{\cal K}}
+\def \calL {{\cal L}}
+\def \calM {{\cal M}}
+\def \calN {{\cal N}}
+\def \calO {{\cal O}}
+\def \calP {{\cal P}}
+\def \calQ {{\cal Q}}
+\def \calR {{\cal R}}
+\def \calS {{\cal S}}
+\def \calT {{\cal T}}
+\def \calU {{\cal U}}
+\def \calV {{\cal V}}
+\def \calW {{\cal W}}
+\def \calX {{\cal X}}
+\def \calY {{\cal Y}}
+\def \calZ {{\cal Z}}
+
+\def \cala {{\cal a}}
+\def \calb {{\cal b}}
+\def \calc {{\cal c}}
+\def \cald {{\cal d}}
+\def \cale {{\cal e}}
+\def \calf {{\cal f}}
+\def \calg {{\cal g}}
+\def \calh {{\cal h}}
+\def \cali {{\cal i}}
+\def \calj {{\cal j}}
+\def \calk {{\cal k}}
+\def \call {{\cal l}}
+\def \calm {{\cal m}}
+\def \caln {{\cal n}}
+\def \calo {{\cal o}}
+\def \calp {{\cal p}}
+\def \calq {{\cal q}}
+\def \calr {{\cal r}}
+\def \cals {{\cal s}}
+\def \calt {{\cal t}}
+\def \calu {{\cal u}}
+\def \calv {{\cal v}}
+\def \calw {{\cal w}}
+\def \calx {{\cal x}}
+\def \caly {{\cal y}}
+\def \calz {{\cal z}}
+
+% vectors
+
+%\def \veca  {{\overline a}}
+%\def \vecb  {{\overline b}}
+%\def \vecX  {{\overline X}}
+%\def \vecY  {{\overline Y}}
+%\def \vecx  {{\overline x}}
+%\def \vecy  {{\overline y}}
+%\def \vec#1{{\overline{#1}}}
+
+% Abbreviations
+
+\newcommand\eg{\textit{e.g.,}\xspace}
+\newcommand\etc{etc.\@\xspace}
+\newcommand\ie{\textit{i.e.,}\xspace}  % note that overridden in spanish
+
+% notes
+
+%\definecolor{light}{gray}{.75}
+
+\def \mynote#1{{}}
+
+% marginal notes
+
+\def \marcha{{\marginpar{CHNGD}}}
+\def \marfix{{\#\marginpar{FIX \#}}}
+\def \marnew{{\marginpar{NEW}}}
+\def \marok{{\#\marginpar{\# OK?}}}
+
+% qed's
+
+\def \eqed    {\eqno{\qed}}
+\def \rqed    {\hbox{}~\hfill~$\qed$}
+
+% sequences
+
+\def \upto  {{,}\ldots{,}}
+\def \zn    {0\upto n}
+\def \znmo  {0\upto n-1}
+\def \znpo  {0\upto n+1}
+\def \ztnmo {0\upto 2^n-1}
+\def \on    {1\upto n}
+\def \onmo  {1\upto n-1}
+\def \onpo  {1\upto n+1}
+
+% sets
+
+\def \setpmo   {\{\pm 1\}}
+\def \setmpo   {\{-1{,}1\}}
+\def \setzo    {\{0{,}1\}}
+\def \setzn    {\{\zn\}}
+\def \setznmo  {\{\znmo\}}
+\def \setztnmo {\{\ztnmo\}}
+\def \seton    {\{\on\}}
+\def \setonmo  {\{\onmo\}}
+\def \set#1#2{{\{{#1}\upto{#2}\}}}
+\def \setzon   {\setzo^n}
+\def \setzos   {\setzo^*}
+
+\def \sets#1{{\{#1\}}}
+\def \Sets#1{{\left\{#1\right\}}}
+
+\def \inseg#1{{[#1]}}
+
+% functions
+
+\def \ord    {\#}
+
+\def \suml   {\sum\limits}
+\def \prodl  {\prod\limits}
+
+% Set operations
+
+%\def \union  {\cup}
+\def \union  {\bigcup}
+\def \unionl {\union\limits}
+%\def \Union {\Bigcup} % want this
+\def \Union  {\bigcup}
+\def \Unionl {\Union\limits}
+
+\def \inter  {\cap}
+%\def \inter  {\bigcap}
+\def \interl {\inter\limits}
+\def \Inter {\Bigcap}
+\def \Interl {\Inter\limits}
+
+% Floors and Ceilings
+
+\def \ceil#1{{\lceil{#1}\rceil}}
+\def \Ceil#1{{\left\lceil{#1}\right\rceil}}
+\def \floor#1{{\lfloor{#1}\rfloor}}
+\def \Floor#1{{\left\lfloor{#1}\right\rfloor}}
+
+% Parentheses, brackets
+
+\def \paren#1{{({#1})}}
+\def \Paren#1{{\left({#1}\right)}}
+\def \brack#1{{[{#1}]}}
+\def \Brack#1{{\left[{#1}\right]}}
+
+%\def \frac#1#2{{{#1}\over{#2}}}
+
+\def \binomial#1#2{{{#1}\choose{#2}}}
+
+\def \gcd#1#2{{{\rm gcd}\paren{{#1},{#2}}}}
+\def \Gcd#1#2{{{\rm gcd}\Paren{{#1},{#2}}}}
+
+\def \lcm#1#2{{{\rm lcm}\paren{{#1},{#2}}}}
+\def \Lcm#1#2{{{\rm lcm}\Paren{{#1},{#2}}}}
+
+\newcommand\ed{\stackrel{\mathrm{def}}{=}}
+%\def \ed     {\,{\buildrel \rm def \over =}\,}
+\def \gap    {\ \AQUIVOUEU{\raisebox{-.6ex}{$\stackrel{\textstyle>}{\sim}$}}\ }
+
+% values
+
+\def \half    {{\frac12}}
+\def \quarter {{\frac14}}
+\def \oo#1{{\frac1{#1}}}
+
+% notation
+
+\def \pr     {{p}}
+\def \Pr     {{\hbox{Pr}}}
+\def \iff    {{\it iff }}
+\def \th     {{\rm th }}
+
+% ignore
+
+\def\ignore#1{}
+
+% Logic
+
+%\newcommand\ra{\rightarrow}
+\def \contra {{\leftrightarrows}}
+\newcommand\ol[1]{{\overline{#1}}}
+%\def \ob {\overline}
+
+\def \ve {{\lor}} % needed?
+\def \eq {{\equiv}} % needed?
+
+% spaces
+
+\newcommand\spcin{\hspace{1.0in}}
+\newcommand\spchin{\hspace{.5in}}
+
+% Default text appears in regular print in both book and class versions.
+% There are two types of text that need to be highlighted in class:
+% clson - not mentioned in book version (eg jokes)
+% clsbk - regular text in book (the parts that need be said)
+
+%For book:
+%\newcommand\clson[1]{}
+%\newcommand\clsbk[1]{#1}
+%For class:
+\newcommand\clson[1]{\colorbox{light}{{#1}}}
+\newcommand\clsbk[1]{\colorbox{light}{{#1}}}
+
+%\newcommand\bi{\begin{aopl}}
+%\newcommand\ei{\end{aopl}}
+
+%\newcommand\bi{\begin{itemize}}
+%\newcommand\ei{\end{itemize}}
+%\newcommand\bq{\begin{quote}}
+%\newcommand\eq{\end{quote}}
+
+\newenvironment{aopl}
+  {\begin{list}{}{\setlength{\itemsep}{4pt plus 2pt minus 2pt}}}
+  {\end{list}}
+
+% operators
+
+\def\orpro{\mathop{\mathchoice
+   {\vee\kern-.49em\raise.7ex\AQUIVOUEU{$\cdot$}\kern.4em}
+   {\vee\kern-.45em\raise.63ex\AQUIVOUEU{$\cdot$}\kern.2em}
+   {\vee\kern-.4em\raise.3ex\AQUIVOUEU{$\cdot$}\kern.1em}
+   {\vee\kern-.35em\raise2.2ex\AQUIVOUEU{$\cdot$}\kern.1em}}\limits}
+
+\def\andpro{\mathop{\mathchoice
+ {\wedge\kern-.46em\lower.69ex\AQUIVOUEU{$\cdot$}\kern.3em}
+ {\wedge\kern-.46em\lower.58ex\AQUIVOUEU{$\cdot$}\kern.25em}
+ {\wedge\kern-.38em\lower.5ex\AQUIVOUEU{$\cdot$}\kern.1em}
+ {\wedge\kern-.3em\lower.5ex\AQUIVOUEU{$\cdot$}\kern.1em}}\limits}
+
+\def\inter{\mathop{\mathchoice
+   {\cap}
+   {\cap}
+   {\cap}
+   {\cap}}}
+\def\interl {\inter\limits}
+
+\def\carpro{\mathop{\mathchoice
+   {\times}
+   {\times}
+   {\times}
+   {\times}}\limits}
+
+% for old documents
+
+%\newcommand\twlrm{\fontsize{12}{14pt}\normalfont\rmfamily}
+%\newcommand\tenrm{\fontsize{10}{12pt}\normalfont\rmfamily}
+
+% picture macros
+
+\newcommand\grid[2]{ % grid{width}{height}
+  \multiput(0,0)(1,0){#1}{\line(0,1){#2}}
+  \put(#1,0){\line(0,1){#2}}
+  \multiput(0,0)(0,1){#2}{\line(1,0){#1}}
+  \put(0,#2){\line(1,0){#1}}
+}
+
+%AK: to write in red the section titles
+%https://tex.stackexchange.com/questions/10555/hyperref-warning-token-not-allowed-in-a-pdf-string
+%There's the aptly, if verbosely, named macro \texorpdfstring, which takes two arguments and uses the first for (La)TeX and the second for pdf
+
+%problem below is that sections etc are not recognized
+%\newcommand\advancedsection[1] {{\section{\texorpdfstring{\textcolor{red}{Advanced: }#1}{Advanced: #1}}}}
+%\newcommand\advancedsubsection[1] {{\subsection{\texorpdfstring{\textcolor{red}{Advanced: }#1}{Advanced: #1}}}}
+%\newcommand\advancedsubsubsection[1] {{\subsubsection{\texorpdfstring{\textcolor{red}{Advanced: }#1}{Advanced: #1}}}}
+
+%\newcommand\akadvanced {{\texorpdfstring{\textcolor{red}{Advanced:}}{Advanced:}}}
+%\newcommand\akadvanced{{\texorpdfstring{\textcolor{red}{Advanced:}}{Advanced:}}}\xspace
+\newcommand\akadvanced{{\texorpdfstring{\textcolor{red}{Advanced:}}{Advanced:}}{}}
+
+\def \nfft    {{N_{\textrm{fft}}}}
+
+\def \Nperiod {{N_0}} %period of discrete-time signals, avoid to use N
+\def \Tperiod {{T_0}} %period of continuous-time signals, avoid to use T
+
+%\def \digif {{\mathbb{F}}} %discrete-time linear frequency %AK: I stopped using it
+
+
+%from http://tex.stackexchange.com/questions/42726/align-but-show-one-equation-number-at-the-end
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+\def \nuv {{\boldsymbol{\nu}}} %boldface \nu. assumes amsmath package as in  http://tex.stackexchange.com/questions/595/how-can-i-get-bold-math-symbols
+
+\def \cconv {{\circledast}} %\varoast \oast %circular convolution
+
+\newcommand\figwidth{.7\textwidth} %defaut fig width
+\newcommand\figwidthSmall{.5\textwidth} %smaller fig width
+\newcommand\figwidthLarge{.9\textwidth} %larger fig width
+
+\newcommand{\ip}}[2]{{ \langle {#1} , {#2} \rangle }} %inner product. Usage example: $\ip{\varphi_j(t)}{\varphi_k(t)} = 1$
+
+%This command allows to use \href when compiling with pdflatex or disable it when compiling for a DVI with latex
+%I use it to create a list of URLs, which I will later identify on a web site via urls_akbook.tex
+\newcommand{\akurl}}[2]{{\ifpdf{[\href{{#1}}{{url#2}}]}\else{\IfPackageLoadedTF{tex4ht}{[\href{{#1}}{{url#2}}]}{[url#2]}}\fi}} %
+
+\def \sign {{\textrm{sign}}} %sign function
+
+\newcommand\sgn{\mathop{\mathrm{sgn}}}
+
+\def \aktilde {{$\sim$}} 
+%\def \aktilde {{\textrm{\textasciitilde}}} %this is too high, there is a nice \midtilde in wsuipa package but did not want to include the package
+\def \muV {{$\mu$V}}  %micro Volts (1e-6)
+\def \mus {{$\mu$s}}  %micro seconds (1e-6)
+
+%distinguish digital and analog frequencies
+%\def \dw {{\omega}}  %in radians
+%\def \aw {{\Omega}}  %in radians/sec
+\def \aw {{\omega}}  %in radians
+\def \dw {{\Omega}}  %in radians/sec
+
+%AK problem: when I have math in a \section I have problems with the PDF compilation, which tries to create a hyperlink. I had to put \ifpdf. I tried to create a macro below but did not succeded.
+\ignore{
+\newcommand\oldaktexorpdfstring[2]}{{%
+\ifpdf
+   \ifHy@pdfstring
+     \expandafter\@secondoftwo
+   \else
+     \expandafter\@firstoftwo
+   \fi
+\else
+	\expandafter{#1}
+\fi
+}}
+%
+\newcommand\notworkingaktexorpdfstring[2]}{{
+\ifpdf
+	{alo pai \expandafter{\texorpdfstring{#1}{#2}}}
+\else
+	{oi mae {#1}}
+\fi
+}}
+}
+
+\newcommand\bit{\begin{itemize}}
+\newcommand\eit{\end{itemize}}
+
+%\newlist{exercises}{enumerate}{2}
+%\setlist[exercises]{label=\thechapter.\arabic*.,font=\small\color{red},widest=99,leftmargin=0pt,itemindent=2.4em,align=left,itemsep=.5ex}
+
+%\newlist{application}{enumerate}{2}
+%\setlist[application]{label=Application \thechapter.\arabic*.,font=\small\color{red}
+%,widest=99,leftmargin=0pt,itemindent=2.4em,align=left,itemsep=.5ex}
+%\def \bApplication {\begin{application} {\item}}
+%\def \eApplication {\end{application}}
+
+%\def \bApplication {\subsection{Application}}
+%\def \eApplication {\end{Application}}
+
+%AK created an environment! With a counter!
+\newcounter{appcounter}
+%\newenvironment{name}[num]{before}{after}
+%\newenvironment{application}{font=\small\color{red} Application \thechapter.\arabic*. }{}
+\newenvironment{application}{
+\bigskip\noindent
+\refstepcounter{appcounter}
+{\textbf{\textcolor{red}{Application \theappcounter.}} }}{\rqed} %use box in end
+\def \bApplication {\begin{application}}
+\def \eApplication {\end{application}}
+\numberwithin{appcounter}{chapter} %uses amsmath according to http://tex.stackexchange.com/questions/28333/continuous-v-per-chapter-section-numbering-of-figures-tables-and-other-docume
+
+%AK created an environment! With a counter!
+\newcounter{exacounter}
+%\newenvironment{name}[num]{before}{after}
+%\newenvironment{application}{font=\small\color{red} Application \thechapter.\arabic*. }{}
+\newenvironment{example}{
+\bigskip\noindent
+\refstepcounter{exacounter}
+{{\textcolor{red}{Example \theexacounter.}} }}{\rqed \bigskip} %use box in end
+\def \bExample {\begin{example}}
+\def \eExample {\end{example}}
+\numberwithin{exacounter}{chapter} %uses amsmath according to 
+
+%AK created another environment! With a counter!
+\newcounter{rescounter}
+%\newenvironment{name}[num]{before}{after}
+%\newenvironment{application}{font=\small\color{red} Application \thechapter.\arabic*. }{}
+\newenvironment{akresult}{
+\bigskip\noindent
+\refstepcounter{rescounter}
+{{\textcolor{green}{Result \therescounter.}} }}{\rqed \bigskip} %use box in end
+\def \bResult {\begin{akresult}}
+\def \eResult {\end{akresult}}
+\numberwithin{rescounter}{chapter} %uses amsmath according to 
+
+
+
+%\def \bApplication {\bthm{Application}}
+%\def \eApplication {\ethm{Application}}
+
+\def \bModel     {\bthm{Model}}
+\def \eModel     {\ethm{Model}}
+
+%#######################
+%Shortcuts
+%#######################
+\def \xrms {{x_{\textrm{rms}}}} %RMS value of x
+\def \BW {{\textrm{BW}}} %bandwidth
+\def \MSE {{\textrm{MSE}}} %mean-squared error
+\def \SNR {{\textrm{SNR}}} %SNR
+
+\def \dB {{\textrm{dB}}} %decibel
+\def \sp {{\textrm{~}}}
+
+%\newcommand\arrowedbox[1] {{\rightarrow\fbox{#1}\rightarrow}}
+\def \setM {{\mathscr M}}
+
+%\real and \imag for real and imaginary parts
+\newcommand\real[1]{{\mathcal Real \{#1\}}}
+\newcommand\imag[1]{{\mathcal Imag \{#1\}}}
+
+
+%Similarly, discussions on comp.text.tex have revealed that there are a variety of
+%ways to indicate the mathematical notion of "is defined as". Common candidates include:
+%\triangleq), \equiv), \coloneqq) and:
+%\def \define {{{\stackrel{\text{\tiny def}}{=}}}}  %def gets too close of left-side
+%\def \define {{\triangleq}}
+
+\def \cm {{Common mistake}}
+
+\def \tmax {{{\textrm{max}}}}
+\def \tmin {{{\textrm{min}}}}
+
+%random signals
+\def \rsx {{\mathsf x}}
+\def \rsy {{\mathsf y}}
+\def \rsz {{\mathsf z}}
+
+%random variables
+\def \rvn {{\mathsf N}}
+\def \rvr {{\mathsf R}}
+\def \rvk {{\mathsf K}}
+\def \rve {{\mathsf E}}
+\def \rvx {{\mathsf X}}
+\def \rvy {{\mathsf Y}}
+\def \rvz {{\mathsf Z}}
+%\def \rvx {{\mathbb X}}
+%\def \rvy {{\mathbb Y}}
+%\def \rvz {{\mathbb Z}}
+
+\def \conv {{\ast}}  %convolution
+%\def \conv {{\convolution}}  %package mathabx convolution
+
+%moved to definitions.tex
+%use labels starting with eq: and fig: for equations and figures
+%\newcommand\blol[1] {{Block~(\ref{eq:#1})}}
+%\renewcommand{\equl}[1] {{Eq.~(\ref{eq:#1})}}
+%\renewcommand{\figl}[1] {{Figure~\ref{fig:#1}}}
+%\newcommand\tabl[1] {{Table~\ref{tab:#1}}}
+%use labels starting with ak_ for listings
+%\newcommand\codl[1] {{Listing~\ref{code:#1}}}
+%\newcommand\exal[1] {{Example~\ref{ex:#1}}}
+
+%expected value:
+\renewcommand{\ev}{\mathbb{E}}
+%\def \expval {\textbf{E}}
+\def \expval {\ev}
+
+%#######################
+%Need to distinguish
+%#######################
+\def \ts {{T_s}}%sampling period
+\def \fs {{F_s}}%sampling frequency
+\def \tsym {{T_{\textrm{sym}}}}%symbol period
+\def \rsym {{R_{\textrm{sym}}}} %symbol rate
+\def \tdmt {{T_{\textrm{dmt}}}}%symbol period
+\def \rdmt {{R_{\textrm{dmt}}}} %symbol rate
+\def \xa {{$x(t)$}} %analog
+\def \xd {{$x_q[n]$}}  %digital
+\def \xs {{$x_s(t)$}} %sampled
+\def \xsarea#1{{{x_s^{\textrm{area}}({{#1}})}}} %area of sampled signal
+
+%#######################
+%Code listing
+%#######################
+%Making easier to include the listing of source code:
+%assume name starts with ak_
+%Example:
+%directory, name
+%\includecode{MatlabOctaveFunctions}{dctmtx}
+%is equivalent to
+%\lstinputlisting[caption={MatlabOctaveFunctions/ak\_dctmtx.m},label=code:dctmtx]{./Code/MatlabOctaveFunctions/ak_dctmtx.m}
+\def \includecode#1#2 {{\lstinputlisting[caption={#1/ak\_#2.m},label=code:#2]{./Code/#1/ak_#2.m}}}
+
+%need to take care of the cases where an underscore _ exists or the cases where ak is not the prefix
+%directory, caption, name
+\def \includecodelong#1#2#3 {{\lstinputlisting[caption={#1/#2.m},label=code:#3]{./Code/#1/#3.m}}}
+%Examples:
+%\includecodelong{MatlabOctaveFunctions}{qpsk\_simple}{qpsk_simple}
+%\includecodelong{MatlabOctaveFunctions}{ak\_gram\_schmidt}{ak_gram_schmidt}
+%In case the macros do not work, use:
+%\lstinputlisting[language=Python,caption=MatlabBookFigures/figs\_transforms\_dctimagecoding,label=code:dctimagecoding]{./Code/MatlabBookFigures/figs_transforms_dctimagecoding.m}
+
+%now add hyperlink to Python version
+\newcommand{\akpythoncode}}[2]{{\ifpdf{[\href{{#1}}{{#2}}]}\else{\IfPackageLoadedTF{tex4ht}{[\href{{#1}}{{#2}}]}{[#1]}}\fi}} %
+
+\def \includecodepython#1#2#3 {{\lstinputlisting[caption={#1/#2.m. \akpythoncode{https://github.com/aldebaro/dsp-telecom-book-code/blob/master/PythonCodeSnippets/#2.py}{Python version}},label=code:#3]{./Code/#1/#3.m} }}
+
+
+%#######################
+%Others
+%#######################
+
+%three-dimensional array "channel matrix"
+\newcommand\cmH{{ \overline {\textbf H}}}
+
+\def \matlab {{{Matlab/Octave}}}
+
+%total and max
+%\def \ptot {{p^{\textrm{tot}}}}
+\def \ptot {{{\calP}^{\textrm{tot}}}}
+
+\def \pmax {{P^{\textrm{max}}}}
+\def \rtarget {{r^{\textrm{target}}}}
+%allow to provide subscript
+\newcommand\ptotn[1] {{p_{#1}^{\textrm{tot}}}}
+\newcommand\pmaxn[1] {{P_{#1}^{\textrm{max}}}}
+\newcommand\rtargetn[1] {{r_{#1}^{\textrm{tar}}}}
+
+\def \grandmatrix {{\overline{\mathbf G}}}
+
+\newcommand\nk[1] {{#1_n^k}}
+
+\def \calR {{\cal R}}
+\def \rrb {\overline{\cal R}|}
+\def \txtand {{\textrm{~and~}}}
+\def \snr {{\textrm{SNR}}} %signal to noise ration
+\def \snrdb {{\textrm{SNR}_{\textrm{dB}}}}
+
+%\def \ae {\varepsilon_x}
+\def \ae {{E_c}}
+\def \ab {\overline{b}}
+\def \no { {\cal N}_0 }  %should not it be \N0 with zero
+\def \dfreq {e^{j \omega}}
+
+%margin:
+%\setlength{\parindent}{0em} \setlength{\oddsidemargin}{0cm}
+%\setlength{\evensidemargin}{0cm} \setlength{\textwidth}{16.5cm}
+
+\newcommand\IR{\rm I\hspace{-0.06cm}R}
+\newcommand\IN{\rm I\hspace{-0.06cm}N}
+
+%\newcommand\ra{\;\rightarrow\;}
+\newcommand\lra{\;\Leftrightarrow\;}
+\newcommand\fa{\;\forall\;}
+\newcommand\ex{\;\exists\;}
+
+\newcommand\sinc{{\textrm{sinc}}}
+\newcommand\rect{{\textrm{rect}}}
+%\def \rect {{\textrm{rect}}} %rect function
+
+\newcommand\angledeg[1]{\angle{{#1}}^{\circ}}
+\newcommand\degree[1]{{{#1}}^{\circ}}

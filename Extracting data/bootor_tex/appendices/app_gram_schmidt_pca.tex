@@ -1,0 +1,100 @@
+\section{Gram-Schmidt orthonormalization procedure}
+\label{sec:Gram-Schmidt}
+
+The Gram-Schmidt is an automatic procedure to obtain a set of $N$ orthonormal vectors $\by$ from an input set $\{\bx_1,\bx_2,\ldots,\bx_M\}$ composed by $M$ vectors. 
+%The procedure is useful, for example, when deriving theoretical results that require the 
+If the $M$ vectors are \emph{linearly independent}, then $N=M$. If there is linear dependency among the vectors, then $N<M$. \codl{ak_gram_schmidt} illustrates the procedure. %The order of the input vectors is arbitrary and it can be assumed that the vectors are randomly sorted.
+
+In summary, the first basis function is $\by_1 = \bx_1 / \lVert\bx_1\rVert$. Because $\by_1$ is the normalized first input vector, it can properly represent $\bx_1$. The next step is to iteratively (in a loop) add new basis functions to represent the remaining vectors. For example, if $\bx_2$ were colinear to $\by_1$, it would not be necessary to enlarge the basis set ($\by_1$ could represent both $\bx_1$ and $\bx_2$). If that is not the case, $\by_2$ cannot be simply $\by_2 = \bx_2/\lVert\bx_2\rVert$ because, eventually, $\by_1$ and $\by_2$ can be linearly dependent. Therefore, first $\bx_2$ is projected in $\by_1$ and $\by_2$ is the (normalized) error vector of this projection. This process is repeated. For example, when obtaining $\by_i$ to represent a vector $\bx_j$, one first takes in account the projection of $\bx_j$ into all previously selected basis $1,2,\ldots,i-1$. If the  error is not numerically negligible (given a tolerance), this suggests that $\bx_j$ does not reside in the space spanned by the current set of basis functions and the normalized projection error is added to this set.
+
+\includecodelong{MatlabOctaveFunctions}{ak\_gram\_schmidt}{ak_gram_schmidt}
+
+%Livro em \url{C:\ak2008\Classes\Algoritmos1\Trabalho1_Codificacao} tem sobre projecao e o matlab tem um tutorial NND5GS.
+
+The result of the Gram-Schmidt procedure depends on the order of the input vectors. Rearranging these vectors may produce a different (still valid) solution. 
+An example of Gram-Schmidt execution can be found in Application~\ref{app:gram_schmidt}.
+
+The following section presents another procedure, which has similarities to the Gram-Schmidt and very interesting properties.
+
+\section{Principal component analysis (PCA)}
+%\section[Principal component analysis (PCA) or Karhunen-Lo\`eve transform (KLT)]{
+%\ifpdf
+        %{\texorpdfstring{Principal component analysis (PCA) or\\ Karhunen-Lo\`eve transform (KLT)}{Principal component analysis (PCA) or Karhunen-Lo\`eve transform (KLT)}}
+%\else
+%       {Principal component analysis (PCA) or\linbreak Karhunen-Lo\`eve transform (KLT)}
+%\fi   
+%}
+
+Principal component analysis (PCA) or Karhunen-Lo\`eve transform (KLT) is an orthogonal linear transformation typically used to transform the input data to a new coordinate system such that the greatest variance by any projection of the data comes to lie on the first coordinate (called the first principal component), the second greatest variance on the second coordinate, and so on.
+%PCA is also called Karhunen-Lo\`eve transform (KLT) and other names, depending on the application field.
+
+The following development does not try to be mathematically rigorous, but provide intuition. As in the Gram-Schmidt procedure, assume the goal is to obtain a set of $N$ orthonormal vectors $\by$ from an input set $\{\bx_1,\bx_2,\ldots,\bx_M\}$ composed by $M$ vectors of dimension $K$. An important point is that all elements of an input vector $\bx=[\rvx_1,\ldots,\rvx_K]$ are assumed to have zero mean (or the mean is subtracted before PCA), i.\,e., $\ev[\rvx_i]=0, \forall i$. Instead of arbitrarily picking the first vector $\bx_1$ as in Gram-Schmidt, PCA seeks the vector (first \emph{principal component}) that maximizes the variance of the projected data. Restricting the basis function to have unity norm $\lVert\by\rVert=1$, the absolute value of the inner product $\langle\by, \bx\rangle$ corresponds to the norm of the projection of $\bx$ over $\by$. PCA aims at minimizing the variance of this norm or, equivalently, the variance of $\langle\by, \bx\rangle$. Because $\by$ is a fixed vector and $\ev[\bx]=0$, it can be deduced that and $\ev[\langle\by,\bx\rangle]=0$ and, consequently, the variance coincides with $\ev \{\langle\by, \bx\rangle^2\}$. Hence, the first PCA basis function is given by
+\[
+\by_1 = \arg \max_{\lVert\by\rVert=1} \ev \{\langle\by, \bx_i\rangle^2\}.
+\]
+After obtaining $\by_1$, similarly to Gram-Schmidt, one finds new targets by projecting all $M$ input vectors in $\by_1$ and keeping the errors as targets $\hat \bx$. For example, the targets for finding $\by_2$ are
+\[
+\hat \bx_{i} = \bx_i - \langle\bx_i,\by_1\rangle \by_1,\quad i=1,\ldots,M,
+\]
+and the new basis function is obtained by
+\[
+\by_2 = \arg \max_{\lVert\by\rVert=1} \ev \{\langle\by, \hat \bx_i\rangle^2\}.
+\]
+Similarly,
+\[
+\by_3 = \arg \max_{\lVert\by\rVert=1} \ev \{\langle\by, \bx_i - (\langle\bx_i,\by_1\rangle \by_1 + \langle\bx_i,\by_2\rangle \by_2)\rangle\}
+\]
+and so on.
+
+It is out of the scope of this text\footnote{See, e.\,g., the Web for more details:  \akurl{www.cs.cmu.edu/~elaw/papers/pca.pdf}{2pca}, \akurl{www.uwlax.edu/faculty/will/svd/svd/index.html}{2svd}
+and \akurl{fourier.eng.hmc.edu/e161/lectures/klt/node5.html}{2fou}.} to examine how to solve the maximization problems and find the optimal $\by$ vectors, but it is noted that the solution can be obtained via eigenvectors of the covariance matrix or singular value decomposition (SVD). \codl{pcamtx} illustrates the former procedure, which uses eigen analysis. Note that the order of importance of the principal components $\by$ is given by the magnitude of the respective eigenvalues.
+
+\includecode{MatlabOctaveFunctions}{pcamtx}
+
+%PCA is theoretically the optimum transform for a given data in least square terms. The optimal transform for coding purposes as will be discussed later on.
+PCA is typically used for dimensionality reduction in a data set by retaining those characteristics of the data that contribute most to its variance, by keeping lower-order principal components and ignoring higher-order ones. Therefore, it is also useful for coding. One important question is why maximizing the variance is a good idea. In fact, this is not always the case and depends on the application.
+
+%The empirical version (i.\,e., with the coefficients computed from a sample) is known as principal component analysis.
+%Principal component analysis (PCA) is a vector space transform often used to reduce multidimensional data sets to lower dimensions for analysis. or proper orthogonal decomposition (POD).
+
+The utility of PCA for representing signals will be illustrated by an example with data draw from a bidimensional Gaussian
+$f_{\bX_1,\bX_2}(x_1,x_2)$ with mean $\hat{\bmu}=(1,~3)^T$ and covariance matrix
+$\bC =
+    \begin{bmatrix}
+    1 & 0.9 \\[-1ex]
+    0.9 & 4 \\
+    \end{bmatrix}
+$. \figl{compare_pca_gramschmidt} provides a scatter plot of the data and the basis functions obtained via PCA and, for comparison purposes, Gram-Schmidt orthonormalization. It can be seen that PCA aligns the basis with the directions where the variance is larger. The solution obtained with Gram-Schmidt depends on the first vector and the only guarantee is that the basis functions are orthonormal.
+
+\begin{figure}[!htb]
+        \centering
+                \includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/compare_pca_gramschmidt}             
+        \caption{Scatter plot of the input data and the basis functions obtained via PCA and Gram-Schmidt orthonormalization.\label{fig:compare_pca_gramschmidt}}
+\end{figure}
+
+As already indicated, the basis functions of a orthonormal basis can be organized as the columns of a matrix $\bA$. Examples will be provided in the sequel where $\bA$ stores the basis obtained with PCA or the Gram-Schmidt procedure.
+At this point it is interesting to adopt the same convention used in most textbooks: instead of
+\equl{linear_transform}, the input and output vectors are assumed to be related by $\bx = \bA \by$. In other words, it is the inverse of $\bA$ that transforms $\bx$ into $\by$: $\by = \bA^{-1} \bx$. This is convenient because $\by$ will be interpreted as storing the \emph{transform coefficients} of the linear combination of basis functions (columns of $\bA$) that leads to $\bx$.
+
+It is possible now to observe the interesting effect of transforming input vectors using PCA and Gram-Schmidt.
+Using the same input data that generated \figl{compare_pca_gramschmidt}, \figl{pca_projecteddata} and \figl{gram-schmidt_projecteddata} show the scatter plots of $\by$ obtained by $\by=\bA^{-1} \bx$, where $\bA$ represents the basis from PCA and Gram-Schmidt, respectively.
+%In the next section, when discussing block transforms, the projected vector will be called \emph{transform coefficients}.
+
+\begin{figure}[!htb]
+        \centering
+                \includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/pca_projecteddata}
+        \caption[{Scatter plots of two-dimensional Gaussian vector $\bx$ (represented by x) and PCA transformed vectors $\by$ (represented by +)}]{Scatter plots of two-dimensional Gaussian vector $\bx$ (represented by x) and PCA transformed vectors $\by$ (represented by +). Note that the first dimension $y_1$ contains most of the variance in the data.\label{fig:pca_projecteddata}}
+\end{figure}
+
+\begin{figure}[!htb]
+        \centering
+                \includegraphics[width=\figwidth,keepaspectratio]{Figures/gram-schmidt_projecteddata}          
+        \caption{Scatter plots of two-dimensional Gaussian vector $\bx$ (x) and Gram-Schmidt transformed vectors $\by$ (+).\label{fig:gram-schmidt_projecteddata}}
+\end{figure}
+
+Comparing \figl{pca_projecteddata} and \figl{gram-schmidt_projecteddata} clearly shows that PCA does a better job in extracting the correlation between the two dimensions of the input data. In the Gram-Schmidt case, the figure shows a negative correlation between the coefficients $y_1$ and $y_2$. This is an example of a feature that may be useful. 
+\ifml
+\else
+In other applications, the orthonormal basis provided by Gram-Schmidt may be enough as, for example, to obtain the basis functions in \equl{signalComposedByLinearCombination} for digital communications. 
+\fi
+In summary, some linear transforms will be designed  such that the basis functions have specified properties while others will focus on properties of the coefficients.

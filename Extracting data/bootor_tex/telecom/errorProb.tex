@@ -1,0 +1,963 @@
+%\section{PAM/QAM for the unlimited-band AWGN channel}
+\section{To Learn in this Chapter}
+
+This chapter discusses how to evaluate the symbol error probability for different modulation schemes when the channel is AWGN. For the AWGN there is no restriction on the signal bandwidth and the noise at the receiver is Gaussian, which simplifies calculations. Also, the optimal receiver for AWGN channels is discussed. 
+
+Some of the concepts are:
+\begin{itemize}
+\item It is beneficial in terms of computational cost to use symbol-based instead of sample-based simulations.
+\item The matched filter followed by an adequate sampling scheme is the optimum receiver for AWGN.
+\item Matched filters and correlators are equivalent with respect to their output at the time instants of interest.
+\item Decision criteria such as MLE and MAP impose decision regions and, consequently, the decision thresholds.
+\end{itemize}
+
+
+%It is important to understand the \emph{models} adopted in digital transmission and, for that, some of the crucial tasks are:
+%\begin{enumerate}
+%	\item Source coding: quantization error in the granular region is uniformly distributed and not correlated with the quantizer input signal.
+%	\item Understand the white Gaussian noise signal and the additive white Gaussian noise (AWGN) channel.
+%	\item Be familiar with coherent detection under AWGN with matched filters or correlators.
+%	\item Distinguish the sampling theorem (sometimes called Nyquist theorem) and the Nyquist criterion for zero intersymbol interference (ISI).
+%	\item Understand bandpass processing concepts such that the probability of error is equivalent to the baseband case.
+%\end{enumerate}
+%The next chapters aim at providing the necessary information to facilitate these tasks.
+
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/awgnReceivedSymbolsHistogram}
+\caption[{Received symbols of 4-PAM simulation at SNR of 10~dB, $P_e=0.13$ and $P_b=0.08$.}]{Received symbols of 4-PAM simulation at SNR of 10~dB, $P_e=0.13$ and $P_b=0.08$. Each curve corresponds to a specific transmitted symbol. Top graph shows the symbols over time with each curve representing the corresponding symbols and bottom graph shows superimposed histograms.\label{fig:awgnReceivedSymbolsHistogram}}
+\end{figure}
+
+\figl{awgnReceivedSymbolsHistogram} shows a result obtained with the command
+\begin{lstlisting}
+ak_getErrorPDFsOfPAMWaveformSimulationInAWGN(100,8,4,0.5)
+\end{lstlisting}
+This function splits the received symbols according to the transmitted symbol, such that they can be interrelated. The simulation corresponding to \figl{awgnReceivedSymbolsHistogram} used 4-PAM with equiprobable symbols constellation $-3,-1,1,3$, which gives an average energy of 5. The shaping pulse $p[n]$ has energy equal to the oversampling factor $L=8$, such that its power is unitary (in the continuous case, $p(t)$ would have energy $\tsym$). This implies that the signal has average power of 5. The noise power was 0.5, which corresponds to 
+a SNR of approximately $10 \log_{10} (5/0.5) = 10$~dB. The number of transmitted bytes was 100, which corresponds to a total of $800 / 2 = 400$ symbols, given that each symbol represents 2 bits. In spite of using \ci{rand.m} for the distribution over the symbols, they are of course only approximately uniformly distributed. In the example, the symbol $-1$ appears more times than the others. This histogram allows to calculate the error probability $P_e$ by observing the number of symbols that crossed the boundaries of the decision regions: $[-2, 0, 2]$.
+
+The simulated confusion matrix \ci{C} for the example is indicated below:
+\begin{verbatim}
+C	=	[91    10     0     0
+     12    75     8     0
+     0     7     89     6
+     0     0      9    93]
+\end{verbatim}
+where the element \ci{C}$(m,n)$ corresponds to the number of occurrences of receiving the $n$-th symbol after transmitting the $m$-th symbol.
+The noise transformed 10 symbols ``$-3$'' into errors (interpreted as ``$-1$''), while 12 symbols ``$-1$'' turned into ``$-3$'' and 8 into ``1''. 13 and 9 are the number of errors for symbols ``1'' and ``3'', respectively. Therefore, $P_e = (10+    20    +13+     9)/400 = 0.13$ is the estimated SER. Note the symbols ``$-3$'' and ``3'', at the extrema of the constellation, lead to less errors than ``$-1$'' and ``1'', because the latter have smaller regions due to the two neighbors. The adopted constellation uses a natural order such that the symbols $[-3,-1,1,3]$ are represented by the bits 00, 01, 10, 11. In this case, matrix \ci{C} informs that the total number of bit errors is $10+12+2\times8+2\times7+6+9=67$ and the BER can be estimated as $P_b=67/800=0.08375$. Gray coding could reduce the BER to $P_b=(10+12+8+7+6+9)/800=0.065$, achieving $P_b = P_e/b$,
+which is the minimum BER for a given SER.
+%\eApplication
+
+The next section aims at providing a gentle reasoning for the fact that after an AWGN channel, the PDF of the received symbol is a mixture of Gaussians positioned at the transmitted symbols.
+
+\subsection{Probability distribution of received signal at AWGN output}
+
+It is a convenient moment to practice modeling the statistics of the received symbols at the discrete-time AWGN output.
+Assume that, as in 
+Section~\ref{sec:simplePAMsimul}, the 4-PAM symbols are $-3,-1,1,3$ and 
+the AWGN noise is a random variable $\rvn$ with zero mean and power equal to its variance $\sigma^2 = 0.5$, so its amplitude has a RMS value of $\sigma = \sqrt{0.5}$.
+
+For example, when symbol $m=-3$ is transmitted, the receiver observes a random amplitude $\rvr=m+\rvn$ that has the same PDF of $\rvn$ but with the mean shifted by $m$. Another way of looking at this result is recalling that the PDF of a sum of two independent random variables is the convolution of the input PDFs. The transmitted symbols compose a discrete random variable with a given PMF, which can be represented as a PDF via impulses located at the constellation points. The noise PDF is Gaussian and the convolution of the two PDFs generate a mixture of $M$ Gaussians, each one centered at the respective constellation symbol.
+
+In this example and when symbol $m=-3$ is transmitted, an error occurs whenever $\rvn > 1$. Because there are no constellation symbols smaller than $-3$, i.\,e. $-3$ is an ``external'' symbol with only one neighbor at its right (while $-1$ and $1$ are ``internal'' symbols with two neighbors each). Hence, any noise value $\rvn < 1$ does not cause errors when $-3$ is the transmitted symbol. For example, even if the noise is $-12$, the received symbol would still be interpreted as $-3$. Hence, the probability $P(\rvn > 1)$ of this error event is given by the Q function (see, Section~\ref{sec:qfunction}), i.\,e., $P(\rvn > 1)=Q(1/\sqrt{0.5})\approx 0.079$. 
+
+\begin{figure}[htbp]
+\centering
+%\includegraphics[width=\figwidth,keepaspectratio]{Figures/noiseReceivedGaussians}
+\includegraphics[width=\figwidth,keepaspectratio]{FiguresNonScript/noiseReceivedGaussiansColored}
+\caption[{PDFs of the noise $\rvn$ with zero mean and variance $\sigma^2 = 0.5$ and received symbol $\rvr=m+\rvn$ when symbol $m=-3$ is transmitted.}]{PDFs of the noise $\rvn$ with zero mean and variance $\sigma^2 = 0.5$ and received symbol $\rvr=m+\rvn$ when symbol $m=-3$ is transmitted. The PDF of $\rvr$ is a shifted version of the $\rvn$ PDF. \label{fig:noiseReceivedGaussiansColored}}
+\end{figure}
+
+Recall that $Q(z)$ corresponds to the area under the tail of a \emph{standard normal}\footnote{A normalized Gaussian with zero mean and unitary variance.} in the range $[z, \infty[$. When one wants to use $Q(z)$ for a non-normalized Gaussian with mean $\mu$ and variance $\sigma^2$ to get the area on the interval $[x, \infty[$, it is necessary to normalize $x$ before invoking the function. In other words, when the received sample $\rvr$ is distributed according to a Gaussian $\calN(\rvr|\mu,\sigma)$,
+\[
+P(\rvr > x) = Q\left( \frac{x - \mu}{\sigma}\right).
+\]
+In the previous example, $\mu=-3$ and the decision threshold is $x=-2$, such that the error parcel has probability $P(\rvr > x) = Q\left( \frac{-2 - (-3)}{\sqrt{0.5}}\right).$ Note that it is equivalent to calculating the tail of either $\rvn$ or $\rvr$ PDFs given that the decision threshold $x$ (for the range $[x,\infty]$) is properly chosen. In the example, $P(\rvr > -2) = P(\rvn > 1)$ because $\rvr = -3 + \rvn$. \figl{noiseReceivedGaussiansColored} illustrates the concept using the red-colored area.
+
+The calculated $P(\rvn > 1)=Q(1/\sqrt{0.5})$ is conditioned on the transmission of symbol $m=-3$ and will be represented as the probability of error given that $m=-3$ was transmitted $P(e|m=-3)$. The SER can be calculated as 
+\[
+P_e = \sum_{m \in \calM} P(e,m) 
+\]
+and, because the events of sending distinct symbols are disjunct (cannot occur simultaneously):
+\begin{equation}
+P_e = \sum_{m \in \calM} P(e,m) = \sum_{m \in \calM} P(m) P(e|m),
+\label{eq:pe}
+\end{equation}
+where $P(m)$ is the symbol \emph{a priori} probability.
+
+The previous example assumed an external symbol $m=-3$ and concluded that $P(e|m=-3)=P(\rvr > -2)=Q(1/\sigma)$. 
+It is informative to calculate $P(e|m=3)$, corresponding to the other external symbol $m=3$. 
+
+Note that 
+$P(e|m=3) = P(\rvr < 2)$ and a key point is to notice that 
+the normalization $Q\left( \frac{x - \mu}{\sigma}\right)$ cannot be directly applied when one wants to get the area over the interval $]-\infty,x]$, i.\,e., the left tail. For this example, trying to calculate $Q(\frac{2-3} {\sigma})$ as the value of $P(\rvr < 2)$ would be wrong! Knowing that $Q$ provides the area over the right tail $[x,\infty[$ and the total area is 1, one can write 
+%AK-IMPROVE ser mais cuidadoso com o Q function sendo P( x > )  ou P( x >= )
+\[
+P(\rvr \le 2) = 1-P(\rvr > 2) = 1-Q \left( \frac{2-3} {\sigma} \right) = 1-Q \left(\frac{-1} {\sigma} \right).
+\]
+Using \equl{qfunctionSymmetry} and taking in account that the symmetry is with respect to the mean $\mu=3$, one can rewrite $P(\rvr < 2) = 1-Q(\frac{2-3} {\sigma}) = Q(\frac{4-3} {\sigma}) = Q(1/\sigma)$.
+
+Both external symbols $m=-3$ and 3 led to $P(e|m)=Q(1/\sigma)$. Now, consider when the internal symbol $m=-1$ is transmitted. In this case, there is an error when $\rvn>1$ or $\rvn<-1$, such that $P(e|m=-1) = P\left( (\rvn>1) \cup (\rvn<-1) \right) = 2Q(1/\sigma)$. Similarly, $P(e|m=1)=2Q(1/\sigma)$. 
+
+Therefore, for this 4-PAM example with $\sigma=\sqrt{0.5}$, the SER is given by
+\begin{eqnarray*}
+P_e & = & P(m=-3)P(e|m=-3)+P(m=-1)P(e|m=-1)+ \\
+& & P(m=1)P(e|m=1)+ P(m=3)P(e|m=3) \\
+& = & \frac{1}{4} Q(1/\sigma) + \frac{1}{4} 2Q(1/\sigma) + \frac{1}{4} 2Q(1/\sigma) + \frac{1}{4} Q(1/\sigma) \\
+& = & \frac{3Q(1/\sigma)}{2} = \frac{3Q(1/\sqrt{0.5})}{2} \approx 0.118.
+\end{eqnarray*}
+Because the noise with standard deviation $\sigma$ was the same for all transmitted symbols and the distance between neighbor symbols was 2, all the Gaussian tails corresponding to error events had an area given by $Q(1/\sigma)$. 
+
+The estimated SER when using 400 symbols in Section~\ref{sec:simplePAMsimul} was 0.13, slightly different than the theoretical value $1.5Q(1/\sigma)\approx 0.118$. This discrepancy should be expected, given the relatively small number (400) of symbols used in the simulation.
+
+\subsection{Using symbol-based simulations for AWGN}
+
+Note that in the case of Section~\ref{sec:simplePAMsimul}, the receiver makes a decision based on the amplitude value of a single sample.
+In fact, there is no need to use waveforms in order to estimate error probabilities in this case of a discrete-time AWGN. \codl{snip_digi_comm_SER_simulation} achieves results that are equivalent to the ones obtained with the previous simulation, such that the estimated $P_e$ is approximately the same.
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_SER\_simulation}{snip_digi_comm_SER_simulation}
+%\begin{lstlisting}
+%numberOfSymbols=400; %number of symbols to be transmitted
+%noisePower=0.5; %noise power
+%constellation=[-3 -1 1 3]; %4-PAM constellation, energy=5
+%symbolIndicesTx=floor(4*rand(1,numberOfSymbols)); %indices
+%transmittedSymbols=constellation(symbolIndicesTx+1);%symb.
+%n=sqrt(noisePower)*randn(size(transmittedSymbols)); %noise
+%receivedSymbols = transmittedSymbols + n; %add noise
+%symbolIndicesRx = pamdemod(receivedSymbols, M);%demodulate
+%SER=sum(symbolIndicesTx~=symbolIndicesRx)/numberOfSymbols
+%\end{lstlisting}
+When possible, it is beneficial to simulate at the \emph{symbol} level instead of the \emph{waveform} (or \emph{sample}) level. 
+%The next subsection presents a brief discussion about some different approaches for simulating digital communication systems.
+
+\section{Detection Theory and Probability of Error for AWGN Channels}
+
+One application of detection theory\index{Detection theory} is choosing hypotheses given a set of measurements. In our case, the problem is to choose a symbol $m \in \calM$ given the received signal. Instead of dealing with waveforms, \codl{snip_digi_comm_symbol_matched_filtering} indicated that for AWGN and matched filtering it is appropriate to use a symbol-based simulation or, equivalently, adopt a vector channel model.
+
+%not including QAM in the first discussion:
+There are three basic aspects that define the estimation of symbol error probabilities:
+\begin{enumerate}
+	\item The noise distribution (power, dynamic range, etc.) at the receiver.
+	\item The characteristics of the signal of interest at the receiver, given primarily by the transmitted constellation (position of symbols, constellation energy, probability of each symbol) and the energy of the shaping pulse.
+	\item The decision regions used by the receiver, which typically depend on the adopted criterion, such as \emph{maximum likelihood} (ML) or \emph{maximum a posteriori} (MAP).
+\end{enumerate}
+
+Because the following discussion assumes AWGN, it is sensible to also assume that a matched filter is used and adopt the notation of Section~\ref{sec:equivalentAWGNAtMFOutput}. But to simplify the expressions, it is considered unitary-energy pulses with $E_p=1$ and scalar or complex symbols (not vectors with arbitrary $N>2$ elements). This way the notation can rely on a symbol $m$ being transmitted and the receiver observing $r = m +  z$. This allows to abstract the whole process of creating a waveform via pulse shaping to transmit $m$ and recovering it at the receiver. The reader must be aware though that $r$ is obtained with a MF such that the receiver does not make the decision based on a single sample of the received signal. 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/voronoiExample}
+\caption[{Voronoi regions for a constellation with $M=6$ hypothetical symbols.}]{Voronoi regions for a constellation with $M=6$ symbols.  The plot at the right highlights the decision region corresponding to symbol $[1,1]$.\label{fig:voronoiExample}}
+\end{figure}
+
+The receiver is assumed to choose a method for making decisions. This method could be eventually arbitrarily choosing thresholds to make decisions with if/else. But in practice, the receiver follows a sound mathematical method, such as making decisions to minimize the probability of symbol error $P_e$.
+
+Given a decision method, the space where the transmitted $m$ (and received $r$) symbols rely is partitioned and each transmitted symbol $m_i$ becomes associated to a \emph{decision region} $\calR_i$. From the receiver's perspective, all points belonging to $\calR_i$ will be interpreted as $m_i$. For the sake of example, let $m_i \in \calM$ be a two-dimensional vector from the set $\calM = \{[1,1], [3,2], [-1,-2], [-2,3], [2, -1], [3, 1]\}$ as in \figl{voronoiExample}. To provide better visualization, the symbols were on purpose arbitrarily positioned instead of using constellations adopted in practice. Assume the receiver makes decisions according to the minimum Euclidean distance criterion, which is equivalent to partitioning the space into decision regions called \emph{Voronoi regions}\index{Voronoi regions} as depicted \figl{voronoiExample}. For example, all received symbols $r$ that fall in the region associated to $[1,1]$ will be interpreted as $[1,1]$.
+% and was obtained with the {\matlab}'s command \ci{voronoi}.
+
+%The AWGN vector channel considers that the Tx sends a vector $m \in \calM$ and the receiver makes a decision based on a vector $r$.
+
+The error probability $P_e$ depends on the decision regions and also on how the noise influences each symbol.
+The conditional probability of the output symbol $r$ given the input symbol $m$, $p(r|m)$ completely describes the discrete-time AWGN (in fact, any vector channel). For AWGN, all conditional distributions $p(r|m)$ are Gaussians. 
+%In a general vector channel, these distributions can be arbitrary.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthLarge,keepaspectratio]{Figures/uniformNoiseExample}
+\caption[{Conditional probabilities $p(r|m=-3) = \calU(-5,0)$ and $p(r|m=1) = \calU(-1,2)$ for a binary transmission with symbols $m \in \{-3, 1\}$.}]{Conditional probabilities $p(r|m=-3) = \calU(-5,0)$ and $p(r|m=1) = \calU(-1,2)$ for a binary transmission with symbols $m \in \{-3, 1\}$. The decision threshold (indicated by a dotted line) is $\gamma = -2$ for a) and b), and $\gamma=0$ for c). The areas in b) and c) indicate conditional error probabilities $p(e|m)$.\label{fig:uniformNoiseExample}}
+\end{figure}
+
+As an example, assume a binary transmission with symbols $m \in \{-3, 1\}$ with prior probabilities 0.9 and 0.1, respectively.  The noise is such that $p(r|m=-3) = \calU(-5,0)$ and $p(r|m=1) = \calU(-1,2)$ are uniform distributions. The conventional AWGN is not used because it is simpler to calculate the probabilities with uniform rather than Gaussians PDFs. The receiver adopts a threshold equal to $\gamma = -2$ to create two decision regions. 
+\figl{uniformNoiseExample} illustrates the example. The SER $P_e$ is given by
+\[
+P_e = p(m=-3) p(e|m=-3) + p(m=-1) p(e|m=-1),
+\]
+where $p(e|m)$ is the probability of error given that $m$ was transmitted. In this case, the noise that affects a transmitted $m=1$ is never strong enough to cause an error, and $p(e|m=1)=0$. When transmitting $m=-3$, there is a chance that the received symbol falls in the range $[-2, 0]$, which is within the decision region of symbol $m=1$ and these cases are wrongly interpreted. Hence, the $p(e|m=-3) = \int_{-2}^0 p(r|m=-3) dr = 2 \times 0.2 = 0.4$ is given by the indicated area in \figl{uniformNoiseExample} b) and 
+\[
+P_e = 0.9 \times 0.4 + 0.1 \times 0 = 0.36.
+\]
+
+The previous $P_e$ calculation assumed the receiver already had established the decision regions based on the threshold $\gamma = -2$. A pertinent question is what is the optimal threshold to minimize $P_e$? 
+\codl{snip_digi_comm_decision_regions} can help finding the optimal $\gamma$ in this very specific case.
+\lstinputlisting[caption=Brute-force method for finding optimal decision regions.,label=code:snip_digi_comm_decision_regions]{./Code/MatlabOctaveCodeSnippets/snip_digi_comm_decision_regions.m}
+%\begin{lstlisting}[caption={Brute-force method for finding the optimal decision regions.},label={}]
+%N=1000; thresholds = linspace(-2,2,N); Pe = zeros(1,N);
+%for i=1:N %loop over the defined grid of thresholds
+%    Pe1=0.2*(-thresholds(i)); Pe2=1/3*(thresholds(i)+1);
+%    if Pe1<0 Pe1=0; end %a probability cannot be negative
+%    if Pe2<0 Pe2=0; end %a probability cannot be negative
+%    Pe(i) = 0.9*Pe1+0.1*Pe2;%prob. error for thresholds(i)
+%end
+%plot(thresholds, Pe); %visualize prob. for each threshold
+%\end{lstlisting}
+Because the prior of $m=-3$ is much higher, the optimal threshold is 0 for this example, such that all transmitted symbols $m=-3$ are properly interpreted and $p(e|m=-3)=0$. The new situation with $\gamma = 0$ is indicated in \figl{uniformNoiseExample} c), with the highlighted area corresponding to $p(e|m=1)=1/3$. In this case,
+\[
+P_e = 0.9 \times 0 + 0.1 \times 1/3 = 1/30.
+\]
+In decision theory, the minimum achievable error (when using the optimal decisions) is called the \emph{Bayes error}\index{Bayes error}. In the digital communication scenario, the Bayes error is zero only when the conditional probabilities $p(r|m)$ do not overlap, which does not occur if they are Gaussians given their infinite support.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/gaussainPAMNoiseExample}
+\caption{Conditional probabilities $p(r|m)$ for a 4-PAM with symbols $m \in \{-3,-1,1,3\}$ assuming a Gaussian noise with variance $\sigma^2 = 2$.\label{fig:gaussainPAMNoiseExample}}
+\end{figure}
+
+For the AWGN case, and because in most cases the symbols are equiprobable, calculating $P_e$ via \equl{pe} can benefit from the symmetry of the problem. \figl{gaussainPAMNoiseExample} depicts $p(r|m)$ for a 4-PAM with symbols $\{-3,-1,1,3\}$ assuming a Gaussian noise with variance $\sigma^2 = 2$. In the discussion associated to \figl{noiseReceivedGaussiansColored}, $P_e = \frac{3Q(1/\sigma)}{2}$ was already obtained for this 4-PAM case with AWGN. The next paragraphs seek a general result, valid for any PAM. In some situations, as this one, it is useful to use the probability of making correct decisions $P_c$, given by $P_c = 1 - P_e$. The reason is that sometimes the conditional $p(c|m)$ are easier to calculate and $P_e$ can be derived as
+\[
+P_e = 1 - P_c = 1 - \sum_{m \in \calM} P(m) P(c|m),
+\]
+instead of using \equl{pe}.
+
+In the sequel, two criteria for defining the decision regions are presented.
+
+\section{MAP and ML Receivers for Symbol-by-Symbol Decisions}
+\label{sec:MAPandML}
+
+This section discusses two decision criteria widely adopted in communication receivers: maximum a posteriori (MAP)\index{Maximum a posteriori (MAP)} and maximum likelihood (ML)\index{Maximum likelihood (ML)}.
+Under some conditions, MAP and ML can be the optimum data detection strategy for minimizing $P_e$. For example, for the 
+AWGN channel, MAP executed in a symbol-by-symbol basis (in this case the channel is memoryless) is the optimum criterion. When the symbols are uniformly distributed, ML is equivalent to MAP and, consequently, ML is optimum for AWGN with uniform symbol priors.
+
+The discussion assumes the receiver knows all $M$ conditional PDFs $p(r|m)$ and they are the correct ones. 
+%If the PDFs are not perfectly known, other schemes could outperform 
+MAP and ML also guide the receiver in the situation where a decision must be done of a sequence of symbols. But here, for simplicity, only symbol-by-symbol decisions are discussed.
+
+When using the ML criterion, the receiver defines the decision regions by choosing:
+\[
+\hat m_\textrm{ML} = \arg \max_{m_i} p(r|m_i).
+\]
+Hence, after observing a given value $r=R$, all values $p(r=R|m_i)$ for the symbols $m_i$, $i=1,\ldots,M$, are calculated and the chosen symbol is the one that achieves the maximum $p(r=R|m_i)$. 
+
+Note that, commonly, the elements of $r$ are continuous random variables. For example, for AWGN, $r$ is distributed according to a Gaussian. Hence, $p(r=R|m)$ is not a probability but a \emph{likelihood}\index{Likelihood} (in the context of this text, the value of a continuous PDF or the PDF itself). This is the reason for the name ML criterion. ML does not take into account the prior probabilities $p(m)$, which can be important, as illustrated by the example in \figl{uniformNoiseExample}.
+
+The distinction with respect to ML is that MAP takes the priors in account and is the optimum solution in the general case of non-uniform priors.
+
+The MAP criterion seeks the maximization of the posteriori distribution $p(m|r)$:
+\begin{equation}
+\hat m_\textrm{MAP} = \arg \max_{m_i} p(m_i|r).
+\label{eq:map0}
+\end{equation}
+The posteriors $p(m_i|r)$ can be obtained via the \emph{Bayes' theorem}\index{Bayes' theorem} as in  \equl{generalBayesRule}, repeated here for convenience:
+\begin{equation*}
+p(m_i|r) = \frac{p(r|m_i)p(m_i)}{p(r)} = \frac{p(r|m_i)p(m_i)}{\sum_{j=1}^M p(m_j)p(r|m_j)}.
+\label{eq:bayestheorem}
+\end{equation*}
+Because $p(r)$ is the same normalization factor for all candidates $m_i$, \equl{map0} is equivalent to
+\begin{equation}
+\hat m_\textrm{MAP} = \arg \max_{m_i} p(r|m_i)p(m_i).
+\label{eq:map}
+\end{equation}
+\equl{map} should be compared to \equl{pe}. It is possible to prove that the decision regions imposed by the MAP criterion are optimal according to the following reasoning, which assumes $r$ is a discrete r.\,v. for simplicity.\footnote{It is also assumed that $p(m)>0, \forall m$, otherwise the effective number of symbols would be less than $M$.} 
+
+For each received $r$, if
+there is only one symbol $m_i$ for which $p(r|m_i)>0$, then $\hat m = m_i$ and $r$ does not contribute to $P_e$.
+If there are two or more symbols $m_i$ for which $p(r|m_i)>0$, then the decision will surely influence $P_e$. In order to see that, assume the symbols for which $p(r|m_i)>0$ are $m_1, m_2$ and $m_3$. Choosing $m_1$ would imply adding the parcels $p(r|m_2)p(m_2)+p(r|m_3)p(m_3)$ to $P_e$ (see \equl{pe}), while choosing $m_2$ would imply adding the parcels $p(r|m_1)p(m_1)+p(r|m_3)p(m_3)$. Therefore, choosing $\hat m = \arg \max_{m \in \calM} p(r|m)p(m)$ is the optimal decision because it minimizes the parcel that contributes to $P_e$.
+
+As mentioned, when the symbols are uniformly distributed, i.\,e., all priors $p(m)=1/M$ are the same, the ML and MAP criteria lead to the same result.
+For AWGN, all $p(r|m)$ are Gaussians with the same variance (imposed by the noise) and the symmetry derived from uniform priors reflects in having thresholds that are the same for ML and MAP and in the middle point between neighbor symbols. \figl{gaussainPAMNoiseExample} provides an example, where the ML thresholds are relatively easy to obtain as $-2,0,2$ by observation when the likelihood PDFs cross each other.
+%and, in the case of a uniform prior, are the same as the ones obtained with the MAP criterion.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/regionsForMAP}
+\caption{Conditional probabilities $p(r|m)$ and MAP thresholds. In case a) the priors are uniform but the variances of the noises added to each symbol differ while in b) the variances are the same (as in AWGN) but the priors differ.\label{fig:regionsForMAP}}
+\end{figure}
+
+To get insight, a more general case is assumed in the sequel. Assume binary modulation with symbols $m_1$ and $m_2$, where $p(r|m_1)=\calN(r|\mu_1,\sigma_1)$ and $p(r|m_2)=\calN(r|\mu_2,\sigma_2)$ with $\sigma_1 \ne \sigma_2$. The goal is to calculate the values of $r$ for which $p(m_1)p(r|m_1)=p(m_2)p(r|m_2)$ because they correspond to the threshold of the MAP decision regions:
+\begin{align*}
+p(m_1) \frac{1}{\sqrt{2 \pi} \sigma_1} e^{- \frac{(r-\mu_1)^2}{2 \sigma_1^2} } &= p(m_2) \frac{1}{\sqrt{2 \pi} \sigma_2} e^{- \frac{(r-\mu_2)^2}{2 \sigma_2^2} } \\
+\ln \left( \frac{p(m_1) \sigma_2}{p(m_2) \sigma_1} \right)&=\frac{(r-\mu_1)^2}{2 \sigma_1^2}  -\frac{(r-\mu_2)^2}{2 \sigma_2^2}
+\end{align*}
+This is a second order equation $a r^2 + b r + c = 0$ and the two thresholds are 
+$r = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$, where
+$a=\sigma_2^2 - \sigma_1^2$, $b=2(\sigma_1^2 \mu_2 - \sigma_2^2 \mu_1)$ and $c=\sigma_2^2 \mu_1^2 - \sigma_1^2 \mu_2^2 - 2 \sigma_1^2 \sigma_2^2 \ln((\sigma_2 p(m_1))/(\sigma_1 p(m_2)))$.
+
+\figl{regionsForMAP} was generated with the code \ci{ak\_MAPforTwoGaussians.m} that implements this calculation. In case a), the priors are uniform but the variances (2 and 0.4) are distinct and $p(r|m_1)=\calN(r|-1,2)$, $p(r|m_2)=\calN(r|1,0.4)$, as if the noise had distinctly affected the two symbols. Then, there are two thresholds of interest, which is always the case when $\sigma^2_1 \ne \sigma^2_2$. The MAP optimal thresholds are 0.24 and 1.93, which coincide with the ML thresholds. A receiver that uses these two thresholds to make its decisions would achieve the Bayes error (the minimum $P_e$), which in this case is $P_e=0.117$.
+In case b), the variances are the same such that $p(r|m_1)=\calN(r|-1,1)$ and $p(r|m_2)=\calN(r|1,1)$, but the threshold is not in the middle point because the priors $p(m_1)=0.8$, $p(m_2)=0.2$ differ. In this case, because $m=1$ has larger prior probability $p(m_1)=0.8$, the MAP optimal threshold is 0.69 and is biased in favor of the symbol $m_1$.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/posterioriForMAP}
+\caption[{Posteriori distributions $p(m|r)$ for the examples in \figl{regionsForMAP}.}]{Posteriori distributions $p(m|r)$ for the examples in \figl{regionsForMAP}. Note that while $p(r|m)$ are likelihoods, $p(m|r)$ are probabilities and sum up to one.\label{fig:posterioriForMAP}}
+\end{figure}
+
+\figl{posterioriForMAP} shows the posteriori distributions $p(m|r)$ for the examples in \figl{regionsForMAP}. While the MAP threshold for case b) in \figl{regionsForMAP} cannot be found visually, it is very easy to note that 0.69 is the optimal threshold via \figl{posterioriForMAP}.
+
+It should be noted that for AWGN, because the Gaussian distribution is such that the distance to the mean is inversely proportion to the probability, the thresholds obtained for the ML criterion coincide with the threshold of Voronoi regions defined by the Euclidean distances among the symbols.
+
+\section{MAP and ML Receivers for Symbol Sequences in Dispersive Channels}
+\label{sec:mapMLESequence}
+
+AK-TODO: MAP and ML Receivers for Sequences of Symbols in Dispersive Channels
+
+\section{Estimating Probability of Error for PAM}
+
+The goal of this section is to obtain an expression for the symbol error probability $P_e$ for PAM on AWGN channels using ML. The symbols are assumed to have a uniform prior distribution and the optimal MAP criterion coincides with the ML.
+
+The PAM constellation is assumed to have the same distance $d$ among the neighbor symbols and all symbols are equiprobable. \codl{pamgen} gives an example where $d=2$.
+In general, the PAM symbols are: $\pm \frac{d}{2}, \pm \frac{3d}{2}, \pm \frac{5d}{2}, \ldots, \pm \frac{(M-1)d}{2}$.
+In the case of PAM, the 2 symbols at the extrema of the constellation have only one neighbor, while the others have two. Hence, for a M-PAM with the symbols uniformly distributed with probability $P(m)=1/M, \forall m$,
+\begin{align}
+P_e &= P(e) = \sum_{m \in \calM} P(m,e) = \sum_{m \in \calM} P(m) P(e|m) \\
+&= \frac{M-2}{M} 2 Q \left(\frac{d}{2\sigma} \right) + \frac{2}{M}  Q\left( \frac{d}{2\sigma} \right) \\
+&= 2 \left(1 - \frac{1}{M} \right) Q\left( \frac{d}{2\sigma} \right),
+\label{eq:pam_pe_general}
+\end{align}
+%\begin{align*}
+%P_c &= \sum_{m \in \calM} P(m) P(c|m) \\
+%&= \frac{M-2}{M} \left( 1 - 2 Q\left( \frac{d}{2\sigma} \right) \right) + \frac{2}{M} \left( 1 - Q\left( \frac{d}{2\sigma} \right) %\right)\\
+%&= 1 - 2 \left(1 - \frac{1}{M} \right) Q\left( \frac{d}{2\sigma} \right).
+%\end{align*}
+%Thus, for PAM
+%\begin{equation}
+%P_e = 2 \left(1 - \frac{1}{M} \right) Q\left( \frac{d}{2\sigma} \right),
+%\end{equation}
+where $M=2^b$. It is useful to rewrite \equl{pam_pe_general} in terms of SNR. Assuming matched filtering with $E_p=1$, it has been shown that
+\begin{equation}
+\snr_{\textrm{nMF}} = \frac{E_c}{\sigma^2},
+\label{eq:snrnormalizedMF}
+\end{equation}
+where the subscript nMF recalls that this SNR is obtained at the output of a matched filter when the (normalized) shaping pulse has unitary energy.
+
+For PAM, $E_c$ depends only on $d$ and $M$. Hence, using \equl{pamConstellationEnergy}, 
+to express $d$ in terms of $E_c$ and $M$ leads to
+\begin{equation}
+d = \sqrt{ \frac{12 E_c}{M^2 - 1} }
+\label{eq:d_pam}
+\end{equation}
+and, for PAM, one can write
+\begin{equation}
+\frac{d}{2 \sigma} = \sqrt{\frac{3}{M^2-1} \snr_{\textrm{nMF}}},
+\label{eq:pamdistanceoversigma}
+\end{equation}
+such that for PAM:
+\begin{align}
+	P_e  &= 2 \left(1 - \frac 1 M\right) Q \left( \frac{d}{2 \sigma} \right) \label{eq:pam_pe_snr} \\
+	&=  2 \left(1 - \frac 1 M\right) Q \left( \sqrt{\frac{3}{M^2-1} \snr_{\textrm{nMF}}} \right).
+\end{align}
+Note that, for sufficiently high $M$ (say $M \ge 32$ or, equivalently, $b \ge 5$)
+\[
+P_e \approx 2 Q \left( \frac{d}{2 \sigma} \right).
+\]
+
+Estimating the bit error probability $P_b$ is more evolved and the approximation of \equl{gray_error_prob} is often adopted.
+
+\subsection{The union bound}
+% and Nearest Neighbor Union Bound}
+
+Sometimes it is not necessary to have a precise value for $P_e$ but only a bound on its maximum value in a given setup.
+
+The \emph{union bound}\index{Union bound} states that the probability of symbol error for the ML detector on AWGN with an $M$-point constellation is
+$$P_e \le (M-1) Q\left( \frac {d_\textrm{min}} {2\sigma} \right),$$
+where $d_\textrm{min}$ is the minimum distance between any pair of points of the constellation, i.e.
+$$d_\textrm{min} = \min_{i \ne j} ||m_i - m_j||, \forall i,j.$$
+
+
+%\section{PAM/QAM for the band-limited AWGN channel}
+
+\section{Estimating Probability of Error for QAM}
+
+%\subsection{QAM}
+
+The easiest QAM to analyze is the ``squared'' (SQ) $M$-QAM,\index{Symmetric SQ QAM} where the number $b=\log_2 M$ of bits is an even integer and the QAM constellation was obtained by the Cartesian product of two PAM constellations of $2^{b/2}=\sqrt{M}$ symbols each. For example, two 2-PAMs with symbols $[-1,1]$ can be used to obtain a 4-QAM with symbols $[1,j,-1,-j]$. In this case, the analysis is simplified by observing that PAM uses $D=1$ dimension while QAM uses $D=2$ dimensions, and the expressions ``per dimension'' are equivalent. For example, when using QAM, the filtered AWGN has a variance of $\sigma^2$ per dimension, such that the total noise power is $2\sigma^2$ but the noise ``per dimension'' is the same as when using a PAM.
+
+\ignore{	
+	\item The SNR is defined in page 44 of Cioffi as $\snr = \overline \ae / \sigma^2$. Because $$\overline{\ae} = \ae = \frac{d^2}{12} [M^2 -1],$$ for PAM, one can write 
+	\begin{equation}
+ \frac{d}{2 \sigma} = \sqrt{\frac{3}{M^2-1} \snr}.
+	\label{eq:pamdistanceoversigma}
+\end{equation}
+}
+
+	
+\begin{table}
+\begin{center}	
+	\caption{Expressions for PAM and SQ QAM, where the M-QAM is obtained by the Cartesian product of two $\sqrt{M}$-PAM constellations.\label{tab:pamqam}}
+\begin{tabular}{|c|c|c|}
+\hline
+& $M$-PAM & SQ $M$-QAM \\ \hline
+$\overline{\ae}$ & $\frac{d^2}{12}(M^2 -1)$ & $\frac{d^2}{12}(M -1)$ \\ \hline
+$ \frac{d}{2 \sigma}$ & $\sqrt{\frac{3}{M^2-1} \snr}$ & $\sqrt{\frac{3}{M-1} \snr}$ \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+The SQ QAM constellation has energy given by
+\[
+E_c = \frac{d^2 (M-1)}{6}
+\]
+and the energy ``per dimension'' is $\overline {E_c} = E_c / N = E_c/2$. This energy can be obtained from \equl{pamConstellationEnergy} by noting that one dimension has the energy of a $\sqrt{M}$-PAM:
+\[
+\overline{E_c} = \frac{d^2 (\sqrt{M}^2-1)}{12} = \frac{d^2 (M-1)}{12}. 
+\]
+A similar reasoning can be applied to other expressions: when a $M^2$ appears in a PAM expression, it changes to $M$ in the equivalent per dimension SQ QAM expression and a $M$ in PAM changes to $\sqrt{M}$ in the SQ QAM. \tabl{pamqam} gives two examples.
+
+Hereafter, an over line will be used to denote ``per dimension'' quantities. For example, the SER ``per dimension'' is
+\[
+\overline{P_e} = P_e / N 
+\]
+and the number of bits per symbol per dimension is
+\[
+\overline{b} = b/N.
+\]
+
+
+\ignore{
+Note that (Section 1.6.1 in page 56 of Cioff), because the PAM average energy is 
+$\overline{\ae} = \ae = \frac{d^2}{12} [M^2 -1]$
+one can write
+\begin{equation}
+\overline{b} = \log_2 M = \frac 1 2 \log_2 \left(12 \frac{\overline{\ae}}{d^2}+1 \right),
+\end{equation}
+which is valid for both PAM and SQ (squared) QAM. This expression can be derived by noting that $\overline{b}=b=\log_2(M)$ for PAM and $\overline{b}=\log_2(M)/2$ for QAM. It is important to understand that, in spite of looking like the ``capacity'' equation, this expression does not say anything about probability of error nor if this $\overline b$ is below or above capacity $\overline{c} = \frac 1 2 \log_2 \left(SNR+1 \right)$.
+%	
+	\item Probability of error expressions for PAM
+\begin{equation}
+	P_e = \overline{P}_e = 2 \left(1 - \frac 1 M\right) Q \left( \frac{d}{2 \sigma} \right) = 
+	2 \left(1 - \frac 1 M\right) Q \left( \sqrt{\frac{3}{M^2-1} \snr} \right) 
+	\label{eq:pam_pe}
+\end{equation}
+}	
+
+The exact probability of error expressions for SQ $M$-QAM is
+\begin{align*}
+P_e &= 4 \left(1 - \frac 1 {\sqrt{M}} \right) Q \left( \frac{d}{2 \sigma} \right) -	4 \left(1 - \frac 1 {\sqrt{M}}\right)^2 \left( Q \left( \frac{d}{2 \sigma} \right) \right) ^2	\\
+    &=  4 \left(1 - \frac 1 {\sqrt{M}} \right) Q \left( \sqrt{\frac{3 \snr}{M-1}} \right) -	4 \left(1 - \frac 1 {\sqrt{M}}\right)^2 Q \left( \sqrt{\frac{3 \snr}{M-1}} \right)^2
+	\label{eq:qam_pe}
+\end{align*}	
+	
+Discarding the term $Q(\cdot)^2$, which is typically very small, an approximated probability of error expression for SQ $M$-QAM is
+	 %= 2 \left(1 - \frac 1 M\right) Q \left( \sqrt{\frac{3}{M^2-1}SNR} \right)$$
+\begin{equation}
+	\overline{P}_e \le 2 \left(1 - \frac 1 { 2^{\overline{b}} } \right)	Q \left( \frac{d}{2 \sigma} \right)
+	 = 2 \left(1 - \frac 1 {2^{\overline{b}}}\right) Q \left( \sqrt{\frac{3}{M-1}SNR} \right)
+	\label{eq:qam_pe_approx}
+\end{equation}
+	 		
+Note that the expression below is exact for PAM and a good approximation for QAM:
+%You can use this expression for calculation in exams:
+	\begin{equation}
+	\overline{P}_e^{QAM} \approx P_e^{PAM} = 2 \left(1 - \frac 1 { 2^{\overline{b}} } \right)	Q \left( \frac{d}{2 \sigma} \right).
+	\label{eq:prob_errors}
+\end{equation}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthLarge]{Figures/crossConstellations}
+\caption{QAM cross constellations for $b=3, 5, 7$ and 9, from a) to d), respectively.\label{fig:crossConstellations}}
+\end{figure}
+
+The previous analysis assumed SQ QAM, where $b$ is even and the constellation has the same number of symbols at both dimensions. When $b$ is odd, the constellation is typically organized as a ``cross'' and called CR QAM. \figl{crossConstellations} illustrates four examples of CR QAM constellations.
+	
+The expressions for CR QAM (note that $D=2$) are:
+	$$\ae = 2\overline{\ae} = \frac{d^2}{6} \left( \frac {31} {32} M -1 \right)$$	
+	$$\overline{b} = \frac 1 2 \log_2 \left(\frac {32} {31} \left(12 \frac{\overline{\ae}}{d^2}+1 \right) \right)$$	
+	$$\overline{P_e} \le 2 \left(1 - \frac 1 { 2^{\overline{b}+0.5} } \right)	Q \left( \frac{d}{2 \sigma} \right)
+	 = 2 \left(1 - \frac 1 {2^{\overline{b}+0.5}}\right) Q \left( \sqrt{\frac{3}{\frac {31} {32} (M-1)}SNR} \right).$$	
+
+\subsection{Estimating probability of error for PSK}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/pskConstellations}
+\caption{Examples of PSK constellations for $b=2,3,4$ and 5 bits per symbol in a) to d), respectively.\label{fig:pskConstellations}}
+\end{figure}
+
+The PSK modulation uses $D=2$ dimensions but the information is conveyed only by the symbol phase because the symbol amplitude is constant. This is obtained by placing the constellation points with uniform angular spacing around a circle.  PSK is often used when the channel imposes a nonlinear amplitude distortion. \figl{pskConstellations} provides four example of $M$-PSK constellations.
+
+The binary PSK is called BPSK. The quaternary PSK uses $M=4$ symbols and is called QPSK. It corresponds to a QAM and its $P_e$ can be obtained from the corresponding QAM expression. 
+For a PSK other than BPSK and QPSK (i.\,e., for $M>4$), there is no simple expression for the $P_e$~\akurl{http://en.wikipedia.org/wiki/Phase-shift_keying}{5psk}.
+A relatively tight bound for PSK is
+\[
+P_e < 2 Q\left( \frac{\sqrt{E_c} \sin(\pi/M)}{\sigma}  \right).
+\]
+
+Two important facts is that translating and rotating a constellation does not change $P_e$. For example, the QAM constellations $[1,j,-1,-j]$ leads to the same $P_e$ as 
+$\frac{\sqrt{2}}{2} [1+j,-1+j,-1-j,1-j]$.
+
+
+\subsection{Statistical validity of error probability estimations}
+
+One needs to be careful when estimating the BER using a simulation that transmits bits and counts the errors at the receiver. This is called \emph{Monte Carlo}\index{Monte Carlo simulation} simulation and requires a large number of bits when the BER is small. 
+For example, when $P_e = 0.01$, an error is expected to occur at each 100 transmitted bits, but only at each 10,000 transmitted bits if $P_e = 0.0001$.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/binaryPAM_ber}
+\caption{Comparison of simulated and theoretical BER for binary PAM (the result for BPSK is  equivalent).\label{fig:binaryPAM_ber}}
+\end{figure}
+
+If there are no errors in a simulation using few bits, it does not necessarily mean that the actual BER is zero, but it may be the case that there were not enough bits in the transmitted
+signal. As a rule of thumb, 100 (or more) errors should occur in a simulation in
+order to have a robust estimate of the BER. 
+In other words, if the expected BER is $P_e$, a reasonable number of bits to be transmitted over the channel in a simulation to get a robust BER estimate is $100/P_e$.
+At a high SNR,
+this can require transmitting millions, or even billions of bits. For example, when dealing with $P_e = 10^{-7}$, the transmission of $100/P_e=10^9$ bits should be planned. The code \codl{ex_pam_ber} was used to generate \figl{binaryPAM_ber}, which illustrates the issue.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_pam\_ber}{ex_pam_ber}
+
+\codl{ex_pam_ber} used only \ci{Nbits = 1000} bits and the accuracy of the estimate became low when the SNR increased. This is expected because for $\snr=10$ dB, the theoretical BER is smaller than $0.001$ and having no errors leads to the misleading estimate of $P_e = 0$. In this case, reducing the maximum SNR or increasing the number of bits is mandatory for a robust estimate of $P_e$.
+
+\section{Comparing modulation schemes}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/pe_severalPAM}
+\caption{Comparison of $P_e$ obtained with three PAM systems as a function of $d/(2\sigma)$.\label{fig:pe_severalPAM}}
+\end{figure}
+
+It is possible to compare different PAM systems using \equl{pam_pe_general}.
+\figl{pe_severalPAM} informs $P_e$ for PAMs with $M=2,4$ and 64. For a given $d/(2\sigma)$, $P_e$ is larger when $M$ increases. 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/pe_severalPAM_SNR}
+\caption{Comparison of $P_e$ obtained with three PAM systems as a function of the SNR (in dB) for the corresponding values of $d/(2\sigma)$ in \figl{pe_severalPAM}.\label{fig:pe_severalPAM_SNR}}
+\end{figure}
+
+Note that, when $d/(2\sigma)$ is the same for different $M$, the transmitted power increases with $M$ because the constellation expands while the distances $d$ between neighboring symbols is held fixed. This implies that, for a given $P_e$, a larger SNR is required when $M$ increases. This fact is illustrated in \figl{pe_severalPAM_SNR}, which is a modified version of \figl{pe_severalPAM} that uses the SNR in the abscissa. For example, to obtain $P_e = 0.01$ the 2-PAM, 4-PAM and 64-PAM require approximately 7, 15 and 40 dB of SNR, respectively.
+
+\ignore{
+\subsubsection{$E_b / \no$}
+%AK-IMPROVE:
+\begin{lstlisting}
+clear all
+M=4;
+snrsdB=-6:20;
+snrs=10.^(0.1*(snrsdB));
+numberOfSymbols = 40000; % number of symbols to be transmitted
+constellation =[-(M-1):2:M-1]; %4-PAM constellation , energy =5
+symbolIndicesTx = floor (4* rand (1, numberOfSymbols ));% indices
+transmittedSymbols = constellation ( symbolIndicesTx +1);% symb .
+Tsym=1;
+Ts=1; Fs=1/Ts;
+Es=mean(constellation.^2)
+Ps=Es/Tsym;
+%
+for i=1:length(snrs)
+    noisePower = Ps/snrs(i); % noise power
+    % Gaussian noise :
+    n = sqrt (noisePower)* randn ( size ( transmittedSymbols ));
+    receivedSymbols = transmittedSymbols + n; % add noise
+    symbolIndicesRx = ak_pamdemod ( receivedSymbols , M);% demodulate
+    SER_emp(i) =sum ( symbolIndicesTx ~= symbolIndicesRx )/ numberOfSymbols
+    Eb=Es/log2(M)
+    N0=noisePower/(Fs/2); %WHYYYY ???
+    EbNodB = 10*log10(Eb/N0);
+    [ber, ser_the(i)] = berawgn(EbNodB,'pam',M)
+end
+Pe=2*(1-1/M)*qfunc(sqrt(3*snrs/(M^2-1)));
+semilogy(snrsdB,ser_the,snrsdB,SER_emp,'x',snrsdB,Pe);
+\end{lstlisting}
+}
+
+One should be careful when using graphs as \figl{pe_severalPAM_SNR} to compare distinct modulation schemes. There are important figures of merit in digital communications that are not taken into account in \figl{pe_severalPAM_SNR} such as the bit rate $R$ and required bandwidth BW. Therefore, it is convenient to normalize the SNR as follows:
+
+which is equivalent to
+\begin{equation}
+\frac{E_b}{\no} = \snr \frac{\BW}{R}.
+\label{eq:ebn0}
+\end{equation}
+
+For example, assuming $R=40$~kbps and $\BW=80$~kHz, an $E_b / \no=14$~dB in linear scale is approximately 25.12 and corresponds to an $\snr=25.12(40/80)=12.56$, which corresponds to approximately 11~dB.
+
+Hence, the quantity $\frac{E_b}{\no}$ can be interpreted as a normalized SNR. The BW in \equl{ebn0} is not (necessarily) the signal BW, but the BW at the receiver input.\footnote{See the discussion at \akurl{http://www.sss-mag.com/ebn0.html}{5ebn}.} When using this equation, one may not use the BW of e.\,g. a shaping pulse (e.\,g., the value of $r$ when using raised cosines). In fact, in the case of discrete-time signals, $\BW= \fs/2$, which corresponds to the whole bandwidth.
+When performing a symbol-based simulation, $\fs = \rsym$, such that
+\begin{equation}
+\frac{E_b}{\no} = \snr \frac{\BW}{R} = \snr \frac{\fs/2}{\fs b} = \frac{\snr}{2 b}
+\label{eq:ebn0_snr}
+\end{equation}
+or, equivalently, $\snr = 2b \frac{E_b}{\no}$.
+
+For example, for a polar binary PAM signal with symbols $\{-A,A\}$ ($d=2A$) and assuming the shaping pulse has unitary energy, i.\,e., $\langle p(t),p(t) \rangle =1$,  then $E_b = A^2$. With the AWGN variance $\sigma^2 = \no/2$ and using \equl{pamdistanceoversigma}, $P_e$ can be written as
+\[
+P_e = Q \left( \frac{d}{2 \sigma} \right) = Q \left( \sqrt{ \snr } \right) = Q \left( \sqrt{\frac{2 E_b}{\no}} \right).
+\]
+Note that, in this case ($b=1$), $\snr = \frac{2 E_b}{\no}$ as indicated by \equl{ebn0_snr}.
+
+It is useful to observe that $E_b$ can be estimated as the total energy $E_t$ of a signal divided by the number $N_b$ of bits in the signal. Assuming $E_t$ is the equivalent energy in Joules of a discrete-time signal $x[n]$ with $S$ samples, \equl{energy_discretetime} and $N_b = R \, S \, \ts$ leads to
+\[
+E_b = \frac{E_t}{N_b} = \frac{\ts \sum_{n=0}^{S-1}{x^2[n]}}{R \, S \, \ts} = \frac{E_d}{R \, S} = \frac{P_c}{R},
+\]
+where $P_c = E_d / S$ is the equivalent signal power in Watts (see Section~\ref{sec:cont_disc_power}).
+
+For discrete-time signals sampled at $\fs$, recall that the filtered WGN has variance
+\[
+\sigma^2 = 2 \frac{\no}{2} \BW = \frac{\no \fs}{2}
+\]
+because $\BW=\fs/2$.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/binaryPAM_ber_ebn0}
+\caption{Comparison of simulated and theoretical BER for binary PAM or BPSK using $E_b/\no$. It should be compared to \figl{binaryPAM_ber}.\label{fig:binaryPAM_ber_ebn0}}
+\end{figure}
+
+\figl{binaryPAM_ber_ebn0} was generated with code \codl{ex_pam_ber_ebn0}, which uses $E_b/\no$ and is similar to \codl{ex_pam_ber}, which uses SNR. When both $\snr$ and $E_b/\no$ are in dB, the difference is 3 dB as indicated by \equl{ebn0_snr}. \codl{ex_pam_ber_ebn0} adopted a larger number of transmitted bits because $P_e$ achieved values smaller than $10^{-5}$.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_pam\_ber\_ebn0}{ex_pam_ber_ebn0}
+
+\codl{ex_qam_ber} compares the Monte Carlo simulation of 16-QAM with the theoretical expression for $P_e$.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_qam\_ber}{ex_qam_ber}
+
+\codl{ex_qam_ber_ebn0} consists of a version of \codl{ex_qam_ber} using $E_b/\no$ instead of SNR. Note that for consistency, the SNR range used in both was the same.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_qam\_ber\_ebn0}{ex_qam_ber_ebn0}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/modulation_comparison}
+\caption{Comparison of M-QAM, M-PSK and the Shannon limit.\label{fig:modulation_comparison}}
+\end{figure}
+
+Instead of using $P_e$, it is sometimes more interesting to use $P_b$ for comparing different modulation schemes. Because analytically calculating $P_b$ is sometimes unfeasible, it is commonly assumed that Gray coding is used and $P_b = P_e / b$, i.\,e., each symbol error leads to only one bit error. Under this assumption, the following two approximations can be used:
+\[
+P_b^{\textrm{QAM}} \approx \frac{4}{b} \left(1-\frac{1}{\sqrt{M}} \right) Q\left(\sqrt{\frac{3 b \, E_b / \no}{M-1}} \right)
+\]
+and
+\[
+P_b^{\textrm{PSK}} \approx \frac{2}{b} Q\left(\sqrt{\frac{2 b \, E_b}{\no}} \sin \left( \frac{\pi}{M}\right) \right),
+\]
+for M-QAM and M-PSK, respectively. These expressions inform the amount of power required to reach a given $P_b$. It is useful to use the spectral efficiency and observe the bandwidth requirement. For a QAM
+ \begin{equation}
+ \eta_{\textrm{max}}^{\textrm{QAM}} = \frac {\rsym \, b} {\BW} =  b.
+ \label{eq:qam_max_efficiency}
+\end{equation}
+because a QAM over a (bandpass) channel of bandwidth $\BW$, can use $\rsym = \BW$ for
+zero ISI when assuming zero excess bandwidth.
+
+Hence, using \equl{qam_max_efficiency}, which is also valid for M-PSK, \codl{snip_digi_comm_modulation_compare} makes this comparison, which results in \figl{modulation_comparison}.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_modulation\_compare}{snip_digi_comm_modulation_compare}
+%\begin{lstlisting}
+%Pb=1e-6; %target bit error probability
+%b=2:2:8; %range of bits per symbol
+%M=2.^b; %number of symbols
+%qarg = Pb*b./(4*(1-1./sqrt(M))); %argument of Q^{-1}
+%gap = 1/3 * ak_qfuncinv(qarg).^2; %gap to capacity
+%EbN0_qam = gap .* (2.^b -1) ./ b; %for QAM
+%EbN0_psk = (ak_qfuncinv(qarg).^2)./(2*b.*(sin(pi./M)).^2);
+%EbN0_qam_dB = 10*log10(EbN0_qam); %in dB
+%EbN0_psk_dB = 10*log10(EbN0_psk); %in dB
+%EbN0_binary = 10*log10((ak_qfuncinv(Pb)^2)/2); %for BPSK
+%b=[1 b]; %pre-append the result for BPSK (or binary PAM)
+%EbN0_psk_dB = [EbN0_binary EbN0_psk_dB];
+%EbN0_qam_dB = [EbN0_binary EbN0_qam_dB];
+%EbN0_shannon_dB = 10*log10((2.^b -1) ./ b); %Shannon limit
+%plot(b,EbN0_qam_dB,b,EbN0_psk_dB,b,EbN0_shannon_dB);
+%\end{lstlisting}
+
+\figl{modulation_comparison} shows that, as the spectral efficiency increases, the gap between the PSK performance and the Shannon limit becomes larger. In contrast, this gap remains approximately constant for QAM. When $\eta = 2$ and 8, the QAM gaps are approximately 8.77 and 8.48 dB, respectively.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/modulation_comparison_2}
+\caption{An alternative comparison of M-QAM, M-PSK and the Shannon limit, which contains the same information as \figl{modulation_comparison}.\label{fig:modulation_comparison_2}}
+\end{figure}
+
+\figl{modulation_comparison_2} is an alternative to \figl{modulation_comparison} in which the abscissa is $1/\eta$ instead of $\eta$. The value $1/\eta$ can be interpreted as a normalized bandwidth $\BW/R$, which is $1/b$ in this case. \figl{modulation_comparison_2} illustrates the tradeoff between transmitted power and bandwidth. For a given $P_b$, when $b$ increases, less bandwidth is required at the expense of a larger signal power.
+
+%Show that both baseband and passband are equivalent
+
+%Probe further
+
+\section{The Gap Approximation}
+\label{sec:gap_approximation}
+
+The next sections discuss the so-called gap approximation applied to PAM and QAM.
+
+\subsection{The PAM 6-dB rule: each extra bit requires 6 dB}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/rule6dbPAM}
+\caption{a) Graph of \equl{pambits} for $\sigma^2=2$ and $d=1$. b) Corresponding $P_e$.\label{fig:rule6dbPAM}}
+\end{figure}
+
+An interesting relation obtained from \equl{d_pam} is
+\begin{equation}
+b = \log_2 M = \log_2 \left( \sqrt{ 12 \frac{E_c}{d^2}+1 } \right) = \frac 1 2 \log_2 \left(  12 \frac{\snr \sigma^2}{d^2}+1  \right).
+\label{eq:pambits}
+\end{equation}			 			
+\figl{rule6dbPAM} a) presents a graph of \equl{pambits} when varying $\snr$ for $\sigma^2=2$ and $d=1$. It indicates that, when $b$ is sufficiently high, each additional bit (from 4 to 5 bits, for example) requires an increase of 6~dB in SNR if one desires to maintain the $P_e$. Another way of observing this fact is to assume that $12 \frac{\snr \sigma^2}{d^2} \gg 1$ and obtain
+\[
+b \approx \frac 1 2 \log_2 \left(  12 \frac{\snr \sigma^2}{d^2} \right) = 
+\frac 1 2 \log_2 \left(  \snr \right) + \textrm{cte.} = \frac 1 2 \log_2 \left(  10^{0.1\snrdb} \right) + \textrm{cte.},
+\]
+which can be expressed as $\Delta b \approx 0.1661 \, \Delta \snrdb$ or $\Delta \snrdb \approx 6.0206 \, \Delta b$.
+
+\figl{rule6dbPAM} b) indicates how $P_e$ varies with $b$, which was allowed to assume non-integer values.
+Because $\sigma^2$ and the separation $d$ among symbols is kept constant, the parcel $Q \left( d/(2 \sigma) \right)$ is constant and, in this case, approximately 0.36. Hence, $P_e$ tends to $2 \times 0.36$ as $b$ increases. 
+
+It is important to understand that, in spite of \equl{pambits} looking like the ``capacity'' equation, this expression does not say anything about probability of error nor if this number $b$ of bits is below or above the capacity $\overline C = \frac 1 2 \log_2 \left(1+\snr\right)$ (\equl{capacityDiscreteAWGN}, repeated here for convenience) of a discrete-time AWGN channel.
+
+%AK: Do not think this extra figure contributes much to understanding. So took it out. A pity :)
+\ignore{
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/rule6dbPAMHighSNR}
+\caption{a) Graph of \equl{pambits} for $\sigma^2=0.01$ and $d=1$. b) Corresponding $P_e$.\label{fig:rule6dbPAMHighSNR}}
+\end{figure}
+%
+\figl{rule6dbPAMHighSNR} is similar to \figl{rule6dbPAM} but adopts $\sigma^2=0.01$, which corresponds to
+$Q \left( d/(2 \sigma) \right)= 2.86 \times 10^{-7}$. Also, the range of SNR was expanded. The idea of \figl{rule6dbPAMHighSNR} is to show that, when operating at high SNR, the increase of 6 dB as suggested by the mentioned ``rule of thumb''\index{Six dB rule of thumb for PAM} does not imply in a significant increase of $P_e$ because $M$ is sufficiently large.
+}
+
+%AK-IMPROVE: gap approximation for uncoded PAM and QAM:
+We are interested in understanding the gap approximation for uncoded PAM and QAM:
+\begin{equation}
+\overline{b} = \frac 1 2 \log_2 \left(1 + \frac{\snr}{\Gamma} \right).
+\label{eq:gap_both_pam_qam}
+\end{equation}
+
+This approximation is widely used and the reason is the following task: say one has an estimated SNR (or, equivalently, $\ae$ and $\sigma^2$) and wishes to find $b$ to operate at a given $P_e$. 
+In other words, some function $b = f(P_e, \snr)$ is needed. 
+
+In this situation, one does not know $b$, $M$ or $d_{min}$ that allows to achieve the target $P_e$. Hence, \equl{pambits} cannot be used. The capacity 
+\[
+\overline{c} = \frac 1 2 \log_2 \left(1 + \snr \right)
+\]
+only tells the theoretical (assuming the possibility of infinite delay and complexity) maximum value of $\overline b$, but does not indicate the probability of error when using an uncoded PAM and QAM (or any other code).
+However, one can use expressions for $P_e$ that take into account SNR and $b$. In the following paragraph, PAM is assumed, but a similar reasoning applies to QAM.
+
+For PAM, one has
+	$$P_e = 2 \left(1 - \frac 1 M\right) Q \left( \sqrt{\frac{3}{M^2-1} \snr}  \right).$$
+However, because $M$ (and, equivalently, $b=\log_2 M$) cannot be expressed in closed form, 
+it is not possible to find an ``inverse'' $b = f(P_e, \snr)$.
+Two alternatives are to plot the expression for $P_e$ or even find $M$ numerically. More commonly, one adopts the ``gap approximation'' that (in this case) consists in ignoring the term $(2/M) Q \left( \sqrt{\frac{3}{M^2-1} \snr}  \right)$ and adopt: %because it is close to zero when $M$ is large enough. 
+\begin{equation}
+{P}_e \approx \hat P_e = 2 Q \left( \sqrt{\frac{3}{M^2-1}\snr}  \right).
+\label{eq:pe_pam_gap}
+\end{equation}
+
+\figl{pamgap} illustrates the approximation for $\snr=10$~dB, where it can be seen how the discarded term $P_e - \hat P_e = (2/M) Q \left( \sqrt{\frac{3}{M^2-1} \snr}  \right)$ varies with $b$.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/pamgap}
+\caption{Comparison between the symbol error probability $P_e$ and the estimate $\hat P_e$ using the gap approximation for PAM with $\snr = 10$~dB.\label{fig:pamgap}}
+\end{figure}
+
+\figl{pamgapHighSNR} is similar to \figl{pamgap} but adopts $\snr=30$~dB. Note that the gap approximation improves when the SNR increases.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/pamgapHighSNR}
+\caption{Comparison between the symbol error probability $P_e$ and the estimate $\hat P_e$ using the gap approximation for PAM with $\snr = 30$~dB.\label{fig:pamgapHighSNR}}
+\end{figure}
+
+Assuming the gap approximation of \equl{pe_pam_gap}, to find $M$ that corresponds to the desired $P_e$, one can now simply isolate $M$:
+	$$Q^{-1} \left( \frac {{P}_e}  2 \right) \approx \sqrt{\frac{3}{M^2-1}\snr} $$
+	$$M = 2^{{b}} \approx \sqrt{ 1 + \frac {3} {\left[ Q^{-1} \left( \frac {{P}_e}  2 \right) \right]^2} \snr}$$
+	and write
+	$${b} = \frac 1 2 \log_2 \left(1 + \frac{\snr}{\Gamma} \right),$$
+	where
+\begin{equation}
+\Gamma_{\textrm{PAM}} = \frac 1 3 \left[ Q^{-1} \left( \frac {{P}_e}  2 \right) \right]^2
+\label{eq:gap_pam}
+\end{equation}		
+is the gap for PAM in linear scale.
+
+\subsection{The QAM 3-dB rule: each extra bit requires 3 dB}
+
+An expression can be derived for the number of bits per dimension of a SQ QAM:
+\[
+\overline b = \frac 1 2 \log_2 \left(  \frac{12 \overline{E_c} }{d^2}+1  \right).
+\]
+In this case, $D=2$, and $b=2 \overline b$ such that $\Delta \snrdb \approx 3.0103 \, \Delta b$ for QAM.
+This expression is similar to \equl{pambits}.
+
+For square QAM, one has
+\begin{equation}
+P_e = 4 \left( 1 - \frac 1 {\sqrt{M}} \right) Q \left( \sqrt{\frac{3}{M-1} \snr} \right) - 4 \left(1 - \frac 1 {\sqrt{M}} \right)^2 Q \left( \sqrt{\frac{3}{M-1} \snr} \right)^2.
+\label{eq:pe_qam}
+\end{equation}
+In this case, the gap approximation is based on the assumption that
+\begin{equation}
+P_e \approx 4  Q \left( \sqrt{\frac{3}{M-1}\snr}  \right),
+\label{eq:pe_qam_gap}
+\end{equation}
+%and one has $M$ instead of $M^2$. But, in this case, $\overline b = b/2$ and one ends up with the same expression for the PAM gap.
+which allows to write
+$$
+M = 1 + \frac{3 \snr}{[Q^{-1}(P_e/4)]^2}
+$$
+and, alternatively
+$$
+b = \log_2 \left(1 + \frac{\snr}{\Gamma} \right),
+$$
+where
+\begin{equation}
+\Gamma_{\textrm{QAM}} = \frac{1}{3} \left[ Q^{-1} \left( \frac {{P}_e}  4 \right) \right]^2
+\label{eq:gap_qam}
+\end{equation}		
+is the gap for square QAM.
+
+In summary, the actual supportable bit rate at a given error rate for uncoded QAM and PAM is given by the channel capacity for a modified SNR, which is the ``capacity'' SNR divided by the so-called SNR gap. The notion of a ``gap'' is more appropriate when the SNR is given in dB, since the SNR gap is then a fixed additive term for
+a given error rate:
+\[
+10 \log_{10} \left( \frac{\snr}{\Gamma} \right) = \snrdb - \Gamma_\dB.
+\]
+Note from \equl{gap_pam} and \equl{gap_qam} that the gap is independent of the number of
+bits $b$, (and so independent of $M$ for $M$-QAM). It purely depends on
+the error rate.
+
+\codl{snip_digi_comm_pam_qam_gaps} was used to obtain \tabl{pam_qam_gaps}.
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_pam\_qam\_gaps}{snip_digi_comm_pam_qam_gaps}
+%\begin{lstlisting}
+%Pe = [2e-5 1e-5 2e-6 1e-6 2e-7 1e-7 2e-8 1e-8 2e-9 1e-9];
+%argQ_qam = qfuncinv(Pe/4); %QAM
+%gap_linear_qam = (argQ_qam.^2)/3;
+%gap_db_qam = 10*log10(gap_linear_qam);
+%argQ_pam = qfuncinv(Pe/2); %PAM
+%gap_linear_pam = (argQ_pam.^2)/3;
+%gap_db_pam = 10*log10(gap_linear_pam);
+%\end{lstlisting}
+
+\begin{table}
+\centering
+\caption{Gaps in linear and dB scales for PAM and square QAM for a symbol error rate $P_e$.\label{tab:pam_qam_gaps}}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+& \multicolumn{2}{|c|}{QAM} & \multicolumn{2}{|c|}{PAM} \\ \hline
+$P_e$ & $\Gamma$ & $\Gamma_\dB$ & $\Gamma$ & $\Gamma_\dB$  \\ \hline
+$2 \times 10^{-5}$ & 6.5038 & 8.1317 & 6.0631 & 7.8269 \\ \hline 
+$10^{-5}$ & 6.9458 & 8.4172 & 6.5038 & 8.1317 \\ \hline 
+$2 \times 10^{-6}$ & 7.976 & 9.0179 & 7.5317 & 8.7689 \\ \hline 
+$10^{-6}$ & 8.4213 & 9.2538 & 7.976 & 9.0179 \\ \hline 
+$2 \times 10^{-7}$ & 9.458 & 9.758 & 9.011 & 9.5477 \\ \hline 
+$10^{-7}$ & 9.9056 & 9.9588 & 9.458 & 9.758 \\ \hline 
+$2 \times 10^{-8}$ & 10.9471 & 10.393 & 10.4982 & 10.2111 \\ \hline 
+$10^{-8}$ & 11.3965 & 10.5677 & 10.9471 & 10.393 \\ \hline 
+$2 \times 10^{-9}$ & 12.4416 & 10.9488 & 11.9912 & 10.7886 \\ \hline 
+$10^{-9}$ & 12.8924 & 11.1033 & 12.4416 & 10.9488 \\ \hline 
+\end{tabular}
+\end{table}
+
+%For example $\Gamma = 9.8$ dB for all $M$-QAM operating at symbol error rate $P_e = 10^{-7}$.
+
+For example, assume a QAM that operates with $\snr = 20$~dB ($100$ in linear scale) and must have a symbol error rate $P_e = 2 \times 10^{-6}$. According to \tabl{pam_qam_gaps}, in this case the gap is $\Gamma = 7.976$, which leads to
+\[
+b = \log_2 \left( 1 + \frac{\snr}{\Gamma}  \right) = \log_2 \left( 1 + \frac{100}{7.976}  \right)  \approx 3.6865.
+\]
+Using \equl{pe_qam_gap}, one obtains $P_e \approx 2 \times 10^{-6}$ as desired. Recalling that the quantities per dimension for QAM are $\overline P_e = P_e / 2$ and $\overline b = b / 2$, the same project can be done evaluating a PAM for each dimension. In this case, $\overline P_e = 10^{-6}$ and, for PAM, $\Gamma = 7.976$, such that:
+\[
+\overline b = 0.5 \log_2 \left( 1 + \frac{\snr}{\Gamma}  \right) = 0.5 \log_2 \left( 1 + \frac{100}{7.976} \right) \approx 1.8795
+\]
+and, using \equl{pe_pam_gap}, $\overline P_e = 10^{-6}$.
+This corresponds to $b = 2 \overline b = 3.6865$ bits and $P_e = 2 \times 10^{-6}$, as expected.
+Therefore, \equl{gap_both_pam_qam} is valid for both PAM and squared QAM.
+
+\figl{qamgap} 
+%and \figl{pamgap} were 
+was obtained with SNR = 10 dB for QAM. The abscissa informs the $P_e$ that was specified and the ``correct'' graph corresponds to $b$ using  \equl{pe_qam} while the other graph uses \equl{gap_qam} to calculate $\Gamma$ and then $\hat b$ using \equl{gap_both_pam_qam}. It can be noticed that the number $\hat b$ of bits to achieve the specified $P_e$ is underestimated by the gap approximation ($\hat b < b)$ . 
+
+%The SNR gap is a good approximation when $P_e$ is relatively small, what happens when the SNR is high enough or the number of bits small. In order to emphasize discrepancies, the values of $P_e$ are relatively high in \figl{qamgap}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/qamgap}
+\caption{QAM gap approximation for SNR = 10 dB: comparing the error with respect to the number of bits.\label{fig:qamgap}}
+\end{figure}
+
+\figl{qamgap} assumes that given $\snr$ and $P_e$, the gap approximation is evaluated by comparing the number of bits. 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/gap2}
+\caption{QAM gap approximation for SNR = 5 dB: comparing the error with respect to the number of bits.\label{fig:gap2}}
+\end{figure}
+
+A similar procedure to \figl{qamgap} was adopted to generate \figl{gap2} but, in this case, the SNR was decreased to $\snr = 5$ dB. The impact on the accuracy of the gap approximation can be noticed when the SNR decreases, especially for high $P_e$.
+
+\ignore{
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/pamgap}
+\caption{PAM gap approximation.\label{fig:pamgap}}
+\end{figure}
+%
+\figl{gap2} adopted $P_e = 10^{-5}$ and a search for the best value.
+%
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{FiguresNonScript/gap2}
+\caption{.\label{fig:gap2}}
+\end{figure}
+}
+%DA INTERNET:
+
+%. Below 10 dB, it starts to break down.
+
+\section{Comments and Further Reading}
+
+A proof of the union bound and other bounds can be found at John Cioffi's material, available at Stanford's web site \akurl{http://www.stanford.edu/group/cioffi/}{5cln}.
+
+%Some references about the gap approximation are~\cite{Forney91,Garcya-Armada06,Cioffi95,gap-discussion05}.
+Some references about the gap approximation are~\cite{Forney91,Garcya-Armada06}.
+
+\section{Review Exercises}
+
+\begin{exercises}
+\item Using the definition of conditional probability, prove the Bayes' rule.
+
+\item \textbf{Bayes rule}.
+A person is diagnosed with ``positive'' for a mortal disease.
+However, the diagnostic is correct only with the following probabilities: in 90\% of the cases when the disease is present, i.\,e.,
+P(diagnostic= ``positive'' / disease = ``true'')=0.9 and 80\% when there is no disease: 
+P(diagnostic= ``negative'' / disease = ``false'')=0.8. Hence, the false-negative probability is 10\% and the false-positive is 20\%. Suppose the disease appears in 2 for each group of 100 people. What is the probability of actually having the disease given a positive diagostic?
+
+\item \textbf{MLE for Gaussian parameters}. Assume $N$ independent and identically-distributed (iid) examples $x[n],n=1,\ldots,N$ should be fitted to a Gaussian distribution. Prove that the \emph{maximum likelihood estimation} (MLE) for the mean $\mu$ is 
+$\hat\mu = \frac{1}{N}\sum_{n=1}^{N}x[n]$.
+You do not need to calculate, but check the steps for proving the MLE for the variance
+$
+\hat\sigma^2 = \frac{1}{N}\sum_{n=1}^{N}(x[n] - \mu)^2.
+$
+
+\end{exercises}
+
+\section{Exercises}
+
+\begin{exercises}
+
+\item A binary polar signal is linearly generated using $\pm 1$ symbols and a shaping pulse $p(t)$ of amplitude 1 in the interval $[0, \tsym]$. Neglect ISI and assume AWGN with $\calN_0 / 2 = 10^{-3}$ W/Hz at the receiver.  A matched filter is used. Find the maximum bit rate that can be sent with a probability of bit error $P_b < 10^{-3}$.
+
+\item A binary PSK system uses coherent demodulation based on correlators and operates at 100 kbps. The noise at the receiver is AWGN with PSD $\calN_0 / 2=2.5 \times 10^{-7}$ W/Hz. The channel attenuates the signal amplitude by 75\% (25\% of the transmitted amplitude reaches the receiver). 
+The carrier amplitude at the transmitter is 3 Volts and its frequency is 800 kHz. a) Determine the required channel bandwidth if the transmitted signal is based on an ideal Nyquist pulse (``zero roll-off''). Also informe the maximum inferior and minimum superior channel cuttof frequencies. b) Determine the BER for the received signal. c) Suppose that you want to improve the BER by increasing the transmitted signal power, what is the minimum power for a BER less or equal to $10^{-7}$?
+
+\item A BER of $P_b=10^{-3}$ is required for a system with a rate of 100 kbps operating on an AWGN channel using M-QAM with coherent detection. The system bandwidth is 50 kHz. Assume that the used shaping pulse is a unity-energy raised cosine with roll-off $r=1$ and a Gray code is used to map symbols into bits. a) What is the minimum value of $E_b / \no$ to achieve the specified BER? b) What is the value of $E_s / \no$ under this condition ($E_s$ is the symbol energy)?
+
+\item Compare the implementation in \codl{snip_digi_comm_matched_filtering} with \codl{snip_digi_comm_symbol_matched_filtering}. Check whether or not they lead to the same SER for a significant range of SNR, and estimate the number of arithmetic operations that are saved when using the latter.
+
+%AK-IMPROVE. Study more: %\item \emph{Open problem:} Why does \figl{psdspolar} show discrepancy between the simulated and theoretical PSDs? I guess it is because when one segments the data using a rectangular window of $K$ samples, there is a factor $K$ that shows up in the denominator, as discussed in Eq. (1.447) of \cite{Benvenuto02}, page 77. But I am not sure. Would need some simulations.
+
+%\item There is one case in \ci{ak\_MAPforTwoGaussians.m} that is not implemented yet. Complete this function by computing the Bayes error that is missing.
+
+%\item Using a Monte Carlo approach (i.\,e., simulating in {\matlab}) generate the curves in Fig. 3.14 (page 135) in \cite{Sklar01}.
+
+
+\item Consider a digital communication with $M=4$ possible symbols: $m_0=-5, m_1=0, m_2=2, m_3=5$. 
+Assume the \emph{vector channel} AWGN model, where the output is $y=m+n$, with $n$ being the noise with zero mean and variance $\sigma^2$. The threshold for the decision regions used by the receiver are $-2.5, 1$ and 3.5, respectively. 
+For example, the receiver chooses $m_1$ in case $y \in [-2.5, 1[$. Find the error probability $P_e$ in both cases: a) equiprobable symbols, b) symbols with a priori probability $0.3, 0.2, 0.4$ and 0.1, respectively. c) Calculate $P_e$ for case a) assuming $\sigma = 2$ and the approximation to the Q function given in \equl{qfunctionApproximation}.
+
+\item Assume a generic (not AWGN) vector channel that sends symbols $m \in \calM = \{-5,5\}$. The conditional probability of the output vector $r$ given the input $m=-5$, $p_{r|m=-5}$ is a uniform distribution $\calU(-12,2)$ with support from $-12$ to 2, while $p_{r|m=5} = \calN(0,8)$ is a zero mean Gaussian with $\sigma=8$. Calculate the probability of symbol error assuming the decision threshold adopted by the receiver is $t=0$ (the decision is +5 if $r>t$ and $-5$ otherwise) and the a priori probabilities are $p(m=-5)=0.9$ and $p(m=5)=0.1$.
+
+\item A 4-ary digital communication system uses matched filtering and the signals in 
+\figl{homework_somesignals}, which are equiprobable.  
+a) Calculate the energy and power of each signal. b) Show whether $z_2(t)$ and $z_3(t)$ are orthogonal, orthonormal or neither. c) Find the union bound on the error probability $P_e$ if $E_b / \calN_0=9.6$~dB, where $E_b$ is the energy per bit.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{FiguresNonScript/homework_somesignals}
+\caption[{Signals of a 4-ary digital communication system.}]{Signals of a 4-ary digital communication system. The symbol period is $T_s=2$ s and $A=10$ V. ISI can be neglected and the noise at the receiver is AWGN with PSD level $\calN_0 / 2$.\label{fig:homework_somesignals}}
+\end{figure}
+
+\item Still considering  the digital communication in \figl{homework_somesignals}, draw the block diagram of an optimal receiver based on matched filtering and explain each block. Specify: a) how is the filtering done (how many filters and the impulse response of each filter including amplitude and duration), b) the synchronization and sampling (what is the rate and the sampling instants), c) the decision system (show the decision regions, etc.)
+
+\item \textbf{Vector channel}.
+A binary PSK system uses coherent demodulation and is contaminated by AWGN noise. The system is modeled as a vector channel with the matched filter output being $z=x+n$, where $n$ is distributed according to a zero-mean Gaussian with variance 2. The bits 0 and 1 are represented by $x=-5$ and $x=5$, respectively. The a priori symbol probabilities are 0.2 and 0.8, respectively. a) Assuming the transmitted bit is 0, what is the probability of $z>1$? b) What is the decision region threshold for ML detection? c) What is the threshold for MAP detection? d) Find $P_e$ assuming the ML and MAP criteria. e) Even before calculating, which criterion would you expect to lead to the smallest $P_e$?
+
+\item Consider a PAM constellation $x_0=-3, x_1=-1, x_2=1, x_3=3$ that is used in a AWGN vector channel with variance $\sigma^2$. Find a) the symbol error probability $P_e$ when using a maximum likelihood (ML) detector and the decisions thresholds; b) using the ML decisions thresholds, calculate $P_e$ given by the union bound; and c) compare the results in a) and b).
+
+\end{exercises}
+

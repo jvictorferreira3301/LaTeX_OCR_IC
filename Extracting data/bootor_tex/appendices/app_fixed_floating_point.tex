@@ -1,0 +1,246 @@
+\subsection{Representing numbers in fixed-point}
+\label{sec:fixedPoint}
+
+Both fixed and floating-point representations are capable of representing real numbers. A real number can be written as the sum of an integer part and a fractional part that is less than one and non-negative.
+
+The name ``fixed-point''\index{Fixed-point representation}  is due to the fact that the $b$ bits available to represent a number are organized as follows:
+\begin{itemize}
+	\item 1 bit representing the sign (positive or negative) of the integer part and, consequently, of the number itself
+	\item $b_i$ bits representing the integer part of the number
+	\item $b_f$ bits representing the fractional part of the number
+\end{itemize}
+such that $b=b_i+b_f+1$ bits. For simplicity, the sign bit is assumed here to be the MSB, but in practice that depends on the adopted standard and the machine endianness (see Appendix~\ref{app:endianness} for a brief explanation of big and little endian formats). 
+
+One way of thinking the ``point'' is that there is flexibility on choosing the power of 2 that is associated to the second bit, at the right of the MSB. After this design choice is made, a fictitious point separates the bits corresponding to the integer part from the fractional part bits. There is a convention of denoting the values chosen for $b_i$ and $b_f$ as Q$b_i$.$b_f$.
+
+\begin{figure}
+	\centering
+		\includegraphics[width=\figwidthSmall,keepaspectratio]{FiguresNonScript/fixedpointExample}
+	\caption[Fixed-point representation Q3.4 of the real number 5.0625. ]{Fixed-point representation Q3.4 of the real number 5.0625. The ``point'' is always after the bit corresponding to the weight $2^0$.\label{fig:fixedpointExample}}
+\end{figure}
+
+\figl{fixedpointExample} shows an example of fixed-point representation using Q3.4, for which $b_i=3$, $b_f=4$ and, consequently $b=8$. In this case, the point is located between the fourth and fifth bits. The binary codeword $x_b=01010001$ is mapped to a real number according to the position of the point:
+\[
+1 \times 2^{2} + 0 \times 2^{1} + 1 \times 2^{0} + 0 \times 2^{-1} + 0 \times 2^{-2} + 0 \times 2^{-3} + 1 \times 2^{-4} = 5.0625.
+\]
+
+It is very common to normalize the numbers to make them fit the range $[-1,1[$. In this case $b_i$ can be zero,  $b_f=b-1$ and the second bit has a weight in base-2 equals to $2^{-1}$ such that the point is between the MSB and this bit. The other bit weights are then $2^{-2}, \ldots, 2^{-b_f}$, according to their respective position.
+For example, the outputs of a quantizer with $b=2$ bits when represented in the format Q0.1 ($b_i=0$, $b_f=1$) assume four possible outputs $x_q \in \{-1, -0.5, 0, 0.5\}$.
+In general, the weight $2^{-b_f}$ of the LSB corresponds to the value of the step size, i.\,e.
+\begin{equation}
+\Delta = 2^{-b_f}.
+\label{eq:deltaAsLSB}
+\end{equation}
+
+Note that the number 5.0625 in \figl{fixedpointExample} can also be obtained by identifying that $x_b$ corresponds to $x_i=81$ and calculating $x_q = x_i \Delta = 81 \times 2^{-4} = 5.0625$.
+%AK-ENGLISH was or were http://forum.thefreedictionary.com/postst2350_As-if-it-was-were---If-I-was-were-to--.aspx
+If the point were moved to the position between the MSB and second bit, which corresponds to choosing Q0.7, the quantizer would have $\Delta = 2^{-7}$ and the same codeword $x_b=01010001$ would be mapped to $x_q=0.6328125$.
+
+In summary, when a fixed-point representation is assumed, the quantizer has step $\Delta = 2^{-b_f}$ and can output numbers in the range $[-2^{b_i}, 2^{b_i} - \Delta]$.
+Algorithm~\ref{alg:convertToFixedPoint} describes the process for representing a real number $x$ in fixed-point using Q$b_i$.$b_f$.
+
+\ignore {
+\begin{algorithmic}
+\State \textbf{Inputs:} $x$, $b_i$, $b_f$
+\State $x_i = x / \Delta$ \Comment{Equivalent to mutiplying by $1/\Delta = 2^{b_f}$}
+\If {$x_i$ is not an integer} 
+    \State Round $x_i$ to the nearest integer \Comment{Could also use \ci{floor} or \ci{ceil} if necessary}
+\EndIf
+\If {$x_i < -2^{b_i}$}
+    \State $x_i = -2^{b_i}$ \Comment{Implement \emph{saturation} for negative values}
+    \State \textbf{Output: } \emph{Warning}, saturation! Consider increasing number $b_i$ of integer bits
+\EndIf
+\If {$x_i > 2^{b_i} - \Delta$}
+    \State $x_i = 2^{b_i} - \Delta$ \Comment{Implement \emph{saturation} for positive values}
+    \State \textbf{Output: } \emph{Warning}, saturation! Consider increasing number $b_i$ of integer bits
+\EndIf
+\State $x_q = x_i \times \Delta$ \Comment{Multiply by $\Delta$ to find quantized value}
+\If {$x_i < 0$}
+		\State Obtain $x_b$ using two's complement \Comment{dd}
+\Else
+		\State Simply obtain $x_b$ as the standard-positive binary coding of $x_i$		
+\EndIf
+\State \textbf{Outputs:} $x_b$, $x_i$ and $x_q$
+\end{algorithmic}
+}
+
+\begin{algorithm}[htb]
+		\KwIn{$x$, $b_i$, $b_f$ \tcp{value to quantize, integer and fractional \# bits}}
+		\KwOut{$x_b$, $x_i$, $x_q$ \tcp{binary, integer and decoded forms of $Q\{x\}$}}    
+{
+ 	$x_i = x / \Delta$ \tcp{Equivalent to multiplying by $1/\Delta = 2^{b_f}$}
+	\If {$x_i$ is not an integer} 
+		{
+     \ci{round} $x_i$ to the nearest integer \tcp{\ci{floor} is sometimes used instead}
+     }
+
+	\If {$x_i < -2^{b_i}$}
+		{
+     $x_i = -2^{b_i}$ \tcp{Implement \emph{saturation} for negative values}
+     \textbf{Print: } \emph{Warning!} Consider increasing number $b_i$ of integer bits
+     }
+	\If {$x_i > 2^{b_i} - \Delta$}
+		{
+     $x_i = 2^{b_i} - \Delta$ \tcp{Implement \emph{saturation} for positive values}
+     \textbf{Print: } \emph{Warning!} Consider increasing number $b_i$ of integer bits
+    }
+	$x_q = x_i \times \Delta$ \tcp{Multiply by $\Delta$ to find decoded value}
+	\eIf {$x_i < 0$}
+		{
+		 Obtain $x_b$ using two's complement \tcp{with $b$ bits and sign extension}
+		}
+		{
+		 Simply obtain $x_b$ as the standard-positive binary coding of $x_i$		
+		}    
+}
+%\BlankLine
+\caption{Fixed-point conversion.\label{alg:convertToFixedPoint}}
+\end{algorithm}
+
+%Assuming two's complement, a negative number will have the MSB equal to 1 and care must be exercised when converting it to the corresponding real number or vice-versa. 
+For example, using Algorithm~\ref{alg:convertToFixedPoint} to represent $x=-7.45$ in Q3.4, the first step is to calculate $x / \Delta = -7.45 \times 2^4 = -119.2$. Then, using \ci{round} leads to $x_i=-119$, which corresponds to $x_q=-7.4375$ and $x_b=1000 1001$ in two's complement. This algorithm is the same implemented in \codl{quantizer} but explicitly outputs the binary codeword $x_b$.
+
+Choosing the point position depends on the dynamic range of the numbers that will be represented and processed. This is typically done with the help of simulations and is a challenging task due to the tradeoff between range (the larger $b_i$ the better) and precision (the larger $b_f$ the better). In sophisticated algorithms, it is typically  required to assume distinct positions for the point at different stages of the process. In such cases, using specialized tools such as Mathwork's Fixed-Point Designer~\akurl{http://www.mathworks.com/products/fixed-point-designer}{1mfi} can significantly help.
+
+\bExample \textbf{Fixed-point in Matlab and Octave}.
+Both Matlab and Octave have toolboxes for fixed-point arithmetic. But, unfortunately, they are not compatible. Matlab's Fixed-Point Toolbox is more sophisticated and better documented. If you have the Matlab's toolbox, try for example \ci{doc fi}.  
+The Matlab command for representing $x=-7.45$ as in the previous example is:
+\begin{lstlisting}
+x=-7.45;signed=1;b=8;bf=4;x_q=fi(x,signed,b,bf)
+\end{lstlisting}
+which outputs:
+\begin{verbatim}
+x_q = -7.437500000000000
+          DataTypeMode: Fixed-point: binary point scaling
+                Signed: true
+            WordLength: 8
+        FractionLength: 4
+             RoundMode: nearest
+          OverflowMode: saturate
+           ProductMode: FullPrecision
+  MaxProductWordLength: 128
+               SumMode: FullPrecision
+      MaxSumWordLength: 128
+         CastBeforeSum: true
+\end{verbatim}
+
+\bExample \textbf{Quantization example in Matlab}.
+\label{ex:quantization}
+As another example, let $x(t_0)=2804.6542$~volts be the amplitude of $x(t)$ at $t=t_0$, such that $x[n_0]=2804.6542$, where $n_0$ is the value of $n$ corresponding to $t=n_0 \ts$. The value of $x[n_0]$ quantized with $b=16$ bits and reserving $b_i=12$ bits to the integer part is $x_q[n_0]=Q\{x[n_0]\}=2804.625$, which can be obtained in Matlab with:
+\begin{lstlisting}
+format long %to better visualize numbers
+x=2804.6542; %define x
+xq=fi(x) %quantize with 16 bits and "best-precision" fraction length
+\end{lstlisting}
+When \ci{fi} is used with a single argument, it assumes a 16-bit word length and it adjusts $b_f$ 
+such that the integer part of the number can be represented (called in Matlab \emph{``best-precision'' fraction length}).
+For this example, the result is:
+\begin{verbatim}
+      xq = 2.804625000000000e+03
+      Signedness: Signed
+      WordLength: 16
+      FractionLength: 3
+\end{verbatim}
+indicating that $b_i=12$ bits are used to represent the integer part of $x$ (2084), given that $2^{11}=2048 < x < 2^{12}=4096$. Considering one bit is reserved for the sign, then $b_f = 16 - 1 - b_i = 3$ bits, which is the \ci{FractionLength}.
+\eExample
+
+Octave users have to look after the Fixed Point Toolbox for Octave.\footnote{Version 0.7.10 is relatively old (2004) and is currently not part of Octave-Forge, but there are interested users \akurl{http://octave.1599824.n4.nabble.com/Fixed-point-arithmetic-td2284793.html}{1fix}.}
+Its syntax is \ci{a = fixed(bi, bf, x)}, where \ci{a} is an object of class FixedPoint. The class field \ci{a.x} stores the value in the regular floating point format.\footnote{The command \ci{whos} allows to inspect the variable classes / types.}
+%$x_q = \calQ \{ x\}$ of \ci{x}. 
+The Octave command for representing $x=-7.45$ as in the previous example is:
+\begin{lstlisting}
+x=-7.45;bi=3;bf=4;x_q=fixed(bi,bf,x)
+\end{lstlisting}
+It should be noted that the following commands \ci{bi=0; bf=1;a=fixed(bi,bf,0.4)} output \co{a=0} because \ci{fixed} implements truncation (to 0) instead of rounding (to $\Delta=0.5$ in this case). As another example, \ci{c=fixed(bi,bf,-0.6)} outputs \co{c=-1} ($-0.6$ was truncated to $-1$). Following object-oriented programming (OOP) practice, one should be consistent when dealing with the objects. For example, \ci{a+4} returns an error message because \ci{a} is an object, not a number, and \ci{a.x+4} should be used instead. On the other hand, \ci{a+c} is a valid operation that returns $-1$ when the objects were created with the previous commands.
+\eExample 
+
+\subsection{IEEE 754 floating-point standard}
+
+Choosing the point position provides a degree of freedom for trading off range and precision in a fixed-point representation. However, there are situations in which a software needs to deal simultaneously with small and large numbers, and having distinct positions for the point all over the software is not practical or efficient. For example, if distances in both nanometers and kilometers should be manipulated with reasonable precision, the dynamic range of $10^3/10^{-9}=10^{12}$ would require $b_i > 40$ bits for the integer part or keeping track of two distinct point positions. Hence, in many cases, a \emph{floating-point} representation\index{Floating-point representation} is more adequate. 
+
+A number in floating point is represented as in scientific notation:
+\begin{equation}
+x_q = \textrm{significand} \times \textrm{base}^{\textrm{exponent}}.
+\label{eq:floatingPoint}
+\end{equation}
+For example, assuming the base is 10 for simplicity, the number $x_q=123.4567$ is interpreted as $x_q=1.234567 \times 10^{2}$, where 1.234567 is the significand and 2 the exponent. While in fixed point the $b-1$ bits available to represent a signed number are split between $b_i$ and $b_f$, in floating point the $b$ bits are split between the significand and exponent. 
+
+The key aspect of \equl{floatingPoint} is that, as the value of the exponent changes, the ``point'' has new positions and allows to play a different trade off between range and precision: the values a floating point $x_q$ can assume are not uniformly spaced. While fixed-point numbers are uniformly spaced by $\Delta = 2^{-b_f}$, which then imposes the maximum error within the range, the error magnitude in a floating point representation depends on the value of the exponent. For a given error in the significand representation, the larger the exponent, the larger the absolute error of $x_q$ with respect to the number it represents. This is a desired feature in many applications and floating point is used for example in all personal computers. The fixed point niche are embedded systems, where power consumption and cost have more stringent requirements.
+
+The IEEE 754 standard for representing numbers and performing arithmetics in floating point is adopted in almost all computing platforms. Among other features,\footnote{See, e.\,g., \akurl{https://en.wikipedia.org/wiki/Floating\_point}{1flo} for more details.} it provides support to \emph{single} and \emph{double} precision, which are typically called ``float'' and ``double'', respectively, in programming languages such as C and Java. 
+
+The wide adoption of IEEE 754 is convenient because a binary file written with a given language in a given platform can be easily read with a distinct language in another platform. In this case, the only concern is to make sure the \emph{endianness} is the same (Appendix~\ref{app:endianness}).
+The two following examples discuss numerical errors and quantization in practical 
+scenarios.
+
+\bExample \textbf{Floating point representation in {\matlab} and numerical errors}.
+Unless specified otherwise, {\matlab} uses double precision. For example, the commands \ci{clear~all;x=3;whos} generate the following output:
+\begin{verbatim}
+Variables in the current scope:
+   Attr Name        Size                     Bytes  Class
+   ==== ====        ====                     =====  =====
+        x           1x1                          8  double
+Total is 1 element using 8 bytes
+\end{verbatim}
+in Octave and equivalent information in Matlab. As indicated, numbers in double precision use $b=64$ bits while $b=32$ are used in single precision (``float''). A double allocates 11 bits to the exponent and 52 to the significand, while in float precision these numbers are 8 and 23, respectively. The sign bit is used for the significand, but the exponent can also be a positive or negative number. Hence, one can consider that one exponent bit is used to represent its own sign.
+
+The following {\matlab} code can be used to investigate the ranges for single and double precision:
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_signals\_data\_precision}{snip_signals_data_precision}
+%\begin{lstlisting}
+%str = 'Ranges for double before and after 0:\n%g to %g and %g to %g';
+%sprintf(str, -realmax, -realmin, realmin, realmax)
+%str = 'Ranges for float before and after 0:\n%g to %g and %g to %g';
+%sprintf(str,-realmax('single'),-realmin('single'), ...
+%		realmin('single'), realmax('single'))
+%\end{lstlisting}
+The output is:
+\begin{verbatim}
+ans = Ranges for double before and after 0:
+-1.79769e+308 to -2.22507e-308 and 2.22507e-308 to 1.79769e+308
+ans = Ranges for float before and after 0:
+-3.40282e+038 to -1.17549e-038 and 1.17549e-038 to 3.40282e+038
+\end{verbatim}
+From this output, it would be a mistake to consider that $\Delta = 2.22507 \times 10^{-308}$ and $1.17549 \times 10^{-038}$ for double and single precision, respectively. Recall that the floating point numbers are non-uniformly spaced.
+
+\begin{figure}
+\centering
+\includegraphics[width=\figwidthSmall]{./Figures/singleVsDoublePrecision}
+\caption[Comparison of step sizes for IEEE 754 floating points with single and double precision]{Comparison of step sizes for IEEE 754 floating points with single and double precision in the range $[-8,8]$. Note as $\Delta(x)$ increases with $|x|$.\label{fig:singleVsDoublePrecision}}
+\end{figure}
+
+Given that the step $\Delta(x)$ varies from a number $x$ to the next number $x + \Delta(x)$ in floating point, {\matlab} provides the command \ci{eps(x)} to obtain $\Delta(x)$. \figl{singleVsDoublePrecision} provides a comparison obtained with \codl{snip_signals_delta_calculation}.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_signals\_delta\_calculation}{snip_signals_delta_calculation}
+%\begin{lstlisting}
+%N=300; delta_x=zeros(1,N); x=linspace(-8,8,N); %define range
+%%use loops to be compatible with Octave. Matlab allows delta_x=eps(x)
+%for i=1:N, delta_x(i) = eps(single(x(i))); end %single precision
+%semilogy(x,delta_x); hold on
+%for i=1:N, delta_x(i) = eps(x(i)); end  %double precision
+%semilogy(x,delta_x,'r:'); legend('float','double'); grid
+%\end{lstlisting}
+
+\figl{singleVsDoublePrecision} indicates that care must be exercised especially when dealing with single precision, which is a requirement of many DSP chips, for example. Even double precision can cause strange behavior. A good example is provided by \codl{snip_signals_numerical_error}, from Mathwork's documentation~\akurl{http://www.mathworks.com/help/matlab/matlab_prog/floating-point-numbers.html}{1flm}.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_signals\_numerical\_error}{snip_signals_numerical_error}
+%\begin{lstlisting}
+%a = 0.0; %a uses double precision
+%for i = 1:20
+%  a = a + 0.1; %20 times 0.1 should be equal to 2
+%end
+%a == 2 %checking if a is 2 returns false due to numerical errors
+%\end{lstlisting}
+
+The design of algorithms that are robust to numerical errors, such as matrix inversion, is the focus of many textbooks.
+Besides trying to adopt robust algorithms, a DSP programmer needs to always be aware of the possibility of numerical errors. Taking the example of the previous code, instead of a check such as \ci{if (a==2)}, it is often better to write 
+\begin{lstlisting}
+if abs(a-2) < eps %check if a is 2 (consider numerical errors)
+\end{lstlisting}
+where \ci{eps} corresponds to \ci{eps(1)} and is the default when a better guess for the range of interest (\ci{eps(2)} in the example) is not available.
+
+It is possible to instruct {\matlab} to use single (using the function \ci{single}) or double precision (the default) as illustrated in \codl{snip_signals_single_precision}, which uses the FFT algorithm (to be discussed in Chapter~\ref{ch:transforms}) to compare the options with respect to speed.
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_signals\_single\_precision}{snip_signals_single_precision}
+Note that benchmarking is tricky and using single precision may not be faster than double precision. On a given laptop, 
+\codl{snip_signals_single_precision} executed on Matlab returned 0.073124 and 0.104728 seconds, which indicates that double precision was approximately 1.43 times slower than single precision. Executing the code on the same machine using Octave led to approximately 0.06 seconds to both double and single precision.
+\eExample 

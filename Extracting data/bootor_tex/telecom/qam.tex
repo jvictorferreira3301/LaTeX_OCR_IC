@@ -1,0 +1,859 @@
+\section{To Learn in this Chapter}
+
+There is a large number of modulation schemes described in the literature. This chapter briefly lists some of them and then prioritizes QAM (quadrature amplitude modulation). This focus on QAM is not only because of its usefulness when discussing passband signals, but also because multicarrier DMT and OFDM modulations rely on QAM to transport information.
+% at each ``subchannel''.
+
+This chapter also discusses some digital modulation schemes and key concepts regarding modulation. For example, it is important to distinguish \emph{linear and non-linear} modulation and, also, memoryless and modulation with memory.
+It is also important to know the two major symbol detection schemes: coherent (synchronous) detection or non-coherent detection. The former exploits phase reference information while the latter has a simpler receiver, but worse performance. Basically, synchronous detection requires the regeneration, at the receiver, of the carrier signal with the correct frequency and phase. This is accomplished by circuits such as the phase-locked loop (PLL), which are more complex than the circuits used for envelope detection as discussed for AM in Section~\ref{sec:amModulation}.
+
+Some of the concepts are:
+\begin{itemize}
+\item Characteristics of modulation schemes such as memory and linearity.
+\item How a QAM passband signal can transport two independent signals using the same carrier frequency but with a difference of 90 degrees in phase (e.\,g. a sine and a cosine).
+\item The generation of a QAM signal and the recovery of the corresponding symbols using coherent detection.
+\item The importance of the Hilbert transform when describing the QAM demodulation.
+\end{itemize}
+
+First, an overview of modulation schemes is provided and some of their properties discussed.
+
+%\section{Cyclostationary sampled signals and their PSDs}
+%\section{Baseband PAM transmitters}
+%\section{PAM for the noise-free and unlimited-band channel}
+
+\section{Passband Signals and the Rationale of QAM}
+
+%\section{PAM for the noise-free ideal band-limited lowpass channel}
+%\label{sec:pam-noise-free-bw}
+
+%\section{QAM for the noise-free ideal band-limited passband channel}
+
+In many communication systems, upconversion is used to translate the baseband signal to a higher frequency. This is used, for example, to decrease the antenna size as indicated in
+\equl{antenna}. Another reason is to share the channel via frequency division multiplexing (FDM), where each system has its own range of frequencies to operate.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/passband_signal_creation}
+\caption{From top to bottom: PSD of the original WGN, PSD of the baseband signal after filtering and the PSD after upconversion by a carrier of 5 MHz.\label{fig:passband_signal_creation}}
+\end{figure}
+
+\codl{snip_digi_comm_passband_signal} illustrates the generation of three random signals that are shaped by a FIR filter to have a bandwidth of 200~kHz. Each signal is then multiplied by carriers of frequencies 3, 5 and 8~MHz. \figl{passband_signal_creation} illustrates this process considering one of the signals, where the two data cursors at approximately 3~MHz indicate that the PSD has symmetry because the signal is real.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_passband\_signal}{snip_digi_comm_passband_signal}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/three_passband_signals}
+\caption{The complete FDM signal with three channels of approximately 200~kHz.\label{fig:three_passband_signals}}
+\end{figure}
+
+\figl{three_passband_signals} shows the complete FDM signal with three channels of 200 kHz. Each individual baseband signal could then be (approximately) recovered via downconversion and filtering. However, note that the upconversion doubled the bandwidths, as discussed for AM in Section~\ref{sec:amModulation}. 
+
+As indicated in the last lines of \codl{snip_digi_comm_passband_signal}, the PSD depicted in \figl{three_passband_signals} was obtained with the \ci{pwelch} function using the \ci{'twosided'} option and specifying $\fs=20$~MHz. In this case, by default, the output graph of \ci{pwelch} has abscissa from 0 to $\fs$~Hz. The \ci{fftshift} function was used to have the abscissa from $-\fs/2$ to $\fs/2$. A similar procedure was used in \figl{passband_signal_creation}.
+
+The spectral efficiency for baseband PAM is defined as
+\begin{equation}
+\eta \defeq \frac {R} {\BW}
+\label{eq:spectral_efficiency}
+\end{equation}
+and is useful for comparing communication systems. 
+
+The baseband signals have a bandwidth of $\BW=100$~kHz, while the respective passband signals have $\BW=200$~kHz. Assuming the baseband signal was a PAM with 
+%a raised-cosine with $r=0.6$ and 
+$b=3$ bits per symbol and $\rsym = 125$ kbauds, then $R=375$ kbps. In this case, the \emph{spectral efficiency}\index{Spectral efficiency} of the baseband signal is $\eta=375$k$/100$k$=3.75$ bits/s/Hz. For the specific example being discussed, the upconversion generates a \emph{double-sideband} (DSB) passband PAM with $\eta=375k/200k=1.875$, which is half of the efficiency of the baseband signal. 
+
+Halving the spectral efficiency of PAM is a disadvantage of upconversion. It can be noted that the passband DSB-PAM has redundancy because the original baseband signal had Hermitian symmetry in its spectrum. An alternative to combat the decrease in $\eta$ and eliminate the redundancy is to use \emph{single-sideband} (SSB) PAM instead of the DSB. Another alternative, which is more popular because it is simpler than SSB-PAM, is to use passband QAM. While SSB-PAM tries to reduce the bandwidth, the passband QAM uses twice the baseband bandwidth but transmits two independent signals, potentially doubling the bit rate. Passband QAM is discussed in the sequel.
+
+\section{QAM Represented with Real-Valued Signals}
+
+The QAM signal\index{Quadrature amplitude modulation (QAM)} is obtained by simultaneously using a cosine of frequency $f_c$ to upconvert a PAM and a sine of the same frequency $f_c$ to upconvert another PAM. In spite of these two passband PAM being superimposed (overlapping) in frequency, they can be individually recovered at the receiver.
+% because a sine and a cosine of the same frequency are orthogonal.
+The details of QAM generation are described in the sequel.
+
+%\subsection{QAM generation using only real-valued signals}
+
+Using the same method of PAM generation from a single bitstream, one can create two PAM signals by splitting the original bitstream with rate $2 R$ into two, with rate $R$ each. Assuming continuous-time signals, these bitstreams are represented by PAM signals $x_i(t)$ and $x_q(t)$, which are then multiplied by a cosine and sine, respectively, to create the QAM signal
+\begin{equation}
+x_{\textrm{QAM}}(t) = x_i(t) \cos(\aw_c t) + x_q(t) \sin(\aw_c t).
+\label{eq:qam}
+\end{equation}
+
+Assuming the cosine as a reference, the sine is obtained by delaying it of 90 degrees, i.\,e., using the fact that $\sin(\theta)=\cos(\theta-\pi/2)$. Hence, $x_i(t)$ and $x_q(t)$ are called the \emph{in-phase} (I) and \emph{quadrature} (Q) \emph{components} of a QAM signal, respectively.
+\figl{qamGeneration} illustrates a possible QAM generation procedure.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/qamGeneration}		
+	\caption{QAM modulation where the PLL and VCO generate the carrier for the I component and, from this signal, the 90 degrees phase shifter creates the carrier for the Q component.\label{fig:qamGeneration}}
+\end{figure}
+
+%AK Proakis, chap. 4 treats complex envelope, Hilbert, etc.
+
+%\subsection{QAM demodulation using only real-valued signals}
+
+Trigonometry gives a hint on how the two PAM signals that compose a QAM signal can be recovered at the receiver. Multiplying $x_{\textrm{QAM}}(t)$ of \equl{qam2} by $\cos(\aw_c t)$ and filtering, allows to recover $x_i(t)$, while multiplying $x_{\textrm{QAM}}(t)$ by $\sin(\aw_c t)$ and filtering, allows to recover $x_q(t)$.
+The multiplication creates a version of the desired PAM component at DC (downconverts it back to baseband) and two signals at twice the carrier frequency, as follows (see \equl{cos2a} and \equl{sin2a}):
+\begin{eqnarray}
+x_{\textrm{QAM}}(t) \cos(\aw_c t) & = & x_i(t) \cos^2(\aw_c t) - x_q(t) \sin(\aw_c t)  \cos(\aw_c t) \nonumber \\
+& = & \frac{1}{2} \left[ x_i(t)(1+\cos(2\aw_c t)) - x_q(t) \sin(2\aw_c t) \right] \nonumber \\
+& = & \frac{x_i(t)}{2} + \frac{1}{2} \left[ x_i(t)\cos(2\aw_c t) - x_q(t) \sin(2\aw_c t)\right]
+\label{eq:qam_recovery}
+\end{eqnarray}
+such that a lowpass filter can approximately eliminate the signals at frequency $2\aw_c$ rad/s and recover $x_i(t)$. 
+%In practice, one cannot use an ideal filter, but the attenuation of the signals at $2\aw_c$ rad/s can be controlled by the order of the filter.
+A similar trick can be used to recover $x_q(t)$. 
+
+Linear algebra can complement the intuition provided by trigonometry in \equl{qam_recovery}.
+Recall from \exal{cos_sin_orthogonality} that a cosine and sine of the same frequency are orthogonal.
+Similar to \equl{correlativeDecoder}, one can eliminate $x_q(t)$ via the inner product:
+\begin{eqnarray*}
+\int_{-\infty}^\infty x_{\textrm{QAM}}(t) \cos(\aw_c t) dt & = & \int_{-\infty}^\infty \left[ x_i(t) \cos^2(\aw_c t) - x_q(t) \sin(\aw_c t)  \cos(\aw_c t) \right] dt\\
+& = & \frac{1}{2} \int_{-\infty}^\infty x_{i}(t) dt.
+%\label{eq:}
+\end{eqnarray*}
+This result is not of practical use as it is due to the infinite-duration interval, but indicates the importance of orthogonality for modulation.
+
+\figl{qamDemodulationRealSignals} depicts a scheme for QAM demodulation using only real-valued signals.
+In practice, one cannot use ideal filters, but the attenuation of the signals at $2\aw_c$ rad/s can be controlled by the order of these filters.
+%Because in practice the filter cannot be ideal, the components are not perfectly recovered but the error can be controlled by tuning the filter order.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/qamDemodulationRealSignals}		
+	\caption{QAM demodulation using only real-valued signals. If the QAM was generated according to \equl{qam2}, the mixer uses $-\sin(\cdot)$.\label{fig:qamDemodulationRealSignals}}
+\end{figure}
+
+\codl{ex_qam_demodulation} illustrates how to create and recover the QAM symbols using the scheme suggested by \figl{qamGeneration} and \figl{qamDemodulationRealSignals}, respectively. 
+
+%Note that the first lines of \codl{ex_qam_demodulation} are not listed but coincide with  
+%\codl{ex_qam_generation_via_symbols}, which is used to obtain the transmitted QAM signal \ci{z}. 
+
+%only demodulation
+%\lstinputlisting[firstline=16,firstnumber=16,caption={MatlabOctaveBookExamples/ex\_qam\_demodulation.m},label=code:ex_qam_demodulation]{./Code/MatlabOctaveBookExamples/ex_qam_demodulation.m}
+
+\lstinputlisting[caption={MatlabOctaveBookExamples/ex\_qam\_demodulation.m},label=code:ex_qam_demodulation]{./Code/MatlabOctaveBookExamples/ex_qam_demodulation.m}
+
+
+QAM modulation and demodulation using complex-valued signals are discussed in the next sections.
+
+\section{QAM Generation Using Complex-Valued Signals}
+
+It is mathematically convenient to use complex-valued signals when dealing with QAM. The two PAM signals compose the \emph{complex envelope}\index{Complex envelope}
+\[
+x_\textrm{ce}(t) = x_i(t) - j x_q(t),
+\]
+which is a baseband complex-valued signal known to be the equivalent lowpass signal to the passband $x_{\textrm{QAM}}(t)$.
+
+Using the complex-valued signals notation, the upconversion to generate the QAM signal can then be represented by a complex exponential and the $\real{\cdot}$ operation to extract the real part of the time-domain signal:
+\begin{align}
+x_{\textrm{QAM}}(t) = & \real{ x_\textrm{ce}(t) e^{j \aw_c t} } \notag \\
+ = & \real{ [x_i(t)- jx_q(t)] [\cos(\aw_c t)+j\sin(\aw_c t)]} \notag \\
+ = & x_i(t) \cos(\aw_c t) + x_q(t) \sin(\aw_c t) 
+\label{eq:qam_complex}
+\end{align}
+%\begin{eqnarray*}
+%x_{\textrm{QAM}}(t) & = & \real{ x_\textrm{ce}(t) e^{j \aw_c t} }\\
+%& = & \real{ [x_i(t)- jx_q(t)] [\cos(\aw_c t)+j\sin(\aw_c t)]} \\
+%& = & x_i(t) \cos(\aw_c t) + x_q(t) \sin(\aw_c t)
+%\label{eq:qam_complex}
+%\end{eqnarray*}
+which gives the same result as \equl{qam}.
+\figl{qamGenerationComplexSignals} illustrates the procedure.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/qamGenerationComplexSignals}		
+	\caption{QAM generation using complex-valued signals. The respective spectra is also shown.\label{fig:qamGenerationComplexSignals}}
+\end{figure}
+
+To understand the spectra depicted in \figl{qamGenerationComplexSignals}, it is useful to interpret \equl{qam_complex} in frequency domain. For this task, it is convenient
+to recall that the real part of a complex number $c$ can be obtained by $\real{c} = 0.5(c+c^*)$ and
+that $\calF \{ x^*(t)\} = X^*(-\aw)$. Applying these two results to \equl{qam_complex} leads to
+\begin{align}
+X_{\textrm{QAM}}(\aw) = & \calF \{ x_{\textrm{QAM}}(t) \}  \notag \\
+ = & \calF \{ \real{ x_\textrm{ce}(t) e^{j \aw_c t} } \} \notag \\
+= & \calF \{ 0.5 \left( x_\textrm{ce}(t) e^{j \aw_c t} + x_\textrm{ce}^*(t) e^{-j \aw_c t} \right)  \} \notag \\
+= & 0.5 \left( \calF \{ x_\textrm{ce}(t) e^{j \aw_c t} \} + \calF \{ x_\textrm{ce}^*(t) e^{-j \aw_c 
+t} \} \right) \notag \\
+= & 0.5 \left( X_{\textrm{ce}}(\aw - \aw_c) +  X_{\textrm{ce}}^*(-\aw - \aw_c) \right).
+\label{eq:qam_complex_in_freq_domain}
+\end{align}
+Note from \equl{qam_complex_in_freq_domain} that the real and imaginary parts of $X_{\textrm{QAM}}(\aw)$ are the even and odd parcels of the corresponding parts of $X_{\textrm{ce}}(\aw)$. This implies, as expected,  that $X_{\textrm{QAM}}(\aw)$ has Hermitian symmetry given that 
+$x_{\textrm{QAM}}(t)$ is real-valued.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/complexEnvelope}
+\caption{Spectrum magnitude $|X_\textrm{ce}(f)|$ of a complex envelope and its corresponding QAM with carrier frequency $\aw_c=14$ rad/s.\label{fig:complexEnvelope}}
+\end{figure}
+
+To provide more details on the spectra depicted in \figl{qamGenerationComplexSignals}, \figl{complexEnvelope} represents pictorially the spectrum magnitude $|X_\textrm{ce}(f)|$ of a complex envelope obtained from real signals $x_i(t)$ and $x_q(t)$.
+%, both with $\BW=4$ Hz. 
+Note that the $X_\textrm{ce}(f)$ does not present the Hermitian symmetry because $x_\textrm{ce}(t)$ is complex. In contrast, the QAM signal is real and $X_\textrm{QAM}(f)$ presents the corresponding symmetry with the versions of $|X_\textrm{ce}(f)|$ scaled by half.
+
+%The code \codl{ex_qam_generation} illustrates the two alternatives to generate QAM signals: using or not complex-valued signals.
+
+%\includecodelong{MatlabOctaveBookExamples}{ex\_qam\_generation}{ex_qam_generation}
+
+The complex notation also allows to represent a QAM symbol $m=m_i - j m_q$, where $m_i$ and $m_j$ are two PAM symbols. The generation of the QAM signal is similar to the process used for a PAM signal: upsampling followed by convolution with a shaping pulse.
+\codl{ex_qam_generation_via_symbols} illustrates the process, which takes advantage of the capability of {\matlab} to deal with complex-valued signals (filter, convolve, etc.). 
+The adopted shaping pulse is a ``raised cosine'', which will be discussed in Section~\ref{sec:raised_cosines}. 
+%Note that the bandwidth of a ``raised cosine'' shaping pulse is determined by $\rsym$ and the roll-off $r$ as will be discussed in Section~\ref{sec:raised_cosines} (at this point, one can simply use \ci{ak\_rcosine} with the given values). The mapping of the analog bandwidth into rad depends on the sampling frequency.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_qam\_generation\_via\_symbols}{ex_qam_generation_via_symbols}
+
+The complex envelope was previously defined as $x_{\textrm{ce}}(t) = x_i(t) - j x_q(t)$ because $\real{ x_{\textrm{ce}}(t) e^{j \aw_c t} }$ should lead to \equl{qam}. Sometimes slightly different definitions are assumed: the summation in \equl{qam} is modified to a subtraction:
+\begin{equation}
+x_{\textrm{QAM}}(t) = x_i(t) \cos(\aw_c t) - x_q(t) \sin(\aw_c t).
+\label{eq:qam2}
+\end{equation}
+such that the complex envelope is defined with a summation:
+\begin{equation}
+x_{\textrm{ce}}(t) = x_i(t) + j x_q(t)
+\label{eq:complex_envelope}
+\end{equation}
+in order to continue having $x_{\textrm{QAM}}(t) = \real{ x_{\textrm{ce}}(t) e^{j \aw_c t} }$. The alternative \equl{qam2} suggests defining a QAM symbol as $m=m_i + j m_q$ and will be used hereafter. In this case, the QAM generation of \figl{qamGeneration} multiplies $x_q(t)$ by $-\sin(\cdot)$ instead of $\sin(\cdot)$. These latter definitions are assumed hereafter.
+
+\figl{complexEnvelope} uses Fourier transforms, but similar result holds for PSDs. 
+In fact, it can be inferred\footnote{For a rigorous proof, see \cite{Tranter04}, Section 4.1, page 111.} from \equl{psdCosineModulationTheorem}  that the average power $P_{\textrm{QAM}}=\ev [|x_{\textrm{QAM}}(t)|^2]$ of the real bandpass signal $x_{\textrm{QAM}}(t)$ differs from the average power $P_\textrm{ce} = \ev[|x_{\textrm{ce}}(t)|^2]$ of $x_{\textrm{ce}}(t) $  by a factor of 2, such that
+\[
+P_{\textrm{ce}} = 2 P_{\textrm{QAM}}.
+\]
+This is valid not only for QAM but for other bandpass signals obtained by upconverting a complex envelope. 
+The factor of 2 also appears when modeling bandpass noise (or random signals, in general), which guarantees that signal to noise ratios are the same when representing bandpass signals by their corresponding lowpass complex envelopes.
+
+\section{QAM Demodulation Using Complex-Valued Signals}
+
+This section discusses QAM demodulation, i.\,e., the process of recovering the symbols embedded in the received waveform. The process can be organized into two tasks: 1) recovering the complex-valued
+symbols, i.\,e., an eventually noisy version of the complex envelope, and then 2) making decisions
+by finding the nearest-neighbor constellation point to each received QAM symbol. The second task
+is briefly discussed in the next paragraphs, assuming square QAM constellations.
+
+
+\subsection{PAM-based detector scheme for square QAM}
+
+Note that 
+some ``demodulation'' functions in {\matlab} simply perform the decision or detection process.
+Here, sticking with this nomenclature, a function called \ci{ak\_qamdemod.m} is described.
+
+The implementation of the decision stage
+is simplified if a square QAM (SQ QAM) constellation is adopted, where the number $b$ of bits in an even integer. As suggested by \figl{qam_constellation}, the SQ QAM constellation is the Cartesian product of two identical PAM constellations with $2^{b/2}=\sqrt{M}$ symbols each. \codl{qamdemod} illustrates the demodulation for this specific constellation. The case where $b$ is an odd number is not considered at this moment.
+
+\includecode{MatlabOctaveFunctions}{qamdemod}
+
+The decision process is just one among other used for demodulation. The next paragraphs discuss distinct ways for estimating the complex envelope, which is a process that precedes
+the decision in many demodulation schemes.
+
+\subsection{QAM demodulation of complex-valued signals with lowpass filter}
+
+As in the QAM generation stage, using complex-valued signals can help mathematically describing and implementing QAM demodulation.
+
+When complex-valued signals are used, \figl{qamDemodulationComplexSignals} depicts an alternative for QAM demodulation. This demodulation used a lowpass filter and another alternative that will be discussed is to use a phase splitter, which incorporates a Hilbert filter.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/qamDemodulationComplexSignals}		
+	\caption{QAM demodulation using lowpass filter that operates on complex-valued signals.\label{fig:qamDemodulationComplexSignals}}
+\end{figure}
+
+Hence, as an example of an alternative to accomplish QAM demodulation, \codl{ex_qam_demodulation_lowpass} illustrates how to recover the QAM symbols and leads to the same results as \codl{ex_qam_demodulation}.
+Note that the first lines of \codl{ex_qam_demodulation_lowpass} are not listed but coincide with  
+\codl{ex_qam_generation_via_symbols}, which is used to obtain the transmitted QAM signal \ci{z}. 
+
+\lstinputlisting[firstline=17,firstnumber=17,caption={MatlabOctaveBookExamples/ex\_qam\_demodulation\_lowpass.m},label=code:ex_qam_demodulation_lowpass]{./Code/MatlabOctaveBookExamples/ex_qam_demodulation_lowpass.m}
+
+\codl{snip_digi_comm_QAM_result} provides code to show the original constellation and the received symbols.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_QAM\_result}{snip_digi_comm_QAM_result}
+%\begin{lstlisting}
+%%Plot constellation:
+%plot(real(ys),imag(ys),'x','markersize',20); %received
+%hold on
+%plot(real(qamSymbols),imag(qamSymbols),'or'); %transmitted
+%axis equal; %make constellation on square
+%axis([-4 4 -4 4]) 
+%title('Transmitted (o) and received (x) constellations');
+%xlabel('Real part of QAM symbol m_i');
+%ylabel('Imaginary part of QAM symbol m_q');
+%\end{lstlisting}
+
+\figl{qamDemodulationComplexSignals} assumed continuous-time signals, but discrete-time processing can be used as well. For example, a single (and relatively fast) ADC can be used to digitize the passband QAM signal and the frequency downconversion and filtering performed in the digital domain.
+
+\subsection{QAM demodulation of complex-valued signals via phase splitter}
+\label{qamDemodPhaseSplitter}
+
+Now, the option of using a phase splitter via a Hilbert transform in QAM demodulation is discussed. Complementing the example provided by \figl{complexEnvelope}, \figl{analyticSignal} illustrates two stages in QAM demodulation: obtaining the analytic signal and downconversion. This first stage will be described in the sequel.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/analyticSignal}
+\caption{QAM demodulation using complex-valued signals: the analytic signal (middle plot) is downconverted to obtain the complex envelope (bottom). Only $X_{\textrm{QAM}}(f)$ presents Hermitian symmetry.\label{fig:analyticSignal}}
+\end{figure}
+
+Using a unit step function $u(f) = 0.5(1+\sgn(f))$ in frequency domain ($\sgn(\cdot)$ is the sign function) allows to obtain
+%X_{+}(f) = u(f) X_{\textrm{QAM}}(f),
+$$
+u(f) X_{\textrm{QAM}}(f),
+$$
+which eliminates the negative frequencies of the passband spectrum $X_{\textrm{QAM}}(f)$. The goal is to obtain an analytic signal $x_{+}(t)$ to represent the passband signal $x_{\textrm{QAM}}(t)$. 
+%is the of a signal and $X_{+}(f) = \calF\{x_{+}(t)\}$ is the spectrum of the analytic signal $x_{+}(t)$. 
+An \emph{analytic signal}\index{Analytic signal} has a spectrum that is zero for $f \le 0$. The inverse Fourier transform of $u(f)$ is
+\[
+\calF^{-1}\{u(f)\} = \frac{\delta(t)}{2} + \frac{j}{2 \pi t} = \frac{1}{2} \left( \delta(t) + j \frac{1}{\pi t} \right) %\bar h(t) \right),
+\]
+where the factor $1/2$ will be compensated by multiplying $u(f)$ by 2 (note in \figl{analyticSignal} the multiplication by 2 when generating the analytic signal, which also shows up in \figl{complexEnvelope}).
+Therefore, for convenience, the analytical signal is defined in frequency domain as
+\begin{equation}
+X_{+}(f) = 2 u(f) X_{\textrm{QAM}}(f).
+\label{eq:qamAnalytic}
+\end{equation} 
+
+Interpreting the analytical signal in time domain leads to
+\begin{align}
+x_{+}(t) & = \calF^{-1} \{ X_{+}(f) \} = 2 \calF^{-1} \{u(f) X_{\textrm{QAM}}(f) \} = 2 \calF^{-1}\{u(f)\} \conv x_{\textrm{QAM}}(t) \notag \\
+  & = x_{\textrm{QAM}}(t) + j \left( x_{\textrm{QAM}}(t) \conv \frac{1}{\pi t} \right).
+\end{align}
+
+At this point, it is helpful to note that
+\[
+\bar h(t) = \left\{ {\begin{array}{cc} {\frac 1 {\pi t}} & {, t \ne 0}\\ 0 & {, t=0} \end{array}  } \right.
+\]
+is the impulse response of a \emph{Hilbert filter} and the \emph{Hilbert transform} $\check{x}(t)$ of a signal $x(t)$ is
+\[
+\check{x}(t) = x(t) \conv \bar h(t) = \int_{- \infty}^\infty \frac{x(u)}{\pi (t - u)} du.
+\]
+
+Hence, one can obtain the analytic signal by means of a Hilbert transform 
+%First note that the inverse transform of the unit step $u(f)$ can be rewritten as
+%\[
+%\calF^{-1}\{u(f)\} = \frac{\delta(t)}{2} + \frac{j}{2 \pi t} = \frac{1}{2} \left( \delta(t) + j \bar h(t) \right),
+%\]
+%Hence, for QAM demodulation, the Hilbert transform is used to obtain the analytical signal 
+as follows:
+\[
+x_{+}(t) = x_{\textrm{QAM}}(t) \conv \left(\delta(t) + j \frac 1 {\pi t} \right) = x_{\textrm{QAM}}(t) + j \check x(t),
+\]
+where $\check{x}(t)$ in this case is the Hilbert transform of $x_{\textrm{QAM}}(t)$.
+Note that the real part of $x_{+}(t)$ is the input signal $x_{\textrm{QAM}}(t)$ itself and the imaginary part is $\check x(t)$. A system that obtains the analytic signal $x_{+}(t)$ from a real input signal is called \emph{phase splitter}\index{Phase splitter}.
+\figl{phaseSplitter} illustrates a phase splitter operating in continuous-time signals. It can also be used in discrete-time, for example, on a digitized passband QAM signal such that only one high-frequency ADC is used, instead of a dual ADC to digitize the I/Q components.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/phaseSplitter}		
+	\caption{Phase splitter as used in QAM demodulation.\label{fig:phaseSplitter}}
+\end{figure}
+
+After the phase splitter of \figl{phaseSplitter}, the QAM complex envelope can be obtained by frequency downconverting the resulting analytic signal, as depicted in \figl{qamDemodulationHilbert}.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/qamDemodulationHilbert}		
+	\caption{QAM demodulation using a Hilbert filter incorporated to a phase splitter.\label{fig:qamDemodulationHilbert}}
+\end{figure}
+
+While the Fourier transform of the phase splitter is $2u(\aw)$, the transform of the Hilbert filter denoted by its impulse response $\bar h(t)$ is $\bar H(\aw)=-j \sgn(\aw)$. 
+The top and bottom branches that compose the phase splitter of \figl{phaseSplitter} have 
+Fourier transforms equal to 1 (top branch) and $j \times \bar H(\aw) = \sgn(\aw)$, such that their
+sum leads to $2u(\aw)$.
+
+Observing the role played by the Hilbert transform, $|\bar H(\aw)|=1, \aw \ne 0$ and it
+does not alter the magnitude of the input $x(t)$ unless $X(0) \ne 0$, which does not occur for passband signals. 
+Hence, the Hilbert transform changes the signal phase by adding $-\pi/2$ rad to components at positive frequencies and $\pi/2$ to components at negative frequencies.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/hilbertFilter}
+\caption{Magnitude (top) and phase (middle) of a 52-th order FIR Hilbert filter. The bottom plot is obtained by removing the linear phase factor.\label{fig:hilbertFilter}}
+\end{figure}
+
+\figl{hilbertFilter} depicts the frequency response of a Hilbert filter\footnote{The Octave's version of \ci{firls} does not support the \ci{'hilbert'} option.}  obtained with \codl{snip_digi_comm_hilbert_filter_design}.
+
+\includecodelong{MatlabOnly}{snip\_digi\_comm\_hilbert\_filter\_design}{snip_digi_comm_hilbert_filter_design}
+Note that any causal FIR filter will have a linear phase that can hide the effect of a Hilbert transformer on the input signal's phase (the $\pm \pi/2$ shift). The bottom plot in \figl{hilbertFilter} was obtained with \codl{snip_digi_comm_hilbert_filter_analysis}, where \ci{N/2=26} in this case.
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_hilbert\_filter\_analysis}{snip_digi_comm_hilbert_filter_analysis}
+%\begin{lstlisting}
+%w=linspace(-pi,pi,100); %frequency in rad
+%H=freqz(b,1,w); %calculate frequency response
+%H2=H.*exp(j*(N/2)*w); %compensate linear phase
+%plot(w,angle(H2)/pi*180); %convert to degrees
+%\end{lstlisting}
+
+When using filters, the transients need to be taken into account. \codl{ex_qam_demodulation_hilbert} illustrates the use of a causal Hilbert filter to recover the complex envelope.
+
+\lstinputlisting[firstline=17,firstnumber=17,caption={MatlabOctaveBookExamples/ex\_qam\_demodulation\_hilbert.m},label=code:ex_qam_demodulation_hilbert]{./Code/MatlabOctaveBookExamples/ex_qam_demodulation_hilbert.m}
+%\includecodelong{MatlabOctaveBookExamples}{ex\_qam\_demodulation\_hilbert}{ex_qam_demodulation_hilbert}
+
+An alternative to using a causal filter is the \ci{hilbert} function, which outputs the analytic signal and instead of a FIR filter uses FFT. \codl{ex_qam_demodulation_complex} illustrates the use of \ci{hilbert}.
+
+%\includecodelong{MatlabOctaveBookExamples}{ex\_qam\_demodulation\_complex}{ex_qam_demodulation_complex}
+\lstinputlisting[firstline=17,firstnumber=17,caption={MatlabOctaveBookExamples/ex\_qam\_demodulation\_complex.m},label=code:ex_qam_demodulation_complex]{./Code/MatlabOctaveBookExamples/ex_qam_demodulation_complex.m}
+
+It should be  noted that the \ci{hilbert} function used in \codl{ex_qam_demodulation_complex} does not implement the Hilbert transform, but the complete phase splitter.
+
+The following simple example aims at providing insight on recovering a signal after its
+components corresponding to negative frequencies were eliminated.
+
+\bExample \textbf{Recovering a real-valued signal using only the values of its Fourier
+transform corresponding to positive frequencies}.
+As an exercise and assuming discrete time, \codl{snip_digi_comm_ifft_qam_recover} illustrates how to recover an arbitrary signal (representing $x_{\textrm{QAM}}[n]$) from the values $X_{+}[k]$ 
+corresponding to positive frequencies of its FFT.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_ifft\_qam\_recover}{snip_digi_comm_ifft_qam_recover}
+%\begin{lstlisting}
+%x=[1 2 3 4 5 6] %define an arbitrary test vector
+%X=fft(x); N=length(x); %calculate FFT and its length
+%Xu=[X(1) 2*X(2:(N/2)) X((N/2)+1)]; %Xu = 2 u(f) X(f)
+%x2 = real(ifft(Xu,N)) %use ifft zero-padding. find x2=x
+%\end{lstlisting}
+
+Note in \codl{snip_digi_comm_ifft_qam_recover} that the DC and Nyquist frequencies are not scaled by 2.
+\eExample
+
+\section{Quadrature (or IQ) Sampling}
+\label{sec:iqSampling}
+
+\emph{Quadrature} (or \emph{IQ}) sampling\index{Quadrature sampling}\index{IQ sampling} is the combined process of simultaneously digitizing the in-phase (I) and the quadrature (Q) signals. As depicted in \figl{iqSampling}, this process requires a pair of mixers for
+generating the cosine and sine to obtain the I and Q components, respectively. The PLL and VCO aim at providing a stable signal to the 90 degree phase shifter. This figure
+also shows two DDCs (see Application~\ref{app:pre-processing}).
+% that can be used to eventually reduce the $\fs$ (downsample) of the digital signals generated by the ADCs.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{FiguresTex/iqSampling}		
+	\caption{Possible scheme for quadrature sampling. The amplifiers and DDCs are optional.\label{fig:iqSampling}}
+\end{figure}
+
+Quadrature sampling is sometimes called quadrature demodulation. But in some cases, quadrature sampling is used to obtain a version of the spectrum at a given frequency band, but not to demodulate a signal.  Hence, it is convenient to distinguish the concepts. For example, quadrature sampling was used to obtain the signal with spectrum depicted in \figl{spectrumAMStations}, but in this case the AM signals are not necessarily demodulated in this sampling process. %On the other hand, a QAM signal may be demodulated by simply performing QAM sampling.
+
+Another observation is that quadrature sampling should not be confused with passband sampling (also called undersampling and IF sampling\index{IF sampling}), which is discussed in Section~\ref{sec:undersampling}.
+
+As mentioned, \equl{samplingTheoremRealSignals} provides a lower bound of $\fs$ when the signal $x(t)$ is real-valued and baseband.
+When complex signals can be used, the sampling theorem expressed in \equl{samplingTheoremRealSignals}  can be specialized. A band-limited complex-valued and analytic signal $x_{\textrm{bb}}(t)$ can be reconstructed from its sampled version when the complex-valued samples are taken at rate
+\begin{equation}
+\label{eq:samplingTheoremComplexSignalsRepeated}
+\fs > F_\tmax,
+\end{equation}
+with $x_{\textrm{bb}}(t)$ having negligible energy outside the frequency range $[0, F_\tmax]$. Given that the signal bandwidth is $\BW=F_\tmax$, \equl{samplingTheoremComplexSignalsRepeated} can also be written as $\fs > \BW$, as previously stated in \equl{samplingTheoremComplexSignals} (and
+further detailed in \tabl{fsAndRsymComplex}).
+
+Considering that a complex-valued sample requires two real-valued samples, \equl{samplingTheoremComplexSignalsRepeated} does not contradict \equl{samplingTheoremRealSignals}. Both equations predict that more than two real values per Hertz need to be used to represent a band-limited signal.
+
+\section{Baseband Representations of Signals and Passband Channels}
+\label{sec:basebandRepresentations}
+
+The complex-envelope and analytic representation can be used not only for QAM signals, as in \equl{qamAnalytic}  for example, but any passband signal. Similarly, it can be used for impulse responses and, therefore, represent a passband channel by its \emph{baseband-equivalent channel}\index{Baseband-equivalent channel}.
+
+In summary, given the impulse response $h(t)$ of a passband channel (or any passband signal $x(t)$), its \emph{analytic-equivalent} channel is
+\begin{equation}
+h_{+}(t) = h(t) + j \check{h}(t),
+\label{eq:analyticPassbandTimeDomain}
+\end{equation}
+which in frequency-domain can be written as
+\begin{equation}
+H_{+}(f) = 2 u(f) H(f),
+\label{eq:analyticPassbandFrequencyDomain}
+\end{equation}
+where $H(f) = \calF \{ h(t) \}$.
+
+The baseband-equivalent channel is then given by
+\begin{equation}
+h_{\textrm{bb}}(t) = h_{+}(t) e^{-j 2 \pi f_c t},
+\label{eq:basebandEquivalentTimeDomain}
+\end{equation}
+which depends on the carrier frequency value $f_c$ and assumes that 
+$h_{\textrm{bb}}(t)$ does not have significant energy at frequencies
+larger than $f_c$. In other words, given $H_{\textrm{bb}}(f) = \calF \{ h_{\textrm{bb}}(t) \}$,
+the baseband representation is valid only if $H_{\textrm{bb}}(f) = 0$, for $|f| > f_c$.
+
+The frequency-domain version of \equl{basebandEquivalentTimeDomain} can be written as
+\begin{equation}
+H_{\textrm{bb}}(f) = H_{+}(f + f_c),
+\label{eq:basebandEquivalentFreqDomain1}
+\end{equation}
+or
+\begin{equation}
+H_{\textrm{bb}}(f) = H(f + f_c),
+\label{eq:eq:basebandEquivalentFreqDomain2}
+\end{equation}
+which is equivalent to \equl{basebandEquivalentFreqDomain1} when one considers
+only the frequencies $f > -f_c$.
+
+With these representations of signals and systems, it is possible to define
+the \emph{baseband equivalent system} for a passband channel as
+\begin{equation}
+y_{\textrm{bb}}(t) = x_{\textrm{bb}}(t) \conv \left( \frac{1}{2} h_{\textrm{bb}}(t) \right),
+%\label{eq:}
+\end{equation}
+or
+\begin{equation}
+Y_{\textrm{bb}}(f) = H(f+f_c) X_{\textrm{bb}}(t),
+%\label{eq:}
+\end{equation}
+for $f > -f_c$.
+
+It is also possible to use baseband representations for passband random processes. Hence, the AWGN can have a baseband representation to simplify its analysis and simulation when the involved signals are passband. Note that in these cases the noise is not strictly white but can be considered flat over the frequency range of interest.
+
+%\subsection{Orthogonal modulations (FSK) and correlative demodulation}
+\section{Orthogonal Modulations and FSK}
+\label{sec:fskOrthogonalModulation}
+%Will present 2 concepts:
+%Orthogonal modulations (FSK) and correlative demodulation.
+%Should not confuse. PAM can also have correlative demodulation.
+
+Among the several modulations that use a linear combination of basis functions $\varphi_i(t)$, according to \equl{signalComposedByLinearCombination}, the \emph{orthogonal} modulations\index{Orthogonal modulation} are a special case in which the resulting signals $s_n(t)$ themselves are
+orthogonal when representing distinct signals. Consequently, the orthogonality can also be observed
+in the constellation diagram. Some of the most popular orthogonal modulations are
+FSK, PPM (\emph{pulse-position modulation})\index{PPM (pulse-position modulation)} and PWM (\emph{pulse-width modulation})\index{PWM (pulse-width modulation)}.\footnote{Orthogonal modulations are discusses, e.\,g., in \cite{Ciofficn} (Section 1.5.2) and \cite{Barry04} (Section 6.3).}
+
+The frequency-shift keying (FSK)\index{Frequency-shift keying (FSK)} modulation was briefly discussed in Section~\ref{sec:askfskpsk}. In FSK, each basis function corresponds to a sinusoid with a distinct frequency and the symbol is identified solely by the frequency of its basis function. A FSK system with $N$ dimensions has $M=N$ distinct symbols and the $i$-th symbol (coefficient), $i=0,\ldots,M-1$, can be represented by the vector $\bX_i = [0,\ldots,0,1,0,\ldots,0]$, where the non-zero element is at the $i$-th position. The example of a discrete-time binary FSK system can clarify.
+
+Assume a binary FSK system where $L=32$ samples. \figl{binaryfsk} depicts an example. 
+%Note that the waveform amplitude and phase do not convey any information about the transmitted symbol.
+ The bits 0 and 1 (called \emph{space} and \emph{mark}, respectively) are represented here by orthonormal sinusoids $\sqrt{\frac{2}{L}} \cos(2\pi/N_i n)$, where $N_0=8$ and $N_1=4$, respectively. Using the notation discussed in Section~\ref{sec:InterpretingDigitalModulation}, the symbol representing the bit 0 is $\bX_0 = [1, 0]^T$ and $\bX_1 = [0, 1]^T$. The following {\matlab} commands illustrate that the basis functions are orthogonal and show an example of modulation and demodulation when transmitting a bit 1.
+\begin{lstlisting}
+L=32;       %number of samples per symbol
+N_0=8;   		%period of sinusoid corresponding to bit 0
+N_1=4;   		%period of sinusoid corresponding to bit 1
+n=(0:L-1)'; %time index
+A=[cos(2*pi/N_0*n) cos(2*pi/N_1*n)]*sqrt(2/L); %inverse matrix
+innerProduct=sum(A(:,1).*A(:,2)) %check if the columns are orthogonal
+Ah=A'; %the pseudoinverse is the Hermitian
+X=[0; 1];  %example of symbol for transmitting bit 1
+x=A*X; %compose the signal in time domain
+X=Ah*x  %demodulation at the receiver: recover the coefficient
+\end{lstlisting}
+
+%\begin{figure}[htbp]
+%	\centering
+%		\includegraphics[width=7cm]{Figures/binaryfsk_waveform}		
+%	\caption{FSK modulated waveform for the bit stream $[1, 0, 0, 1, 0, 1]$, with $L=32$, $N_0=8$ and $N_1=4$.\label{fig:binaryfsk_waveform}}
+%\end{figure}
+
+The constellation for a binary FSK is depicted in \figl{binaryfsk_constellation}. It has been emphasized that the orthogonality of basis functions is an important property. It can be noted that the FSK coefficient vectors themselves are orthogonal. \figl{fsk_constellation} presents a FSK constellation for $N=3$ dimensions. In this case the coefficients are $[1, 0, 0]^T$, $[0, 1, 0]^T$ and $[0, 0, 1]^T$, which form an orthonormal basis for $\Re^3$. In contrast, the two basis functions of a QAM are orthogonal, but the coefficient vectors are not.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=7cm]{Figures/binaryfsk_constellation}		
+	\caption{Example of FSK constellation with $N=2$ dimensions and $M=2$ symbols.\label{fig:binaryfsk_constellation}}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=7cm]{Figures/fsk_constellation}		
+	\caption{Example of FSK constellation with $N=3$ dimensions and $M=3$ symbols.\label{fig:fsk_constellation}}
+\end{figure}
+Application~\ref{app:ituv21modem} gives more details of a binary FSK system.
+
+\section{Applications}
+
+\bApplication
+\textbf{A simplified version of an ITU-T V.21 FSK-based modem}.
+\label{app:ituv21modem}
+A very simple discrete-time example of FSK modulation is provided as {\matlab} code in the companion software (script \ci{fsk\_synchronous.m} in directory \ci{FSKSynchronous}). The adopted parameters are the ones of the V.21 modem standardized by ITU-T. The task is to transmit an image and recover it after passing by a simulated channel.
+
+The image was generated with script \ci{imageConversion.m} and is a binary image, for simplicity. \figl{fsk_originalimage} shows the image, which has white pixels corresponding to bit 1 and black pixels corresponding to bit 0. The bits 0 and 1 are represented by sinusoids with frequencies $f_0$ and $f_1$, respectively.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=7cm]{Figures/fsk_originalimage}		
+	\caption{Input binary image of dimension 60 $\times$ 60 pixels.\label{fig:fsk_originalimage}}
+\end{figure}
+
+The script implements two channels: the ideal (the received waveform is equal to the transmitted) and a noisy channel, which adds Gaussian noise with power 10 mW to the transmitted waveform.
+
+Two different sets of frequencies were used. The first consisted of $f_0=1650$ Hz, $f_1=1850$ Hz, sampling frequency $\fs = 9600$ Hz and symbol rate $\rsym = 100$ bauds. In this case the basis functions are orthogonal and the number of samples per symbol is 80.
+The second set adopted $f_0=980$ Hz, $f_1=1180$ Hz, $F_s = 9600$ Hz and $\rsym = 300$ bauds. In this latter case, the basis functions are not orthogonal. The number of samples per symbol is 32. This is compatible with the fact that binary FSK system typically do not use correlative demodulation and are based on simpler techniques that use filtering and the signal energy. Therefore, in many practical FSK implementations, orthogonality is not the issue.
+
+Combining the two channel models with the two sets of frequencies led to \figl{fsk_results}. The plots indicate that the noise was not strong enough to cause errors. The non-orthogonality of the basis functions cause a bias in the received coefficients, which is also not strong enough to provoke errors.
+
+\begin{figure}[htbp]
+  \begin{center}
+    \subfigure[Ideal channel and orthogonal bases.]{\label{fig:fsk_idealchannel_orthogonal}\includegraphics[width=7cm]{Figures/fsk_idealchannel_orthogonal}}
+    \subfigure[Noisy channel and orthogonal bases.]{\label{fig:fsk_nonidealchannel_orthogonal}\includegraphics[width=7cm]{Figures/fsk_nonidealchannel_orthogonal}}
+    \\
+    \subfigure[Ideal channel and non-orthogonal bases.]{\label{fig:fsk_idealchannel_nonorthogonal}\includegraphics[width=7cm]{Figures/fsk_idealchannel_nonorthogonal}}
+    \subfigure[Noisy channel and non-orthogonal bases.]{\label{fig:fsk_nonidealchannel_nonorthogonal}\includegraphics[width=7cm]{Figures/fsk_nonidealchannel_nonorthogonal}}
+  \end{center}
+  \caption{FSK constellations.}
+  \label{fig:fsk_results}
+\end{figure}
+
+It should be noted that, because the transmitted constellations are the same in all cases and the transform is unitary, all modulated waveforms corresponding to symbols have the same energy of 1 J. For the first set of frequencies, the signal power is 1/80 = 31.3 mW. For the second set of frequencies, the signal power is 1/32 = 12.5 mW. Given that the noise power is 10 mW in both cases, the signal to noise ratios are $\snrdb \approx 0.96$ dB and $\snrdb \approx 4.93$, respectively. In this case, one could think that the noise impact would be more prominent for the first set of frequencies. However, \figl{fsk_results} indicates that, discarding the bias due to the non-orthogonality, the noise has a similar distribution around the transmitted symbols for both sets of frequencies. This is a consequence of the fact that in correlative demodulation, the important parameter is the symbol energy, not the waveform SNR. Intuitively, one can think that the energy was distributed among more samples in the first case, which decreased the power, but the receiver has more samples to take into account when making its decision via an inner product.
+\eApplication
+
+\bApplication \textbf{Demodulation of the digitized complex envelope of a signal corresponding to multiplexed real-life AM stations}.
+\label{app:amDemodulationComplex}
+The experiment here is related to Application~\ref{app:amDemodulation}, but instead of the
+real-valued signal stored in \ci{am\_real.wav}, it uses a complex-valued signal 
+stored in file \ci{am\_usrp710.dat}, which is available on the Web and must be downloaded (around 20~MB).\footnote{The file is available at \akurl{http://www.csun.edu/~skatz/katzpage/sdr\_project/sdr/}{5amd} and represents AM stations in USA.} This file stores a complex envelope obtained with a USRP software-defined radio platform.
+%, as discussed in Application~\ref{app:pre-processing}. More specifically, it was obtained with the USRP software-defined radio platform.
+
+The USRP was tuned to capture a radio frequency (RF) band centered at 710~kHz and the original signal was downsampled to create a complex-valued signal $x_c[n]$ with approximately 11 seconds at $\fs=256$~kHz. The corresponding RF band of 256~kHz, from $710-(256/2)=582$ to $710+128=838$~kHz, was mapped to
+$[-\pi,\pi]$ or, equivalently, $[-128, 128]$~kHz. For example, the three frequencies $-10$, 0 and 10~kHz of $x_c[n]$ correspond to RF frequencies 700, 710 and 720~kHz, respectively.
+\figl{spectrumAMStations} shows the PSD of $x_c[n]$ with the abscissa showing the corresponding
+RF frequencies. The abscissa indicates the RF frequencies, but could show
+[-128, 128]~kHz instead, with a RF carrier of 710~kHz.
+
+%\begin{figure}[htbp]
+%\centering
+%\includegraphics[width=\figwidthSmall]{./Figures/amDemodulation}
+%\caption[PSD of the complex envelope of the signal in file \ci{am\_usrp710.dat}.]{PSD of the complex envelope of the signal in file \ci{am\_usrp710.dat}. The
+%8 AM stations are indicated. The abscissa indicates the RF frequencies, but could show
+%[-128, 128]~kHz instead, with a RF carrier of 710~kHz\label{fig:amDemodulation}}
+%\end{figure}
+
+%The carrier frequency separation of AM broadcast stations depends on the country. For example, it is 10~kHz in US, as well as in file \ci{am\_usrp710.dat}. In this case, the maximum signal bandwidth is $\BW_{\textrm{i}}=5$~kHz, which is just slightly larger than the telephony (POTS) bandwidth (while FM signals have $\BW_{\textrm{i}}=30$~kHz).
+
+As can be seen in \figl{spectrumAMStations}, because $x_c[n]$ is complex, its PSD does not have Hermitian symmetry. Besides, each individual AM channel also does not have a spectrum with Hermitian symmetry with respect to its center frequency given that the channel impacted its lower and upper bands differently. 
+
+The script \ci{ak\_showRadioTuner.m} can be used to listen the AM stations represented in $x_c[n]$.
+
+The script \ci{ak\_convertAMComplexEnvelopeIntoRealValued.m} was used to convert the signal $x_c[n]$
+in \ci{am\_usrp710.dat} into the real-valued signal $x[n]$ stored in 
+\ci{am\_real.wav} and detailed in Application~\ref{app:amDemodulation}.
+\eApplication
+
+\bApplication \textbf{QAM simulation.}
+\label{app:qam_simulation}
+%Here it is studied the combined effect of a band-limited channel and AWGN.
+The next paragraphs concerns the combined effects of a channel with band-limiting filtering and noise. The adopted approach is to work with a QAM system. The code is at directory \ci{Applications/QAMSynchronous} and can be executed with different parameters.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/dt_channel}
+\caption{Characterization of the transmission channel for the QAM example.\label{fig:dt_channel}}
+\end{figure}
+
+\figl{dt_channel} illustrates the simulated channel, which has a bandwidth of approximately 2 kHz, centered at $\fs/4=2500$ Hz. There are zeros outside the unit circle, hence the channel is not minimum phase. The group delay is approximately 7 samples (equivalent to $7 \ts$ s) at the center frequency but has peaks closer to the cutoff frequencies. Hence, it is better to confine the transmit PSD within the frequency range that has an approximately constant group delay and gain.
+
+The following example assumes $\fs=10$ kHz, $\snr=10$ dB, oversampling $L=80$, carrier frequency = $\pi/2$ rad (equivalent to $\fs/4$), $\rsym=125$ bauds, $M=32$ symbols and $R=625$ bps. Simulating with $S=5000$ symbols led to an estimated BER=0.
+The average constellation energy is $E_c = 26$ J, the energy of the shaping pulse is $E_h=1$, the ``theoretical'' power of the upsampled signal is $P_x=E_c/L=0.325$ W, the power of the baseband complex envelope can be obtained via \equl{power_lti} and assuming the symbols are independent, such that $P_y = P_x E_h = 0.325$ W. The power of the transmitted signal is half of $P_y$ due to the upconversion. These ``theoretical'' values can be obtained with the commands in \codl{snip_digi_comm_upconverted_power} (but first, execute the initialization code \ci{dt\_setGlobalConstants.m}).
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_upconverted\_power}{snip_digi_comm_upconverted_power}
+%\begin{lstlisting}
+%Ec = mean(abs(const).^2)
+%Eh = sum(htx.^2)
+%Px = Ec/L
+%powerTxComplexEnvelope = Px * Eh
+%powerTxSignal = powerTxComplexEnvelope/2
+%\end{lstlisting}
+
+The results of \codl{snip_digi_comm_upconverted_power} can be compared to the ones obtained via the simulation. The power of the signal at the receiver's input depends on the transmitted signal bandwidth, which determines how the channel attenuates the transmitted signal. Assuming the transmitted signal has a narrow bandwidth, centered at the channel center frequency (which has a gain of 0 dB), the received power is approximately the transmitted power plus the WGN power. For example, using $L=80$ leads to a narrow PSD for the transmitted signal such that there is no significant channel attenuation. The received power is just slightly larger than the transmitted power. For an $\snr=10$ dB, the ``theoretical'' values are:
+\begin{lstlisting}
+noisePower = powerTxSignal/10
+powerRxSignal = powerTxSignal + noisePower
+\end{lstlisting}
+which corresponds to 0.0162 and 0.1787, respectively.
+The second command corresponds to \equl{awgn_power} with the assumption that the noise samples $x[n]$ are uncorrelated
+from the transmitted signal samples $y[n]$, such that $\ev\{x[n] y[n]\}=0$. In this case their powers can be summed. The simulated values are $0.0166$ and $0.1661$ Watts, for the noise and received power, respectively. 
+The AWGN PSD is \ci{noisePower/Fs} W/Hz, which is a constant value (the noise is white) denoted as $\no/2$. In dB this PSD value is $10 \log_{10}(\no/2)$.
+Check at \figl{dt_channel} that the noise PSD is given by  \ci{10*log10(0.0166/10000) = -57.8} dB.
+ 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/dt_tx_time}
+\caption{Transmitted signal for the QAM example.\label{fig:dt_tx_time}}
+\end{figure}
+
+\figl{dt_tx_time} provides information about the transmitted signal in time domain. Note that the baseband signal is complex, while the signal transmitted over the channel is real. The shown time interval corresponds to 5 symbols (i.\,e., $5 \tsym$). The in-phase component tends to have a larger amplitude than the quadrature component given that the constellation has symbols with larger real than imaginary part, as shown in \figl{dt_tx_frequency}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/dt_tx_frequency}
+\caption{Transmitted signal in frequency domain. Two alternative views of the PSD are provided for the baseband signal.\label{fig:dt_tx_frequency}}
+\end{figure}
+
+\figl{dt_tx_frequency} provides information about the transmitted signal in frequency domain. Two views of the PSD are provided for the baseband signal. Both used the \ci{pwelch} command, which by default estimates the PSD using frequencies $\dw \in [0, \pi]$ rad when the signal is real and Hermitian symmetry holds. When the signal is complex, the PSD is estimated in the range $\dw \in [0, 2\pi]$ rad. When $\fs$ is informed, the PSD for complex-valued signals can be confusing because the abscissa is converted from $\dw \in [0, 2\pi]$ to $f \in [0, \fs]$. Assuming the baseband complex envelope is \ci{yce}, the two right-most plots of \figl{dt_tx_frequency} were obtained with the commands in \codl{snip_digi_comm_freq_domain}.  It is important to get used to observing PSDs of complex-valued signals in {\matlab} and properly interpret alternatives to displaying the PSD over the range $\dw \in [0, 2\pi]$ rad.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_freq\_domain}{snip_digi_comm_freq_domain}
+%\begin{lstlisting}
+%subplot(222)
+%pwelch(yce,[],[],[],Fs);
+%subplot(224)    
+%f=linspace(-Fs/2,Fs/2,1024);
+%Pyce=pwelch(yce,[],[],f,Fs);
+%plot(f,10*log10(Pyce));
+%\end{lstlisting}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=10cm]{Figures/dt_rx_frequency}
+\caption{Received signal for the QAM example.\label{fig:dt_rx_frequency}}
+\end{figure}
+
+\figl{dt_rx_frequency} provides information about the received signal. The analytic signal is obtained with the aid of a Hilbert filter and downconverted to baseband. One important task is to estimate the best instant for starting sampling at the output of the matched filter. The code uses a global variable called \ci{delayInSamples} to determine this instant. This variable gets updated by the average group delay at the band of interest after each filtering operation. For example, if a linear phase FIR with group delay equal to 4 samples is used, the variable is updated with \ci{delayInSamples=delayInSamples+4}.
+
+From \figl{dt_rx_frequency}, the constellation at the receiver seems to suggest errors but running the code and zooming it, one can observe that the received symbols do not fall outside their correct (Voronoi) region.
+
+The main script is \ci{dt\_digital\_transmission}, which is listed below. Most parameters are specified at script \ci{dt\_setGlobalConstants}.
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_digital\_transmission}{snip_digi_comm_digital_transmission}
+%\begin{lstlisting}
+%%Example of digital transmission
+%dt_setGlobalConstants %set global variables
+%temp=rand(Nbits,1); %random numbers ~[0,1]
+%txBitStream=temp>0.5; %bits: 0 or 1
+%s=ak_transmitter(txBitStream); %transmitter
+%%choose channel:
+%if useIdealChannel==1
+%    r=s;
+%else
+%    r=dt_channel(s);
+%end
+%rxBitStream=ak_receiver(r, phaseCorrection); %receiver
+%%estimate BER (both vectors must have the same length)
+%BER=ak_estimateBERFromBits(txBitStream, rxBitStream)
+%baud = Fs/L
+%rate_bps = baud*b
+%\end{lstlisting}
+To practice, tune the parameters of the discussed QAM simulation to maximize the rate for a given BER. For example, decreasing the oversampling factor $L$ allows a larger $\rsym$ at the expense of increased transmitted signal bandwidth.
+\eApplication
+
+\bApplication
+\textbf{QAM over the sound board}.
+\label{app:qamSoundBoard}
+Sound boards and {\matlab} allow to test many practical aspects of communication systems. Here, the QAM transmission system of Application~\ref{app:qam_simulation} is modified to use the sound board and observe synchronization issues. The code is at directory \ci{Applications/QAMSynchronous}.
+
+A loopback cable connects the sound board DAC and ADC, as described in Application~\ref{app:latency}. Then, the transmit QAM signal is sent to the DAC with the script \ci{ak\_continuouslyTransmitQAM.m} and recorded with the ADC using Audacity (or another sound recording software). The sound volume is adjusted to avoid having large amplitudes saturating the ADC and the recorded signal is saved as a WAV file. The script \ci{ak\_offlineReceiveQAM.m} implements the QAM receiver, reading the WAV file and processing it. This is an offline processing that is less complicated than implementing an online version. For example, a related challenge for an online implementation is to make {\matlab} process the signals using a given sampling frequency $\fs$. This can be done with Playrec as in Application~\ref{app:playrec} or the Java code of Application~\ref{app:javaUniversalChannel}, but only the offline version is discussed here.
+
+Even in this case of a simple loopback cable, an important issue when moving from a simulated channel to a real (physical) one is to deal with synchronization. In the simulation of Application~\ref{app:qam_simulation}, the global variable \ci{delayInSamples} is updated by the transmitter and channel, such that the receiver knows when to start downsampling the waverform to extract the symbols. In other words, with a simulated channel, it is relatively easy to avoid the need for symbol timing recovery strategies. For the current application, the timing was solved as follows: the transmit bitstream was fragmented in frames and a preamble (known to both transmitter and receiver) was pre-appended to each frame. This preamble is an M-sequence (see Section~\ref{sec:ls_estimation}), which is designed to have a peak as its autocorrelation. Thus, a cross-correlation between the received signal and the preamble helps to identify the sample index corresponding to the preamble start within the received signal.
+
+The preamble can also be used to equalize the channel. In the simple receiver implementation of \ci{ak\_offlineReceiveQAM.m}, because the transmit PSD is relatively narrowband, it was assumed that the channel $H(f)$ modifies the transmitted symbols by a single complex value, given by $H(f)|_{f=f_c}$, where $f_c$ is the carrier frequency $f_c$ (in this case, $f_c=\fs/4=2.5$~kHz). In other words, the preamble is composed by values $X_k$ (that are $\pm 1$ in M-sequences) and the received symbols are $Y_k \approx H(f_c) X_k$. Hence, the estimated adjustment $\hat H(f_c)$ when the preamble is composed by $K$ samples is
+\begin{equation}
+\hat H(f_c) = \frac{1}{K} \sum_{k=1}^K \frac{Y_k}{X_k},
+\end{equation}
+which is implemented in \ci{ak\_offlineReceiveQAM.m} with the line:
+\begin{lstlisting}
+gainPhaseAdjustment=mean(recoveredPreamble./preamble);
+\end{lstlisting}
+%\ci{ak\_continuouslyTransmitQAM} and \ci{ak\_offlineReceiveQAM.m}
+This corresponds to an equalizer with a single value or tap. This simple equalization is performed by  $Y_k / \hat H(f_c)$, i.\,e., simply normalize the original received symbols by the complex value $\hat H(f_c)$.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{./FiguresNonScript/qamOverSoundBoard}
+\caption{Intermediate results along a QAM demodulation process: synchronization via cross-correlation and equalization of received symbols.\label{fig:qamOverSoundBoard}}
+\end{figure}
+
+%AK-TODO QAM over sound board; Later, include equalization
+\figl{qamOverSoundBoard} shows some results of the demodulation process. The  synchronization is performed via cross-correlation and its peaks indicate the preamble presence. The described equalization procedure is capable of correcting the received symbols as illustrated by the equalized constellation. The effect of equalization is a rotation and scaling of the original constellation.
+
+An interesting aspect of using a M-sequence preamble is that its $\pm 1$ uncorrelated values have a corresponding white frequency spectrum. Directly sending these samples to the DAC is not recommended because the channel has a limited bandwidth and the white spectrum would not conform to this restriction. Therefore, the preamble is upsampled and filtered by the shaping pulse in the same way as the transmit symbols. At the receiver, the waveform sampled at $\fs$ can be downsampled to the baud rate and the cross-correlation calculated between the preamble and a version of the received signal at the baud rate $\rsym$.\footnote{Note that are other strategies to perform this cross-correlation. For example, the received signal, at the sampling rate $\fs$, could be compared with an upsampled version of the preamble, also at $\fs$.} It remains to determine the first sample to start the downsampling operation. In \ci{ak\_offlineReceiveQAM.m} this sample is obtained by a brute force approach, which tries all possibilities from 1 to the oversampling factor $L$.
+
+To estimate the BER, the transmitted information symbols must be known at the receiver. To simplify the BER estimation procedure, the same frame is repeatedly transmitted by \ci{ak\_continuouslyTransmitQAM.m}, which corresponds to sending the same bits in all frames. The transmitted bits are stored in the global variable \ci{txBitStream}, which is made available to the receiver. 
+The reader is invited to vary system parameters, for example, to maximize the bit rate and also implement a more sophisticated equalization procedure.
+\eApplication
+
+%\bApplication
+%\textbf{Power of memoryless linearly modulated digital signals.}
+%First the power of the waveform corresponding to a single symbol is discussed and later for a sequence of symbols.
+%
+%In the adopted memoryless and linear modulation model,  where the waveform representing a single symbol is $s(t) = \sum_{i=1}^D m(i) \varphi_i(t)$, the power of the transmitted signal depends on the symbol rate, average constellation energy and energy of the basis functions $\varphi_i(t)$ in case they are not unitary.
+%%It is convenient to normalize the basis function such that it has unitary norm $\langle p(t),p(t) \rangle^2 = 1$ (same for discrete-time). 
+%In case the energy of $\varphi_i(t)$ is unitary, the energy $E_j$ of each waveform $s_j(t)$ is given by the squared norm $||\bm_j||^2$ of the symbol vector $\bm_j$ because
+%\begin{align*}
+%E_j = & \int_{-\infty}^\infty s_j^2(t) dt = \int_{-\infty}^\infty  \left( \sum_{i=1}^D m_j(i) \varphi_i(t) \right)^2 dt \\
+    %= & \sum_{i=1}^D m_j^2(i) \int_{-\infty}^\infty  \varphi_i^2(t) dt = ||\bm_j||^2,
+%\end{align*}
+%where $j=0, \ldots, M-1$ and $M$ is the number of constellation symbols. Obtaining the previous expression of $E_j$ used the fact that $\{\varphi_i(t)\}$ is an orthonormal set. For example, if $\bm_j = [-3, 1]$ represents a symbol ($D=2$), then $E_j = (-3)^2+1^2 = 10$~J.
+%
+%%AK-IMPROVE, will take out below, not sure where it is %The average energy of a constellation is given by \equl{constellation_energy}.
+%Assuming a modulation using orthonormal basis functions and a constellation with average energy $\overline E_c$ J (recall \equl{vectors_average_energy}), the average power in Watts of a single symbol over $\tsym$ is $\overline E_c / \tsym$ in continuous-time and, as indicated in \equl{powerUpsampledSignal}, $\overline E_c / L$ in discrete-time.
+%
+%The previous discussion analyzed the power of a single symbol. When considering a sequence of symbols, the power of the corresponding signal may need to take their interaction in account. \equl{powerOutputLTI} can be used in some cases, such as for PAM with $D=1$ and the shaping pulse $p(t)$ playing the role of $\varphi(t)$. An alternative result can be obtained by restricting the interactions among basis functions shifted in time as follows.
+%
+%%AK-IMPROVE: show expression to obtain the power of a generic s(t) (see exam TDS 2010) <= NAO ACHEI
+%%\section{Power of N-dimensional Signals}
+%
+%\equl{signalComposedByLinearCombination} describes the waveform corresponding to a single symbol $\bm$. Considering a sequence of symbols where $\bm_k = [m_{k,1},m_{k,2}, \ldots, m_{k,D}]$ denotes the $k$-th symbol of the $D$-dimensional constellation, the transmit waveform is
+%\begin{equation}
+%s(t) = \sum_{k=-\infty}^{\infty} \sum_{n=1}^{D} m_{k,n} \varphi_n(t-k \tsym),
+%\label{eq:generalSignalComposedByLinearCombination}
+%\end{equation}
+%which can be rewritten as
+%\[
+%s(t) = \sum_{n=1}^{D} \sum_{k=-\infty}^{\infty} m_{k,n} \varphi_n(t-k \tsym).
+%\]
+%When calculating the instantaneous power $|s(t)|^2$, the above summations create several cross terms among $\varphi_n(t-k \tsym)$. Impose that
+%\[
+%\int_{-\infty}^{\infty} \varphi_n(t-k \tsym) \varphi_m(t-p \tsym) = 0, \forall k \ne p.
+%\]
+%In this case, prove that the power $\calP$ of $s(t)$ is given by
+%\[
+%\calP = \overline E_c / \tsym.
+%\]
+%%
+%%with $s(t)$ interpreted as the summation of $D$ independent PAM signals $s_n(t)$. 
+%%
+%%which can be rewritten as
+%%\[
+%%s(t) = \sum_{n=1}^{D} \sum_{k=-\infty}^{\infty} m_{k,n} \varphi_n(t-k \tsym) = \sum_{n=1}^{D} s_n(t)
+%%\]
+%%with $s(t)$ interpreted as the summation of $D$ independent PAM signals $s_n(t)$. 
+%%
+%%Using \equl{power_lti} and assuming all $D$ sequences of symbols $m_{k,n}, n=1,\ldots,D$ are independent over $k$, each signal $s_n(t)$ has power 
+%\eApplication
+
+\section{Comments and Further Reading}
+
+John Cioffi's class notes \akurl{http://www.stanford.edu/group/cioffi/}{5cln} are good and freely available source for more advanced material.
+Classical textbooks such as the ones by Stremler, Barry/Messerschmitt/Lee, Sklar, Proakis and Haykin have plenty of information about the subject of this chapter.
+
+It should be noted that many implementation aspects have considerable importance in practice but are seldom discussed in the open literature. For example, there are several tricks to speed up the demodulation of QAM while not decreasing performance, receivers for specific scenarios and target embedded systems, etc. Sometimes, more advanced material such as contributions to standardization bodies or the standards themselves are useful source of information when the goal is to optimize an implementation.
+
+Textbooks that more ``implementation-oriented'' are~\cite{Farhang10,Johnson11,Miao07} with
+the first two having several Matlab scripts. 
+
+
+\section{Exercises}
+
+\begin{exercises}
+
+\item Digital modulation schemes can be organized in two groups: orthogonal and phase/amplitude modulation. Describe each one and contrast the main characteristics of the two groups.
+
+\item A constellation was created with three orthonormal basis functions $\varphi_i(t), i=1,2,3$ and $M=8$ symbols located at the corners of a cube. a) Assume that $[0,0,0]$ and $[1,1,1]$ are two symbols of this constellation and find the other six. b) Calculate the average energy of this cubic constellation.
+
+\item A QAM signal uses a carrier frequency $\aw_c=100$~rad/s and is given by 
+\[
+s_{\textrm{QAM}}(t) = 3\sinc(8t) \cos(\aw_c t) + 4\sinc(8t) \sin(\aw_c t).
+\]
+Find the expressions for its: a) IQ components $s_i(t)$ and $s_q(t)$, b) complex envelope $s_{\textrm{ce}}(t)$ and c) associated analytic signal $s_{\textrm{+}}(t)$. d) Show the graphs of their Fourier transforms and e) indicate the minimum $\aw_c$ value to allow obtaining $s_i(t)$ and $s_q(t)$ via QAM demodulation.
+
+\item a) What is the minimum sampling frequency $\fs$ to represent the complex envelope of a passband signal of $\BW=20$~MHz centered at 1~GHz using quadrature sampling? b) In case a single ADC is used, what would be the minimum $\fs$?
+
+\item BPSK can be interpreted as the multiplication of the carrier by a polar line code (or a PAM with constellation $\{\pm 1\}$) and a NRZ shaping pulse of amplitude $A$ over the symbol interval $\tsym$. Hence, using \tabl{psdExpressions}, the PSD of the baseband BPSK (the BPSK complex envelope) is $S(f)=A^2 \tsym \sinc^2(f \tsym)$. Find the null-to-null bandwidth BW in terms of the bit rate $R$. Execute a Monte Carlo simulation to obtain an estimate of $S(f)$ and compare it with the theoretical expression, as done in \figl{pam_spectrum_th_em}. But in this case, use the abscissa in kHz and $\tsym = 10^{-3}$. Choose appropriate values for the carrier $f_c$ and sampling $\fs$ frequencies. Change $\tsym$ to confirm your findings on how BW depends on $R$.
+
+\item Consider that the ADCs of a quadrature sampling hardware operate at $\fs=400$~MHz and the mixers have frequency $f_c = 2$~GHz. The input RF signal is a sinusoid $x(t)=8 \sin(2 \pi f_0 t)$, where $f_0=2.14$~GHz, which is then frequency downconverted to 140~MHz and sampled by the ADCs. a) Show the Fourier transforms of the I and Q components, and of their complex envelope. b) How could you change this sampling scheme to pay less for the ADC(s)?
+
+\item A modulation scheme uses four orthonormal basis functions $\varphi_i(t), i=1,2,3,4$ and $M=256$ symbols. Each basis functions carries a 4-PAM with symbols separated by $d=2$. a) Calculate the average energy of this 256-symbols constellation. b) Carefully draw the block diagram of a correlative decoder for a receiver, trying to minimize its computational cost. For this diagram, consider ``Pam demod'' as the block that performs the decisions and maps PAM symbols into bits. c) Using inner products and the orthogonality property, prove that the correlative receiver can recover the symbol $[1,-3,-1,1]$ when it arrives at the receiver as $r(t) = \varphi_1(t) - 3 \varphi_2(t) - \varphi_3(t) + \varphi_4(t)$.
+
+\item Implement in {\matlab} the following transmission systems: a) BPSK, b) 8-PSK and c) $\pi/4$-DQPSK. Use coherent demodulation and, to simplify, assume that the carrier frequency is perfectly regenerated at the receiver. Choose the simulation parameters such that the bit rate $R$ is the same for all three cases. For each case, show the IQ data in a constellation format and the associated phase variations. Also, show the PSDs using theoretical expressions or Monte Carlo estimations.
+% You can use scripts such as \codl{snip_digi_comm_differential_code}.
+
+%\item What would be a good taxonomy (see \figl{randomProcessesTaxonomy} for an example of a taxonomy) of modulation schemes? There are many methods: PAM, QAM, FSK, BPSK, etc. And many characteristics of these methods: linear, non-linear, memoryless, coded, passband, etc. How to organize that in a table or Venn diagram?
+
+\item Modify the matrix \ci{x} in \codl{snip_digi_comm_correlative_decoding} to use other transmit signals. For example, add the signals \ci{1:D}, \ci{D:-1:1}, \ci{rand(1,D)} and others. Then, execute the Gram-Schmidt procedure and observe how your choices with respect to the number $N$ of basis functions and constellation impact the PSD (signal power and bandwidth). Try to design a system with a relatively large number $M$ of input vectors and small $N$. Seek transmit signals that have relatively small bandwidth and limited power. Do you see advantages on using basis functions
+composed of sinusoids when compared to the ones obtained via a Gram-Schmidt procedure?
+
+\item Assume a wireless channel is modeled with the two-ray impulse response
+$h(t) = \delta(t) - 0.8 \delta(t-\tau)$, where $\tau = 2$~$\mu$s is the delay of the second path.
+The noise at the receiver has a one-sided PSD of $-140$~dBm/Hz. The transmit signal is a 16-QAM with
+$\rsym=1.2$~Mbauds, which was shaped by a NRZ square pulse. The central (carrier) frequency is 900~MHz. Find: a) the baseband complex-valued channel model impulse response $h_{bb}(t)$ and its Fourier
+transform $H_{bb}(f)$, b) generate plots of both the baseband and passband channels within a bandwidth of $2 \rsym$, c) find the PSD of the baseband-equivalent noise, d) implement two Monte-Carlo
+simulations, one in passband and another using the baseband equivalent system. Properly scale the signals such that the SNRs are the same in both cases and evaluate the required $\fs$ and the computational cost of these two cases.
+
+%\item Simulate 4-PAM transmission over the two-ray wireless channel described in Example 2.3.2 of \cite{Ciofficn}, Chapter 2. Compare the simulation in passband with the one in baseband, using the baseband equivalent system. 
+
+\item (Adapted from \cite{Ciofficn})
+A passband channel has a real-valued flat frequency response $H(f)$ with unitary gain from 75 to 175~MHz and zero otherwise. The QAM transmit signal cannot exceed 1~mW and its two-sided PSD $S_x(f)$ must obey a maximum level of $-83$~dBm/Hz. At the receiver, the signal is contaminated by WGN with 
+a flat PSD level of $\no/2=-98$~dBm/Hz. The carrier frequency is $f_c=100$~MHz and the target
+symbol error probability is $P_e = 10^{-6}$. Find: a) the baseband channel model $H_{bb}(f)$, 
+b) the largest symbol rate that can be used with $f_c=100$~MHz, c) the maximum QAM signal power
+at the channel output, d) the maximum QAM data rate that can be achieved with the symbol rate of part b, e) a new carrier frequency value that maximizes the QAM data rate and f) the new data
+rate for part e.
+
+%Solve items a, b, c and e of Exercise 2.16, called ``Baseband Channel 2 - Midterm 2001 - 12 pts'', in \cite{Ciofficn}, Chapter 2.
+
+\item Consider that the ADCs of a quadrature sampling hardware operate at $\fs=200$~MHz and the mixers have frequency $f_c = 1$~GHz. The input RF signal is a sinusoid $x(t)=8 \sin(2 \pi f_0 t)$, where $f_0=1.16$~GHz, which is then frequency downconverted to 160~MHz and sampled by the ADCs. Show the Fourier transforms of the I and Q components, and of their complex envelope. Using the graphs, indicate the alias frequency that appears and its cancellation when one creates the complex envelope. You may find useful the discussion in \akurl{http://www.hyperdynelabs.com/dspdude/papers/quadrature\%20signal\%20processing\%20redux.pdf}{7iqs}.
+
+\end{exercises}
+

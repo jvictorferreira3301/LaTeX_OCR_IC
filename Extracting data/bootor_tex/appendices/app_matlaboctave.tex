@@ -1,0 +1,68 @@
+For using the companion code, add the respective directories to the {\matlab} PATH with commands such as \ci{addpath(genpath('C:/mydir/Code/'),'-end')} and \ci{savepath}.
+
+In spite of many similarities, Matlab and Octave are of course two distinct softwares. In fact, compatibility with Matlab is not the top priority in Octave's development. Hence, even if a function has the same name and syntax, the algorithms are typically implemented differently and may lead to discrepant results. Besides, Mathworks is strategically substituting functions by classes in new
+versions, such that functions such as \ci{butter} (for designing a filter) are invoked after an
+object is created. This has been making Matlab and Octave increasingly different.
+
+As another example of distinct behavior, \ci{fir1} in Matlab normalizes the filter using:
+\begin{lstlisting}
+if First_Band
+    b = b / sum(b);  % unity gain at DC
+else
+		...
+\end{lstlisting}
+while \ci{fir1} in Octave uses:
+\begin{lstlisting}
+  ## normalize filter magnitude
+  if scale == 1
+    ## find the middle of the first band edge
+    if m(1) == 1, w_o = (f(2)-f(1))/2;
+    else w_o = f(3) + (f(4)-f(3))/2;
+    endif
+    ## compute |h(w_o)|^-1
+    renorm = 1/abs(polyval(b, exp(-1i*pi*w_o)));
+    ## normalize the filter
+    b = renorm*b;
+  endif
+\end{lstlisting}
+Therefore, the command \ci{B=fir1(10,0.4)} in Matlab generates a filter that has a gain of 1 at DC, while this command in Octave generates a filter with gain of 0.7557~dB at DC.
+
+The \ci{bilinear} function is a representative example of different syntaxes, which is a major problem when dealing simultaneously with Matlab and Octave. While Matlab uses the sampling frequency $\fs$, Octave uses the sampling period $\ts=1/\fs$. Hence, for obtaining approximately the same results, the call \ci{[NUMd,DENd] = bilinear(NUM,DEN,Fs)} in Matlab must be mapped to \ci{[NUMd,DENd] = bilinear(NUM,DEN,1/Fs)} in Octave.
+Another example of discrepancy is the third argument of \ci{pwelch.m}). Octave assumes it is a percentage while Matlab assumes it is the number of samples.
+The Web has good sites comparing the two softwares, such as \akurl{http://wiki.octave.org/wiki.pl?MatlabOctaveCompatibility}{omoc}.
+%\url{http://users.powernet.co.uk/kienzle/octave/matcompat/HTML/summary.html}. 
+\subsection{Octave Installation}
+
+The primary source for Octave is \akurl{http://www.gnu.org/software/octave}{ooct}. But, for better organization, most of Octave's packages (called toolboxes in Matlab's jargon) are kept separated, at Octave Forge: \akurl{http://sourceforge.net/projects/octave}{oofo}.
+Therefore, after installing Octave itself, it may be necessary to download and install its packages (toolboxes).
+
+After installing Octave, from its prompt, the command \ci{ver} can be used to verify not only the Octave version but also its toolboxes. For example, the toolbox \ci{signal} is required to execute several of the companion scripts.
+When using Linux, it is possible to use a command such as~\akurl{http://ubuntuforums.org/showthread.php?t=1552607}{oins}:
+\begin{lstlisting}
+sudo apt-get install $( apt-cache search octave-forge | awk '{printf $1; printf " "}' )
+\end{lstlisting}
+to install the packages.
+
+An alternative to this two-steps installation procedure is to obtain a complete ``distribution'' of Octave, with all (or most) packages of interest already incorporated.
+For example, installing Octave on Windows can be simplified by following the guidelines at
+\akurl{http://www.octave.org/wiki/index.php?title=Octave_for_Windows}{owin}, which indicate how to install the Octave executable from a single file and then most of its packages from a second compressed file.
+
+It is suggested to add the folder with the companion functions in your Octave PATH using \ci{addpath}. For example, to add the folder
+\begin{verbatim}
+C:\Code\MatlabOctaveFunctions
+\end{verbatim}
+in a Windows machine, avoid the backslash using
+\begin{verbatim}
+addpath("C:/Code/MatlabOctaveFunctions","-end")
+\end{verbatim}
+or
+\begin{verbatim}
+addpath(["C:" filesep "Code" filesep "MatlabOctaveFunctions"],"-end")
+\end{verbatim}
+and use \ci{savepath} to save the modifications.
+
+Make sure the command \ci{sound} (or \ci{soundsc}) is working. You may need to install a sound player and inform Octave of its PATH using an Octave's global environment variable called \ci{sound\_play\_utility}. A good strategy is to setup this variable at the \ci{.octaverc} file with something like \ci{global sound\_play\_utility = "c:/Program Files/VideoLan/VLC/vlc"}, but changing the PATH to your installed audio player~\akurl{http://stackoverflow.com/questions/1478071/how-do-i-play-a-sound-in-octave}{1rec}.
+
+Then keep your Octave installation up to date. For installing a package, for example, from the Octave prompt it is possible to run \ci{pkg install -forge signal} to install the \ci{signal} package.
+
+Another point worth mentioning is that some packages, such as the Fixed Point, are not part of the ones supported by Octave Forge and need to be installed individually (taking in account their compatibility with the installed version of Octave). 

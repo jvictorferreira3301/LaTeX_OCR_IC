@@ -1,0 +1,492 @@
+
+\section{Euler's equation}
+
+\begin{equation}
+e^{jx} = \cos(x) + j \sin(x),
+\label{eq:euler}
+\end{equation}
+where $x$ is given in radians. When $x=\pi$, it leads to the famous identity $e^{j \pi}=-1$. The value $e^{jx}$ can be interpreted as a complex number with magnitude one and angle $x$ rad. Hence, \equl{euler} represents the conversion of this complex number from the polar to the Cartesian form $\cos(x) + j \sin(x)$. 
+
+Using the fact that cosine and sine are even and odd functions, respectively, one can write $e^{-jx} = \cos(x) - j \sin(x)$ and using \equl{euler} obtain
+\begin{equation}
+\cos(x) = \frac{1}{2} (e^{jx} + e^{-jx})
+\label{eq:cos_as_complex_exponentials}
+\end{equation}
+and
+\begin{equation}
+\sin(x) = \frac{1}{2j} (e^{jx} - e^{-jx}).
+\label{eq:sin_as_complex_exponentials}
+\end{equation}
+
+\section{Trigonometry}
+\label{sec:trigonometry}
+	\begin{equation}
+		\sin(a+b) = \sin a \cos b + \cos a \sin b.
+		\label{eq:sinaplusb}
+	\end{equation}
+	\begin{equation}
+		\sin(2a) = 2 \sin a \cos a.
+		\label{eq:sin2a}
+	\end{equation}
+	\begin{equation}
+		\cos(a+b) = \cos a \cos b - \sin a \sin b.
+		\label{eq:cosaplusb}
+	\end{equation}
+	\begin{equation}
+	\cos(2a) = \cos^2 a - \sin^2 a.
+	\label{eq:cos2a}
+	\end{equation}
+From \ref{eq:cos2a} and $\cos^2 a + \sin^2 a = 1$:
+\begin{equation}
+ \cos^2 a = \frac{1}{2} (1+\cos (2a))
+\label{eq:squaredCosine}
+\end{equation}
+and
+\begin{equation}
+ \sin^2 a = \frac{1}{2} (1-\cos (2a)).
+\label{eq:squaredSine}
+\end{equation}
+The following are some of the so-called \emph{product to sum} identities:
+	\begin{equation}
+		\cos(a)\cos(b) = \frac{1}{2}[\cos (a-b) + \cos(a+b)].
+		\label{eq:cosatimescosb}
+	\end{equation}
+	\begin{equation}
+		\sin(a)\sin(b) = \frac{1}{2}[\cos (a-b) - \cos(a+b)].
+		\label{eq:sinatimessinb}
+	\end{equation}	
+	\begin{equation}
+		\sin(a)\cos(b) = \frac{1}{2}[\sin (a+b) + \sin(a-b)],
+		\label{eq:senatimescosb}
+	\end{equation}
+where $a$ is the argument of the sine in \equl{senatimescosb}.
+
+\section{Manipulating complex numbers and rational functions}
+\label{sec:complex_conjugate}
+The complex-conjugate of a sum of two complex numbers is the sum of the conjugate of these numbers. For instance:
+\begin{equation}
+[ (a+bj) + (c+dj) ]^* = (a+bj)^* + (c+dj)^* = (a+b) + j(c+d)^*.
+\label{eq:sum_complex_numbers}
+\end{equation}
+This is also valid for the conjugate of a difference, product, or quotient of two numbers, which is the difference, product, or quotient, respectively, of their individual conjugates. 
+
+This is useful when manipulating a rational system function $H(z)$ to obtain $H^*(z)$, as required in \equl{spectral_factorization}. For instance, suppose $H(z) = (z-2e^{j4}) (z-3+j5) / (z+6e^{-j4})$, then $H^*(z) = (z^*-2e^{-j4}) (z^*-3-j5) / (z^*+6e^{j4})$.
+
+\section{Manipulating complex exponentials}
+In Fourier and Z transforms it is common to encounter expressions such as $1 - e^{-j \theta}$. In some cases it is convenient to rewrite them as
+\begin{equation}
+1 - e^{-j \theta} = \frac{e^{j \theta/2}}{e^{j \theta/2}} (1 - e^{-j \theta}) = \frac{e^{j \theta/2} - e^{-j \theta/2}}{e^{j \theta/2}} = 2 j e^{-j \theta/2} \sin(\theta/2).
+\label{eq:complex_exp_trick_sin}
+\end{equation}
+Similarly, one can write
+\begin{equation}
+1 + e^{-j \theta} = \frac{e^{j \theta/2}}{e^{j \theta/2}} (1 + e^{-j \theta}) = \frac{e^{j \theta/2} + e^{-j \theta/2}}{e^{j \theta/2}} = 2  e^{-j \theta/2} \cos(\theta/2).
+\label{eq:complex_exp_trick_cos}
+\end{equation}
+
+\section{Q function}
+\label{sec:qfunction}
+
+\begin{itemize}
+	\item One just needs to know $Q(x)$ for positive $x$ because
+\begin{equation}
+Q(-x) = 1 - Q(x)
+\label{eq:qfunctionSymmetry}
+\end{equation}	
+	\item When expressed in dB, it is used $20 \log_{10} (x)$.
+	\item $Q(x) = 0.5 \textrm{\,erfc}(x/\sqrt{2})$, where erfc is the complimentary error function.
+	\item Matlab provides the qfunc in the comm toolbox. In case this toolbox is not available or using Octave, it is possible to use the erfc function as follows: \ci{y = 0.5*erfc(x/sqrt(2))}. See \ci{ak\_qfunc.m} and \ci{ak\_qfuncinv.m}.
+	%\item Check: http://www.eng.tau.ac.il/~jo/academic/Q.pdf
+\end{itemize}
+
+The Q values for three different ranges of its argument are shown in \figl{qfunc_verylowsnr}, \figl{qfunc_lowsnr} and \figl{qfunc_highsnr}. 
+
+%Do not need to show codes
+%\lstinputlisting[caption={MatlabBookFigures/figs\_app\_plot\_qvalues.m},label=code:figs_app_plot_qvalues]{./Code/MatlabBookFigures/figs_app_plot_qvalues.m}
+
+\begin{figure}
+\centering
+    \subfigure[Very low SNR]{\label{fig:qfunc_verylowsnr}\includegraphics[width=5cm]{Figures/qfunc_verylowsnr}}
+    \subfigure[Low SNR]{\label{fig:qfunc_lowsnr}\includegraphics[width=5cm]{Figures/qfunc_lowsnr}}
+    \subfigure[High SNR]{\label{fig:qfunc_highsnr}\includegraphics[width=5cm]{Figures/qfunc_highsnr}}
+  \caption{Q function for three different SNR ranges.}
+  \label{fig:qfuncs}
+\end{figure}
+
+%\subsection{Q function approximations}
+A Q function approximation that is good for $x > 3$:
+\begin{equation}
+Q(x) \approx \frac{1}{x \sqrt{2 \pi}} \exp \left( {- \frac{x^2}{2}} \right)
+\label{eq:qfunctionApproximation}
+\end{equation}
+
+An accurate approximation (less than 1.2\% of error) is:
+\begin{equation}
+Q(x) \approx \left[ \frac{1}{ \frac{\pi-1}{\pi}x + \frac{1}{\pi} \sqrt{x^2 + 2\pi}} \right]  \frac{1}{\sqrt{2 \pi}} \exp \left( {- \frac{x^2}{2}} \right).
+\label{eq:qfunctionApproximation2}
+\end{equation}
+The expression is valid for $x \ge 0$ and for $x<0$ one should use $Q(-x) = 1 - Q(x)$.
+The function \ci{ak\_qfuncApprox} implements \equl{qfunctionApproximation2}. In case you have Matlab, the code below compares it with Matlab's \ci{qfunc}.
+\begin{lstlisting}
+x=-3:0.01:3; %define a range for x
+qx1=ak_qfuncApprox(x); %use the approximation
+qx2=qfunc(x); %qfunc in Matlab's Communication Toolbox
+plot(x,100*(qx1-qx2)./qx2); %get error in %
+grid, xlabel('x'); ylabel('Error in Q approximation (%)')
+\end{lstlisting}
+
+\section{Matched filter and Cauchy-Schwarz's inequality}
+\label{sec:Cauchy-Schwarz}
+Proving the matched filter is analogous to the following problem: given a vector $\bx$, what is the vector $\by$ that maximizes the inner product $\langle\bx,\by\rangle$? The Cauchy-Schwarz's inequality states that:
+\begin{equation}
+\lvert\langle\bx,\by\rangle\rvert^2 \le \langle\bx,\bx\rangle \langle\by,\by\rangle.
+\label{eq:cauchy_schwarz}
+\end{equation}
+Because $\langle\bx,\bx\rangle = \lVert\bx\rVert^2$, taking the square root of \equl{cauchy_schwarz}, leads to $\lvert\langle\bx,\by\rangle\rvert \le \lVert\bx\rVert \textrm{~~} \lVert\by\rVert$. Hence, the inner product $\langle\bx,\by\rangle = \lVert\bx\rVert \lVert\by\rVert \cos(\theta)$ assumes its maximum value $\lVert\bx\rVert \textrm{~~} \lVert\by\rVert$ when $\theta=0$ or $180$ degrees, which corresponds to the vector $\by$ and $\bx$ being colinear.
+ 
+ %Similarly, $h(t)=p^*(-t+T)$.
+
+\section{Geometric series}
+
+A geometric series is the sum of numbers that form a geometric progression with common ration $r$ and scale factor (or starting value) $\alpha$:
+\[
+\sum_{n=0}^{N-1} \alpha r^n = \alpha r^0 + \alpha r^1 + \alpha r^2 + \ldots + \alpha r^{N-1} = \frac{\alpha (1 - r^N ) }{1 - r}.
+\]
+When the number $N$ of terms goes to infinity, the series converges if and only if $|r|<1$. In this case
+\begin{equation}
+\sum_{n=0}^{\infty} \alpha r^n = \frac{\alpha}{1 - r}, |r|<1.
+\label{eq:sum_inf_pg}
+\end{equation}
+
+\section{Sum of squares}
+
+The sum of the squares of the first $N$ integers is
+\begin{equation}
+\sum_{n=1}^N n^2 = \frac{N(N+1)(2N+1)}{6},
+\label{eq:sum_of_squares}
+\end{equation}
+which can be proved by induction~\akurl{http://understanding.mindtangle.net/?p=205}{BMson}.
+
+\section{Summations and integrals}
+
+Note that
+\[
+\left( \sum_{n=1}^N x[n] \right) \left( \sum_{n=1}^N y[n] \right) = \sum_{n=1}^N \sum_{m=1}^N \left( x[n]y[m] \right)
+\]
+because, e.g., $(a+b+c)(d+e+f)=ad+ae+af+bd+be+bf+cd+ce+cf$. Similarly, in the continuous-case
+\[
+\left( \int_{\langle T_0\rangle} x(t) dt \right) \left( \int_{\langle T_0\rangle} y(t) dt \right) = \int_{\langle T_0\rangle} \int_{\langle T_0\rangle} \left( x(t)y(s) \right) dt ds,
+\]
+where one should note the adoption of distinct integration variables $t$ and $s$.
+This result allows to express 
+\begin{equation}
+\left( \int_{\langle T_0\rangle} x(t) dt \right)^2 = \int_{\langle T_0\rangle} \int_{\langle T_0\rangle} \left( x(t)x(s) \right) dt ds,
+\label{eq:squaredintegral}
+\end{equation}
+which is an useful expression. Note that, in general,
+\[
+\left( \int_{\langle T_0\rangle} x(t) dt \right)^2 \ne \int_{\langle T_0\rangle}  x^2(t)  dt.
+\]
+
+%AK-TODO describe here how the integral of \equl{energy_discretetime} uses the fact that sincs are orthogonal
+
+\section{Partial fraction decomposition}
+\label{sec:partial_fraction}
+
+A \emph{partial fraction decomposition}\index{Partial fraction decomposition} is used to convert a rational function $P(x)/Q(x)$ into a sum of simpler fractions, where $P(x)$ and $Q(x)$ are two polynomials with $N$ and $M$ being the degrees of $P(x)$ and $Q(x)$, respectively and $x \in \complex$.
+
+Two assumptions simplify the decomposition:
+\begin{enumerate}
+	\item $M>N$, i.\,e., the denominator has larger degree than the numerator,
+	\item all $M$ roots $p_i$ of the denominator (called poles when dealing with transforms such as Laplace and Z) are distinct, which allows to write $Q(x)=(x-p_1) (x-p_2) \ldots (x-p_M)$.
+\end{enumerate}
+In this special case, it is possible to write
+\begin{equation}
+\frac{P(x)}{Q(x)} = \frac{r_1}{x-p_1} + \frac{r_2}{x-p_2} + \ldots + \frac{r_1}{x-p_M},
+\label{eq:fraction_expansion}
+\end{equation}
+where 
+\begin{equation}
+r_i = \left. \left( \frac{P(x)}{Q(x)}(x-p_i) \right) \right|_{x=p_i}
+\label{eq:residue}
+\end{equation}
+is called the \emph{residue} of the (pole) $p_i$. To understand (and prove) \equl{residue}, one can observe that multiplying both sides of \equl{fraction_expansion} by $(x-p_1)$ leads to
+\[
+\frac{P(x)}{Q(x)} (x-p_1)= r_1 + \frac{r_2(x-p_1)}{x-p_2} + \ldots + \frac{r_1(x-p_1)}{x-p_M}
+\]
+and substituting $x$ by $p_1$ makes all terms $r_i(x-p_1)/(x-p_i), i \ne 1$, equal to zero. The same can be done to the other poles and the general expression for this procedure is \equl{residue}. For example, expanding $1/(x^2 - 5x + 6)$ leads to
+\[
+\frac{1}{x^2 - 5x + 6} = \frac{r_1}{x-2} + \frac{r_2}{x-3},
+\]
+where
+\[
+r_1 = \left. \left( \frac{1}{(x-2)(x-3)}(x-2) \right) \right|_{x=2} = \left. \frac{1}{x-3}\right|_{x=2} = -1
+\]
+and
+\[
+r_2 = \left. \left( \frac{1}{(x-2)(x-3)}(x-3) \right) \right|_{x=3} = 1.
+\]
+If the roots are complex (typically they occur as complex conjugate pairs), the procedure is similar, but the parcels can be rearranged.
+
+When the first assumption is not valid, one needs to use polynomial division to first obtain
+\[
+\frac{P(x)}{Q(x)}  = R(x) + \frac{S(x)}{Q(x)},
+\]
+where the degree $L$ of $S(x)$ is $L<M$. 
+This pre-processing stage is similar to writing an improper fraction as a mixed fraction, e.\,g., $\frac{7}{4} = 1 \frac{3}{4} = 1 + \frac{3}{4}$.
+For example, when $P(x)/Q(x)=(3x^3 -13x^2+8x+13)/(x^2-5x+6)$, some algebra shows that it is not possible to find two residues $r_1$ and $r_2$ such that
+\[
+\frac{P(x)}{Q(x)} = \frac{r_1}{x-2} + \frac{r_2}{x-3}.
+\]
+Hence, first one obtains
+\[
+\frac{P(x)}{Q(x)}  =  \frac{3x^3-13x^2+8x+13}{x^2-5x+6} =  3x + 2 + \frac{1}{x^2-5x+6},
+\]
+with $R(x)=3x+2$ and $S(x)=1$ having a degree $L=0$ smaller than $M=2$, and then uses the standard partial fraction expansion on $\frac{S(x)}{Q(x)}$ to obtain
+\[
+\frac{3x^3-13x^2+8x+13}{x^2-5x+6} =  3x + 2 + \frac{1}{x-3} - \frac{1}{x-2}.
+\]
+
+When one or more roots $p_i$ of $Q(x)$ (poles) have multiplicity $\lambda_i$ larger than one, the second simplifying assumption does not hold and the expansion is trickier as discussed in the sequel. 
+
+Note that, in general, $Q(x)$ can be written as
+$Q(x)=(x-p_1)^{\lambda_1} (x-p_2)^{\lambda_2} \ldots (x-p_M)^{\lambda_M}$, while the previous results were restricted to $\lambda_i=1, \forall i$. A pole $p_i$ with $\lambda_i > 1$ requires not only a parcel $r_i/(x-p_i)$ but $\lambda_i$ parcels with residues $r_{ij}, j=1,\ldots,\lambda_i$ for the following powers of $(x-p_i)$:
+\[
+\frac{r_{i1}}{(x-p_i)} + \frac{r_{i2}}{(x-p_i)^2} + \frac{r_{i3}}{(x-p_i)^3} + \ldots + \frac{r_{i {\lambda_i}}}{(x-p_i)^{\lambda_i}}.
+\]
+The residues can be obtained using factorial and derivatives via the \emph{Theorem of residuals}:
+\begin{equation}
+r_{ij} = \frac{1}{(\lambda_i - j)!} \left. \frac{d^{\lambda_i - j}}{dx^{\lambda_i - j}} \left( \frac{P(x)}{Q(x)}(x-p_i)^{\lambda_i}\right) \right|_{x=p_i}
+\label{eq:residue_general}
+\end{equation}
+for $j=1,\ldots,\lambda_i$. When $\lambda_i=1$, this equation simplifies to \equl{residue}. For example, the expansion of $(x^3+5)/(x^4-9x^3+30x^2-44x+24)$ can use \equl{residue_general} because the denominator can be written as $(x-2)^3(x-3)$, having a single pole $p_1=3$ and a pole $p_2=2$ with multiplicity 3. Hence, the following residues need to be found
+\[
+\frac{x^3+5}{x^4-9x^3+30x^2-44x+24}=\frac{r_{1}}{(x-p_1)} + \frac{r_{21}}{(x-p_2)} + \frac{r_{22}}{(x-p_2)^2} + \frac{r_{23}}{(x-p_2)^3}.
+\]
+The residue $r_1$ can be found with \equl{residue}:
+\[
+r_1 = \left. \left( \frac{x^3+5}{(x-2)^3(x-3)}(x-3) \right) \right|_{x=3} = \frac{3^3+5}{(3-2)^3} = 32,
+\]
+while the other residues are given by \equl{residue_general} and require using \equl{derivative_rational} to obtain the following derivatives:
+\[
+\frac{d}{dx} \left( \frac{x^3+5}{x-3} \right) = \frac{3x^2(x-3)-(x^3+5)}{(x-3)^2} = \frac{2x^3-9x^2-5}{(x-3)^2}
+\]
+and
+\[
+\frac{d}{dx} \left( \frac{2x^3-9x^2-5}{(x-3)^2} \right) = \frac{(6x^2-18x)(x-3)^2-(2x^3-9x^2-5)2(x-3))}{(x-3)^4}, 
+\]
+which will be used for calculating $r_{22}$ and $r_{21}$, respectively.
+Therefore,
+\[
+r_{21} = \frac{1}{(3 - 1)!} \left. \frac{d^{2}}{dx^{2}} \left( \frac{P(x)}{Q(x)}(x-2)^{3}\right) \right|_{x=2} = \frac{1}{2} (-62) = -31,
+\]
+\[
+r_{22} = \frac{1}{(3 - 2)!} \left. \frac{d}{dx} \left( \frac{P(x)}{Q(x)}(x-2)^{3}\right) \right|_{x=2} = -25
+\]
+and
+\[
+r_{23} = \frac{1}{(3 - 3)!} \left. \left( \frac{P(x)}{Q(x)}(x-2)^{3}\right) \right|_{x=2} = -13.
+\]
+It is useful to use algebra and double check the obtained expansion:
+\[
+\frac{x^3+5}{x^4-9x^3+30x^2-44x+24}=\frac{32}{(x-3)} + \frac{-31}{(x-2)} + \frac{-25}{(x-2)^2} + \frac{-13}{(x-2)^3}.
+\]
+Alternatively, one can use {\matlab} to obtain the residues with the commands \ci{b=[1 0 0 5],a=[1 -9 30 -44 24],[r,p,k]=residue(b,a)}. It should be noted that Octave has the option of a more complete output with \ci{[r,p,k,e]=residue(b,a)}, where the vector \ci{e} relates each residue to the corresponding parcel in the expansion. When using Matlab, one needs to know that the residues are given in the order $r_{i1},r_{i2},\ldots,r_{i \lambda_i}$.
+
+In Python, the residues can be found with the method \ci{scipy.signal.residue}. 
+For the previous example, the command would be:
+\begin{lstlisting}
+b=[1, 0, 0, 5]; # numerator
+a=[1, -9, 30, -44, 24] # denominator
+[r,p,k]=scipy.signal.residue(b,a)
+\end{lstlisting}
+The method \ci{residue} assumes the polynomials are given in positive powers
+of the independent variable. For a pole $r_{ij}$ with multiplicity $\lambda_i$ larger than one, 
+similar to Matlab, the residues are given in the order $r_{i1},r_{i2},\ldots,r_{i \lambda_i}$.
+ 
+In Python, the method \ci{scipy.signal.residuez} can be used if the user prefers to describe
+the polynomials
+in negative powers, such $z^{-1}$, $z^{-2}$ and so on.
+
+\section{Calculus}
+\label{sec:calculus}
+
+\begin{enumerate}
+
+\item Derivative product rule: $(f(x) g(x))' = f(x) g'(x) + f'(x) g(x)$
+
+\item Derivative of a rational function 
+\begin{equation}
+\left(\frac{f(x)}{g(x)}\right)' = \frac{f'(x) g(x) - f(x) g'(x)}{g^2(x)}
+\label{eq:derivative_rational}
+\end{equation}
+
+
+
+\item Integration by parts: 
+\begin{equation}
+\int{f(x)g'(x)dx}=f(x)g(x)- \int{f'(x)g(x)}dx
+\label{eq:integration_parts}
+\end{equation}
+
+\item Derivative of an exponential: $(e^{f(t)})' = e^{f(t)} f'(t)$
+
+\item Integral of an exponential: $\int{(e^{f(t)})}dt = \frac {e^{f(t)}} {f'(t)}$
+
+\end{enumerate}
+
+\section{Sinc Function}
+\label{sec:sinc}
+
+Our definition of sinc is:
+\[
+\sinc(x) = \frac{\sin(\pi x)}{\pi x}.
+\]
+Some authors call it Sa (sample function) and others do not include $\pi$ in the definition. Its first zero occurs when $x=1$. Its value $\sinc(0)=1$ at origin can be determined using L'Hospital rule. The sinc is an energy signal with unitary energy $E=1$, which can be determined by its Fourier transform and Parseval's relation. Its scaled version $\sinc(t/\ts)$ is widely used in sampling theory and has energy $E=\ts$. As discussed in \exal{simulScaleShift}, $\sinc( (t-5)/3)$ corresponds 
+to expanding $\sinc(t)$ by a factor of 3 and then delaying this intermediate result by 5.
+
+The sincs are orthogonal when shifted by integers $m,n \in \integers$ (e.\,g., $\sinc(t-3)$ and \sinc(t+1) are orthogonal) and, consequently, the scaled sincs $\sinc(t/\ts)$ are orthogonal when shifted by multiples of $\ts$, i.\,e.
+\begin{equation}
+\int_{-\infty}^{\infty} \sinc\left(\frac{t-m\ts}{\ts} \right) \sinc\left(\frac{t-n\ts}{\ts} \right) dt = \ts \delta[m-n].
+\label{eq:sincOrthogonality}
+\end{equation}
+%It can be proved that these sincs, when shifted by a multiple of $\ts$ compose and orthogonal basis for band-limited signals.
+%Proof can be found at
+%http://en.wikipedia.org/wiki/Talk%3AWhittaker%E2%80%93Shannon_interpolation_formula
+
+%\section{Rectangular Integration to Define Normalization Factors for Discrete and Continuous Functions}
+\section{Rectangular Integration to Define Normalization Factors for Functions}
+\label{sec:normalization_factors_psd_pdf}
+
+In several situations a computer is used to obtain points that should represent a continuous function $f(x)$, $x \in \Re$. Two examples of this situation are the estimation of probability density functions (PDF) via histograms and power spectral density (PSD) estimation via an FFT routine. 
+
+Instead of aiming at an analytical expression $\hat f(x)$ to represent $f(x)$, the task consists in obtaining a set of points $\{ \hat f(x[n]) \}$ calculated at the values $x[n]$, $n=0,\ldots,N-1$, which are a uniformly-sampled version of the abscissa $x$.
+
+Often it is possible to first obtain a set of values $\{ \hat g(x[n]) \}$ in which the value $\hat g(x[n])$ is proportional to $f(x[n])$, i.\,e., 
+$f(x[n]) \propto \hat g(x[n])$. In this case, it is required to later determine a scaling factor $\kappa \in \Re$ such that the final set of values to represent $f(x)$ is obtained via
+\begin{equation}
+\hat f(x[n]) =\kappa \hat g(x[n]).
+\label{eq:kappa_as_normalization_factor}
+\end{equation}
+
+Note that the goal is not necessarily to have $\hat f(x) \approx f(x)$. There are situations in which the set of points $\{ \hat f(x[n]) \}$ must obey a property. For example, when histograms are used to estimate probability mass functions, one desired property is that $\sum_{x[n]} \hat f(x[n]) = 1$. Alternatively, the goal may be to scale the histogram such that the two resulting curves (normalized histogram and probability density function) coincide. The values of $\kappa$ are different for these two possible cases of histogram normalization as discussed after recalling the rectangle method.
+
+%There are two possible relations between $f(x)$ and $\hat f(x)$ 
+%with is chosen according to the desired property for $\hat f(x)$ (not necessarily, $\hat f(x) \approx f(x)$).
+%$\hat f(x) = \kappa \hat g(x)$ is a proper estimation of $f(x)$.
+%One situation of interest is to aim at an estimate $\hat f(x) \approx f(x)$ of $f(x)$, but there are cases where the goal is to obtain $\hat f(x)$ that obeys a given property, such that $\sum_x \hat f(x) = 1$ and not necessarily approximate $f(x)$. Hence, the normalization is such 
+
+%and the scaling factor that relates the two functions 
+%needs to be determined. The value of $\kappa$ is chosen such that the final estimate $\hat f(x) =\kappa \hat g(x[n])$ obeys a given property.
+
+%Before discussing them, it is useful to recall 
+
+The \emph{rectangle method}\index{Rectangle method}~\akurl{http://en.wikipedia.org/wiki/Rectangle\_method}{BMrec} is used for approximating a definite integral:
+\begin{equation}
+\int_a^b f(x) dx \approx h \sum_{n=0}^{N-1} f(x[n]),
+\label{eq:rectangle_method}
+\end{equation}
+where $h=(b-a)/N$ is the rectangle width and $x[n]=a+n h$. 
+
+The rectangle method can be used, for instance, to relate the continuous-time convolution in
+\equl{convolution_in_continuoustime} with its discrete-time counterpart in
+\equl{convolution}. Assuming $\ts$ is the sampling interval used to obtain the discrete-time signals $x[n]$ and $h[n]$ from $x(t)$ and $h(t)$, respectively, the factor $\ts$ is required 
+to better approximate the samples of $y(t) = x(t) \conv h(t)$ when using a discrete-time convolution:
+\begin{equation}
+y(n \ts) \approx  \ts (x[n] \conv h[n]).
+\label{eq:continuous_convolution_via_discrete}
+\end{equation}
+
+Besides, rectangle integration is 
+%not exactly an example of the situation under study because $f(x)$ is known, but the method is 
+useful to calculate the scaling factor $\kappa$ in the two cases discussed in next section.
+%In this case, the normalization factor $\kappa$ is chosen such that $\sum_{n=0}^{N-1} f(x[n])$ approximates the area under $f(x)$. Also, note that $f(x)$ is assumed to be known and there is no need to estimate $\hat f(x[n])$ which coincides with $f(x[n])$ in this case.
+
+\subsection{Two normalizations for the histogram}
+
+When the task is to estimate the PDF $f(x)$ of a continuous random variable, one can try using a discrete histogram $\hat g(x[n])$, which is obtained by drawing $M$ values from $f(x)$ and counting the number of values occurring at each of $B$ bins. Intuitively, for large $M$ and $B$, the curve (or the ``envelope'') of the histogram resembles $f(x)$ but it is off by a normalization factor $\kappa$.
+
+If $\kappa = 1/M$ is chosen, which is the most adopted option, one has $\hat f(x[n])=(1/M) \hat g(x[n])$ and, consequently $\sum_n \hat f(x[n]) = 1$. However, in this case, $\hat f(x[n])$ may be far from $f(x)$ by a large scaling factor. This can be observed in the curves generated by the following code:
+\begin{lstlisting}
+M=1000; x=3*rand(1,M); %M random numbers from 0 to 3
+B=100; [hatgx,N_x]=hist(x,B); %histogram with B bins
+hatfx = hatgx/M; %normalize the histogram to sum up to 1
+plot(N_x,hatfx,[-1,0,0,3,3,4],[0,0,1/3,1/3,0,0],'o-')
+xlabel('random variable x'), ylabel('PDF f(x)')
+legend('estimated','theoretical'); sum(hatfx)
+\end{lstlisting}
+The result of \ci{sum(hatfx)} is equal to one, as specified, but the PDF of the simulated distribution $\calU(0,3)$ is 1/3 over its support and the superimposed estimated and theoretical graphs do not match. 
+This discrepancy between the curves should be expected given that the normalized histogram \ci{hatfx} was in fact an estimate of a probability mass function (PMF) of a discrete random variable, obtained by quantizing the original $x$.
+% \in \Re$ according to the histogram bins. Therefore, the normalization was chosen such that $\sum_n \hat f(x[n]) = 1$.
+Another normalization factor $\kappa \ne 1/M$ must be used if the goal is to have $f(x) \approx \hat f(x[n])$.
+
+To obtain $\kappa$ such that $f(x) \approx \hat f(x[n])$, one can use the property that the integral of a PDF is one. Based on the rectangle method one can write
+\[
+\int_a^b f(x) dx \approx h \sum_{n=0}^{N-1} \hat f(x[n]) = h \kappa \sum_{n=0}^{N-1} \hat g(x[n]) = 1,
+\]
+where $h=(b-a)/B$. Because $\sum_{n=0}^{N-1} \hat g(x[n])=M$, one obtains $\kappa = 1/(hM)$, which is the original factor $1/M$ divided by the bin width $h$.
+The function \ci{ak\_normalize\_histogram.m} uses this approach. Using the same example of the previous code, the following commands for obtaining \ci{hatfx} would lead to consistent theoretical and estimated curves:
+\begin{lstlisting}
+M=1000; x=3*rand(1,M); %M random numbers from 0 to 3
+B=100; [hatgx,N_x]=hist(x,B); %histogram with B bins
+h=3/B; %h is the bin width assuming the support is 3
+hatfx = hatgx/(M*h); %PDF values via normalized histogram
+plot(N_x,hatfx,[-1,0,0,3,3,4],[0,0,1/3,1/3,0,0],'o-')
+xlabel('random variable x'), ylabel('PDF f(x)')
+legend('estimated','theoretical'); sum(hatfx)
+\end{lstlisting}
+As expected, in contrast to the sum equal to one in the first code, in this case \ci{sum(hatfx)=1/h=33.3}. Both histogram normalization factors, $\kappa=1/M$ and $\kappa=1/(hM)$, are useful and the choice depends whether the application requires values from a PMF or PDF, respectively.
+
+\subsection{Two normalizations for power distribution using FFT}
+
+Another application that can be related to \equl{sum_of_squares} is the use of FFT for estimating how the signal 
+power is distributed over frequency.
+It is assumed here a finite-duration discrete-time signal $x[n]$ with $N$ non-zero samples.
+%, which is represented by a vector $\bx$ with $N$ elements. 
+%An orthonormal DFT is used to obtain the sequence $X[k]$ in frequency-domain such that the two sequences have the same  energy $E$:
+%\[
+%\sum_{n=0}^{N-1} |x[n]|^2 = \sum_{k=0}^{N-1} |X[k]|^2 = E.
+%\]
+
+The squared FFT magnitude $|\textrm{FFT}\{x[n]\}|^2$
+%The periodogram $\hat S[k] = \frac{|\textrm{FFT}\{x[n]\}|^2}{N}$ (\equl{periodogram_discretetime2}) 
+%calculated at the FFT frequency grid 
+%The energy spectral density (ESD) $\calG[k] = |X[k]|^2$ 
+plays the role of the function $\hat g$ in \equl{kappa_as_normalization_factor}. The choice $\kappa=1/N^2$ leads to an estimate $\hat f(\cdot)$ of the mean-square spectrum (MSS) $S_{\textrm{ms}}[k]$ of \equl{msspectrumDef}, while $\kappa=1/(N^2 \Delta f)$ corresponds to PSD $S(f)$ in \equl{psd_integration}, where $\Delta f = \BW/N$ and $\BW$ is given in Hz. As indicated in \tabl{analogy_psd_pdf}, the two options for $\kappa$ have similarities with the ones for histogram normalization.
+
+\begin{table}
+\centering
+\caption{Analogy between using the histogram and DFT for estimation, where $\hat g(x[n])$ is the estimated function and $\hat f(x[n]) =\kappa \hat g(x[n])$ its normalized version. The unit of $\hat f(x[n])$ is indicated within parentheses.\label{tab:analogy_psd_pdf}}
+\begin{tabular}{|l|c||c|}
+\hline
+& $\hat g(\cdot)$ is histogram  & $\hat g(\cdot)$ is $|\textrm{FFT}\{x[n]\}|^2$ \\ \hline
+\multirow{2}{*}{\parbox{3cm}{Estimate a discrete function}}  & $\kappa=1/M$ & $\kappa=1/N^2$ \\ \cline{2-3}
+ & $\hat f(\cdot)$ is PMF (probability) & $\hat f(\cdot)$ is MSS $\hat S_{\textrm{ms}}[k]$ (Watts) \\ \hline \hline
+\multirow{2}{*}{\parbox{3cm}{Estimate a continuous function}}  & $\kappa= \frac{1}{hM}$ & $\kappa= \frac{1}{N^2 \Delta f}$ \\  \cline{2-3}
+& $\hat f(\cdot)$ is PDF (likelihood) & $\hat f(\cdot)$ is PSD $\hat S(f)$ (watts/Hz) \\ \hline
+\end{tabular}
+\end{table}
+
+In both cases in \tabl{analogy_psd_pdf}, when going from a discrete to a continuous function, the bin width ($h$ for histogram and $\Delta f$ for the FFT), is used as normalization factor.
+
+\ignore{
+To prove the values of $\kappa$ in \tabl{analogy_psd_pdf}, 
+consider first that the goal is to multiply the periodogram values $\hat S[k]$ by $\kappa$ such that resulting values sum up to the average power $\calP$, i.\,e.
+\begin{equation}
+\sum_{k=0}^{N-1} \kappa \hat S[k] = \calP.
+\label{eq:derivationOfKappa}
+\end{equation}
+Recall from the definition of MS spectrum $\hat S_{\textrm{ms}}[k]$ in \equl{ms_sumPower}, that $\sum_{k=0}^{N-1} \hat S_{\textrm{ms}}[k]  = \calP$.
+And from \equl{fromPeriodogramToMS}, $\hat S_{\textrm{ms}}[k] = \frac{1}{N} \hat S[k]$, such that \equl{derivationOfKappa} can be written as $\sum_{k=0}^{N-1} \kappa \hat S[k] = N \kappa \sum_{k=0}^{N-1} \hat S_{\textrm{ms}}[k] = \calP$ or $\kappa N=1$. Therefore $\kappa=1/N$ allows to normalize the periodogram to interpret it as a discrete function with the property indicated by \equl{derivationOfKappa}.
+%
+Alternatively, if the goal is to interpret the periodogram as a continuous function with values corresponding to estimates of the PSD $S(e^{j \dw})$, from \equl{psd_integration} and the rectangle method of \equl{rectangle_method}, a property that can be used to determine $\kappa$ is
+\[
+\frac{1}{2 \pi} \int_{<2 \pi>} S(e^{j \dw}) d\dw \approx \frac{1}{2 \pi} h \sum_{k=0}^{N-1} \kappa \hat S[k] = \calP.
+\]
+Substituting the bin width $h=2\pi/N$ and normalizing the periodogram by $N$ to convert it into the MS spectrum leads to 
+\[
+\frac{1}{2 \pi} h \sum_{k=0}^{N-1} \kappa \hat S[k] = \frac{1}{2 \pi} \frac{2 \pi}{N} \kappa  \sum_{k=0}^{N-1} N \hat S_{\textrm{ms}}[k] = \calP,
+\]
+such that $\kappa = 1$ in this case. Example \ref{ex:psdOfImpulse} illustrates the two options for $\kappa$ discussed in \tabl{analogy_psd_pdf}.
+}
+%, the continuous function is the PSD $S(e^{j \dw})$ and the discrete function is a normalized version of the FFT that must be multiplied by $h=2 \pi/N$, as indicated in \equl{sum_of_squares}. 

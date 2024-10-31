@@ -1,0 +1,1056 @@
+This appendix will provide a very brief overview about key topics. If the reader finds extra time, he/she can 
+find many good textbooks about probability and stochastic (or random) processes.
+
+\subsection{Joint and Conditional probability}
+
+If two events $A$ and $B$ are \emph{statistically independent}, their \emph{joint probability} $P(A,B)$ is the multiplication of their individual probabilities: $P(A,B)=P(A)P(B)$. For instance, obtaining two heads when tossing a fair coin twice is $P(H,H) = 0.5 \times 0.5 = 0.25$, given that $P(H)=0.5$. Given that the event $B$ is tossing the coin for the second time, we can say that the \emph{conditional probability} $P(B/A)$ of $B$ given that the first tossing event $A$ occurred is $P(B/A) = P(B)$ because $A$ does not influence $B$.
+
+In general, the conditional probability is obtained by its definition: $P(B/A) = P(A,B)/P(A)$. Writing this equation as 
+$P(A,B) = P(A) P(B/A)$, one can imagine a causal relation between $A$ and $B$, with $A$ occurring with $P(A)$, before $B$, and then $B$ occurring with $P(B/A)$ given that $A$ happened.
+
+Starting from the joint probability $P(A,B)$, one can pick $B$ as the first event that happens and write $P(A,B) = P(B) P(A/B)$. Combining the two alternatives of writing $P(A,B)$, i.\,e. $P(A) P(B/A) = P(B) P(A/B)$ leads to
+\begin{equation}
+P(A/B) = \frac{P(B/A)P(A)}{P(B)},
+\label{eq:bayes_rule}
+\end{equation}
+which is called the \emph{Bayes rule} (see, e.\,g., \akurl{http://www.cs.ubc.ca/~murphyk/Bayes/bayesrule.html}{BMpro}).
+
+\subsection{Random variables}
+
+First note that the outcome of a probabilistic experiment need not be a number but any element of a set $\Omega$ of possible outcomes. For example, the outcome when a coin is tossed can be $\omega=$``heads'' or $\omega=$``tails''. 
+Basically, random variables allow us to map any probabilistic event into numbers, which are then conveniently manipulated using mathematical operations such as integral and derivatives.
+A source of confusion is that, strictly, a random variable (e.g., $\rvx$ or $\rvy$) is a function. 
+More specifically, a random variable (r.v.) is a function $\rvx : \Omega \rightarrow \Re$ that associates a unique numerical value with every outcome of an experiment (r.v. can be complex numbers, vectors, etc., but here it will be assumed as a real number). In math, a function output is often represented as $y=f(x)$.  When dealing with a r.v., instead of adopting something like $\rvx(\omega)$, both the random variable (equivalent to the function $f$) and its output value (equivalent to $y$) is represented by a single letter (e.g., $\rvx$ or $\rvy$).
+
+There are two types of r.v.: discrete and continuous. Hence, a r.v. has either an associated probability distribution (discrete r.v.) or probability density function (continuous r.v.).
+
+Assume a discrete r.v. $\rvx$ and a continuous r.v. $\rvy$. While the former is typically described by a probability mass function (pmf), the latter can be described by a probability density function (pdf).\index{Probability mass function}\index{Probability density function}
+
+Say that $\rvx$ represents the outcome of rolling a dice. Its PMF is shown in \figl{app_diceexample} and indicates that each face of a fair dice has a probability of $1/6$.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidthSmall]{Figures/app_diceexample}		
+	\caption{PMF for a dice result.\label{fig:app_diceexample}}
+\end{figure}
+
+Now consider that $\rvy$ represents the amplitude of a Gaussian noise source with mean 2 and variance equal to 1. Its pdf is shown in \figl{app_awgnshaded}. A common mistake is to assign a non-zero value to a specific value of a density function.
+%\index{\cm Assigning non-zero value to a specific value of a density function}. 
+For example, it is wrong to say that the probability of $\rvy = 2$ is $0.4$, in spite of this being the value of the function. The function represents a \emph{density}, and the correct answer is that the probability of $\rvy = 2$, or any other point, is 0. One can extract probability from a pdf only integrating it over a non-zero range of its abscissa. For example, over the range [2, 3] the probability is approximately 0.34 as indicated by the shaded area in \figl{app_awgnshaded}.
+
+\ignore{
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/app_awgnexample}		
+	\caption{Continuous Gaussian pdf.\label{fig:app_awgnexample}}
+\end{figure}
+}
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/app_awgnshaded}		
+	\caption[{Obtaining probability from a pdf (density function) requires integrating over a range.}]{Obtaining probability from a pdf (density function) requires integrating over a range. Example shows that the probability of this Gaussian variable be within [2, 3] is approximately 0.34.\label{fig:app_awgnshaded}}
+\end{figure}
+
+When dealing with ratios of pdfs it is possible to have the abscissa range $\Delta_x$ canceling out. For example, if a discrete binary r.v. is used to represent two classes (A and B, for example), and each class has a pdf associated to it ($f(\bx|A)$ and $f(\bx|B)$, respectively), the Bayes' rule states
+\begin{equation}
+P(A|\bx)= \frac{f(\bx|B)}{f(\bx|A)} P(B|\bx).
+\label{eq:generalBayesRule}
+\end{equation}
+In this case, $\Delta_x$ cancels because it appears on both numerator and denominator.
+
+\subsection{Expected value}
+\label{sec:expected_value}
+The expected value $\ev[\cdot]$ operator is the most common mathematical formalism for calculating an average (or mean). 
+
+The expected value is a \emph{linear operator} (see Appendix~\ref{app:linearity} for more information about linearity), such that
+\begin{equation}
+\ev[ \alpha \rvx + \beta \rvy] = \alpha\ev[  \rvx]  + \beta \ev[\rvy].
+\label{eq:ev_linear_operator}
+\end{equation}
+
+The expected value $\ev[\rvx]$ of a random variable $\rvx$ can be estimated as a typical average
+when $\rvx$ can be represented by a finite-dimension vector. 
+For example, if $\bx=[3, 5, 4, 4, 5, 3]$ is a vector with random samples from $\rvx$, the expected value $\ev[\rvx]$ can be estimated as $\ev[\rvx] \approx \overline{\bx}=(3+5+4+4+5+3)/6=4$, where $\overline{\bx}$ is the conventional mean value.
+
+If one has realizations of a random variable $\rvx$, for instance organized as a vector $\bx$, and is looking for the expected value $\ev[g(\rvx)]$ of a function $g(\rvx)$, it is possible to apply the function $g(\cdot)$ to each realization (value of $\bx$) and then take their average.
+For example, assume $g(\rvx) = \rvx^2$ and one is interested on estimating $\ev[\rvx^2]$ based on realizations $\bx=[-1, 3, -3, 4, -2]$ of $\rvx$. In this case, applying $g(\rvx) = \rvx^2$ to elements of $\bx$ leads to the vector $\by = [(-1)^2, 3^2, (-3)^2, 4^2, (-2)^2]$, which has the average $\overline{\by} = (1 +    9   + 9   + 16    + 4)/5 = 7.8$. The estimate is $\ev[\rvx^2] \approx \overline{\by} = 7.8$. 
+
+As another example, consider $\mu_x = \ev[\rvx]$ is known (or has been previously estimated), and one is interested 
+on estimating the variance $\ev[(\rvx-\mu_x)^2]$. In this case, $g(\rvx) = (\rvx-\mu_x)^2$ and if the realizations are still $\bx=[-1, 3, -3, 4, -2]$, which has an average $\mu_x = 0.2$, applying $f(\rvx)$ leads to a vector $\bz=[(-1-0.2)^2, (3-0.2)^2, (-3-0.2)^2, (4-0.2)^2, (-2-0.2)^2]$ with mean value $\overline{\bz}=7.76$. In this case the estimated variance is $\ev[(\rvx-\mu_x)^2] \approx \overline{\bz} = 7.76$.
+
+The variance is often denoted as $\sigma_x^2$, and can be written as
+\begin{align}
+\sigma_x^2 &=  \ev[(\rvx-\mu_x)^2] & \textrm{~~~(definition of variance)} \nonumber \\
+&=  \ev[\rvx^2 - 2 \rvx \mu_x + \mu_x ^2] & \textrm{~~~(by expanding the square)} \nonumber \\
+&=   \ev[\rvx^2] - \ev[2 \rvx \mu_x] + \ev[\mu_x ^2] & \textrm{~~~(the expected value is a linear operation)} \nonumber \\
+&=   \ev[\rvx^2] - 2 \mu_x \ev[\rvx] + \mu_x ^2 & \textrm{~~~($\mu_x$ is a constant)} \nonumber \\
+&=   \ev[\rvx^2] - 2 \mu_x^2 + \mu_x ^2 & \textrm{~~~($\ev[\rvx] = \mu_x$)} \nonumber \\
+&=   \ev[\rvx^2] - \mu_x ^2, \label{eq:variance_alternative} & 
+\end{align}
+which is often interpreted as $\ev[\rvx^2] = \sigma_x^2 + \mu_x ^2$.
+
+When a discrete random variable $\rvx$ has $V$ distinct values, its mean $\ev[\rvx]$ can be estimated with
+\begin{equation}
+\ev[\rvx] \approx \overline{\bx} = \sum_{i=1}^V p_i x_i,
+\label{eq:ev_distinct_values}
+\end{equation}
+where $p_i$ is the probability of the $i$-th possible value $x_i$. 
+For instance, the realizations $\bx=[3, 5, 4, 4, 5, 3]$ have only $V=3$ distinct values: $x_1=3, x_2=4$ and $x_3=5$, each one with estimated probability $p_i = 1/3, \forall i$. Hence, 
+\[
+\ev[\rvx] \approx \overline{\bx} = \sum_{i=1}^V p_i x_i = (1/3)(3 + 4 + 5) = 4.
+\]
+The same result could be obtained by directly taking the mean value of the $N=6$ elements with
+\[
+\ev[\rvx] \approx \overline{\bx} = \frac{1}{N} \sum_{n=1}^N x[n] = (3 + 5 + 4 + 4 + 5 + 3) / 6 = 4.
+\]
+Note that $x[n]$ corresponds to the $n$-th element in $\bx$, while $x_i$ is the $i$-th distinct value of $\bx$.
+
+When $\rvx \in \Re$ is a continuous random variable, instead of \equl{ev_distinct_values} one has
+its continuous version:
+\[
+\ev[\rvx] = \int_{-\infty}^{\infty} x f_{\rvx}(x)  dx,
+\]
+where $f_{\rvx}(x)$ is the probability density function of $\rvx$. In this case, for each value of $x$, the role of 
+the probability $p_i$ in the discrete r.v. case, is played by the value $f_{\rvx}(x)$ that corresponds to a ``weight'' that
+depends on the likelihood of the specific value $x$.
+
+In order to find $\ev[g(\rvx)]$ for a given function $g(\cdot)$ one can use:
+\begin{equation}
+\ev[g(\rvx)] = \int_{-\infty}^{\infty} g(x) f_{\rvx}(x)  dx.
+\label{eq:function_continuous_rv}
+\end{equation}
+
+\subsection{Orthogonal versus uncorrelated}
+
+Two random variables $\rvx$ and $\rvy$ are said to be \emph{orthogonal} to each other if 
+\[
+\ev[\rvx \rvy^*]=0.
+\]
+They are said to be uncorrelated with each other if
+\[
+\ev[(\rvx-\ev[\rvx]) (\rvy-\ev[\rvy])^*]=0.
+\]
+The above condition is equivalent to
+\[
+\ev[\rvx \rvy^*]=\ev[\rvx]\ev[\rvy]^*.
+\]
+Note that if one or both of $\rvx$ and $\rvy$ have zero mean, then the orthogonal and uncorrelated conditions are equivalent.
+
+ 
+\subsection{PDF of a sum of two independent random variables}
+
+If $\rvx$ and $\rvy$ are independent, $\rvz=\rvx+\rvy$ implies $f(z) = f(x) \conv f(y)$. For example, the sum of a bipolar signal (-5 and +5V with 0.5 of probability each) with pdf $f_x(x) = 0.5 [\delta(x-5) + \delta(x+5)]$ and additive white Gausssian noise (AWGN) with pdf $f_y(y)$ is a good example because the result is the Gaussian scaled by 0.5 and shifted to the position of each of the original impulses, at $-5$ and 5, i.\,e., $f_z(z) = 0.5[f_y(z-5)+f_y(z+5)]$.
+
+%\subsection{Stochastic (random) processes}
+\ignore{
+    Given a probability space $(\Omega, \mathcal{F}, \mathbb{P})$, a stochastic process (or random process) with state space X is a collection of X-valued random variables indexed by a set T ("time"). That is, a stochastic process F is a collection   
+    $\{ F_t : t \in T \}$
+where each Ft is an X-valued random variable.
+}
+
+\section{Stochastic Processes}
+\label{app:stochasticprocesses}
+
+\emph{Stochastic} or \emph{random} processes are a powerful formalism for studying signals that incorporate some randomness. While the outcome of a random variable is a number, the outcome
+of a stochastic process is a time-series, each one called a \emph{realization}. Hence, when using
+stochastic processes, it is possible to calculate ``time'' statistics of a single realization.
+Besides, one can choose a given time instant and calculate ``ensemble'' statistics over all
+realizations at that specific time. These two options may be confusing at first, but are essential.
+To get intuition on them, the reader is invited to observe the following simple example.
+
+\bExample \textbf{Simple example to explain time and ensemble averages in a stochastic process}.
+\label{ex:simpleRandomProcess}
+Assume a vector
+\co{[2, 0, 2, 3, 3, 2, 3]} where each element represents the outcome of a random variable $\rvx$ indicating the number of victories of a football team in four matches (one per week), along a seven-months season (for example, the team won 2 games in the first month and none in the second). One can calculate the average number of victories as $\ev [\rvx] \approx 2.14$, the standard deviation $\sigma \approx 1.07$ and other moments of a random variable. This vector could be modeled as a finite-duration random signal $\rsx[n]$, with \figl{randomsignal} depicting its graph. 
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/randomsignal}	
+		\caption{Example of a finite-duration random signal.\label{fig:randomsignal}}
+\end{figure}
+
+Assume now there are 5 vectors, one for each year. A discrete-time random process can be used to model the data, with each vector (a time series) corresponding to a \emph{realization} of the random process. For example, following the Matlab convention of organizing different time series in columns (instead of rows), the tabular data below represents the five random signals:
+\begin{verbatim}
+victories = [
+     2     3     0     0     1
+     0     1     3     2     1
+     2     1     4     0     2
+     3     4     3     1     2
+     3     3     4     3     4
+     2     1     1     2     3
+     3     4     4     2     4]
+\end{verbatim}
+Each random signal (column) can be modeled as a realization of a random process. \figl{realizations} shows a graphical representation of the data with the five realizations of the example. One should keep in mind that a random process is a model for generating an infinite number of realizations but 
+only 5 are used here for simplicity.
+
+%Similar to the element of a matrix, which position is specified by row and column, two numbers indicate the realization
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/realizations}		
+	\caption{Example of five realizations of a discrete-time random process.\label{fig:realizations}}
+\end{figure}
+
+A discrete-time random process will be denoted by $\calX[n]$ and one of its realization as $\rsx[n]$. 
+%It is not common to enumerate the realizations of a random process, but 
+For the sake of explaining this example, let us define the notation $\rsx_i[n]$ to indicate the $i$-th realization of $\calX[n]$. Because $\rsx_i[n]$ is a random signal, one can calculate for the given example, $\ev [\rsx_1[n]] \approx 2.14$ and other statistics taken over time.
+But a random process is a richer model than a random signal and other statistics can be calculated or, equivalently, more questions can be asked.
+
+Besides asking for statistics of one realization taken over ``time'', it is important to understand that when fixing a given time instant $n_0$, the values that the realizations assume are also outcomes of a random variable that can be denoted by $\calX[n_0]$. In the example, assuming $n_0= 4$ (i.e., assume the fourth month), one can estimate the average $\ev [\calX[4]] = 2.6$. Similarly, $\ev [\calX[6]] = 1.8$. \figl{marked_realizations} graphically illustrates the operation of evaluating a random process at these two time instants. Differently than the previous time averages, these ``ensemble'' statistics are obtained across realizations with fixed time instants.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/marked_realizations}		
+	\caption[{Example of evaluating a random process at time instants $n=4$ and $n=6$, which correspond to the values of two random variables $\calX[4]$ and $\calX[6]$.}]{Example of evaluating a random process at time instants $n=4$ and $n=6$, which correspond to the values of two random variables $\calX[4]$ and $\calX[6]$. There are only five pairs and each occurs once, hence a 0.2 estimated probability for all points.\label{fig:marked_realizations}}
+\end{figure}
+
+The continuous-time random process $\calX(t)$ is similar to its discrete-time counterpart. Taking two different time values $t$ and $s$ leads to a pair of random variables, which can then be fully (statistically) characterized by a joint pdf function $f(\calX(t),\calX(s))$. This can be extended to three or more time instants (random variables). Back to the discrete-time example, one can use a normalized two-dimensional histogram to estimate the joint PMF of $\calX[4]$ and $\calX[6]$ as illustrated in \figl{joint_pdf}.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth,keepaspectratio]{Figures/joint_pdf}		
+	\caption{Example of a joint pdf of the continuous random variables $\calX[4]$ and $\calX[6]$.\label{fig:joint_pdf}}
+\end{figure}
+
+This example aimed at distinguishing time and ensemble averages, which
+is fundamental to understand stochastic processes.
+\eExample
+
+\subsubsection{Correlation Function and Matrix}
+\label{sec:appendix_correlation}
+
+Second-order moments of a random process involve statistics taken at two distinct time instants.
+Two of them are the correlation and covariance functions, which are very useful in practice.
+
+As discussed in Section~\ref{sec:correlation}, the correlation function is an extension of the correlation concept to random signals generated by stochastic processes.
+The \emph{autocorrelation function} (ACF)\index{Autocorrelation function} 
+\begin{equation}
+R_{X}(s,t) = \ev[\calX(s) \calX(t)]
+	\label{eq:autocorrelationPrevious2}
+\end{equation}
+is the correlation between random variables $\calX(s)$ and $\calX(t)$ at two different points $s$ and $t$ in time of the same random process.
+Its purpose is to determine the strength of relationship between the values of the signal occurring at two different time instants. For simplicity, it is called $R_{X}(s,t)$ instead of $R_{XX}(s,t)$.
+
+A discrete-time version of \equl{autocorrelationPrevious2} is
+\begin{equation}
+R_X[n_1,n_2] = \ev \left[ \calX[n_1] \calX[n_2] \right],
+\label{eq:discreteTimeCorrelationPrevious}
+\end{equation}
+where $n_1$ and $n_2$ are two ``time'' instants.
+
+Specially for discrete-time processes, it is useful to organize autocorrelation values
+in the form of an autocorrelation matrix.
+
+\bExample \textbf{Calculating and visualizing the autocorrelation matrix (not assuming stationarity)}.
+Stationarity is a concept that will be discussed in the sequel (Appendix~\ref{sec:stationarity}).
+Calculating and visualizing autocorrelation is simpler when the process is stationary. But in
+this example, this property is not assumed and the autocorrelation is obtained for a general process.
+
+\codl{ak_correlationEnsemble} illustrates the estimation of $R_{X}[n_1,n_2]$ for a general discrete-time random process.\footnote{Note that \ci{xcorr.m} in {\matlab} assumes the process is wide sense stationary, while \ci{ak\_correlationEnsemble.m} does not.}
+
+\lstinputlisting[lastline=22,caption={MatlabOctaveFunctions/ak\_correlationEnsemble.m},label=code:ak_correlationEnsemble]{./Code/MatlabOctaveFunctions/ak_correlationEnsemble.m}
+
+%\includecode{MatlabOctaveFunctions}{correlationEnsemble}
+
+\figl{correlationNonStationary} was created with the command \ci{ak\_correlationEnsemble(victories)} and shows the estimated correlation for the data in \figl{realizations} of \exal{simpleRandomProcess}.  The data cursor indicates that $R_X[1,1] = 2.8$ because for $n=1$ the random variables of the five realizations are $[2,     3,     0,     0,     1]$. In this case, $R_X[1,1]=\ev[\calX[1]^2]\approx(4+9+1)/5=2.8$. Similar calculation leads to $R_X[1,7]=\ev[\calX[1] \calX[7]]\approx4.4$ because in this case the products \ci{victories(1,:).*victories(7,:)}
+are \co{[6,    12,     0,     0,     4]}, which have an average of 4.4.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/correlationNonStationary}
+\caption{Correlation for data in matrix \ci{victories}.\label{fig:correlationNonStationary}}
+\end{figure}
+
+\figl{nonStationaryCorrAsImage} presents an alternative view of \figl{correlationNonStationary},
+where the values of the z-axis are indicated in color. The two datatips indicate that $R_x[1,2]=0.8$ and $R_x[3,5]=6.6$ (these are the values identified by \ci{Index} for the adopted \ci{colormap}, and the associated color is also shown via its RGB triple).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/nonStationaryCorrAsImage}
+\caption{Version of \figl{correlationNonStationary} using an image.\label{fig:nonStationaryCorrAsImage}}
+\end{figure}
+
+For real-valued processes, the autocorrelation is symmetric, as indicated in \figl{correlationNonStationary} and \figl{nonStationaryCorrAsImage}, while it would be Hermitian for complex-valued processes.
+\eExample 
+
+\subsubsection{Two time instants: both absolute or one absolute and a relative (lag)}
+
+When characterizing second-order moments of a random process, instead of using two
+absolute time instants, it is sometimes useful to make one instant as a relative ``lag''
+with respect to the other. For example, take two absolute instants $t=4$ and $s=7$ in \equl{autocorrelationPrevious2}. Alternatively, the same pair of instants can be denoted by 
+considering $t=4$ as the absolute time that provides the reference instant and a 
+lag $\tau=s-t=3$ indicating that the second instant is separated by 3 from the reference.
+
+Using this scheme, \equl{autocorrelationPrevious2} can be written as
+\begin{equation}
+R_{X}(t,\tau) = \ev[\calX(t+\tau) \calX(t)].
+\label{eq:autocorrelation2}
+\end{equation}
+Similarly, \equl{discreteTimeCorrelationPrevious} can be denoted as
+\begin{equation}
+R_X[n,l] = \ev \left[\calX[n] \calX[n+l] \right],
+\label{eq:discreteTimeCorrelation}
+\end{equation}
+with $n_1 = n$ and $n_2=n+l$, where $l$ is the lag in discrete-time.
+
+\bExample \textbf{Contrasting two different representations of autocorrelations}.
+\figl{correlationNonStationary} is a graph that corresponds to \equl{discreteTimeCorrelationPrevious}, with two absolute time instants.
+When using the alternative representation of \equl{discreteTimeCorrelation}, with a lag, the
+resulting matrix is obtained by rearranging the elements of the autocorrelation matrix.
+\figl{twoAbsVersusLag} compares the two cases.
+Note that the name autocorrelation matrix is reserved for the one derived from
+\equl{discreteTimeCorrelationPrevious} (and \equl{autocorrelationPrevious2}) that is, for example, symmetric.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,height=5cm]{Figures/twoAbsVersusLag}
+\caption{Comparison between the 3-d representation of the autocorrelation matrix in \figl{correlationNonStationary} and
+the one using lags as in \equl{discreteTimeCorrelation}.\label{fig:twoAbsVersusLag}}
+\end{figure}
+
+\figl{twoAbsVersusLagAsImage} is an alternative view of \figl{twoAbsVersusLag}, which
+makes visualization easier. It better shows that \equl{discreteTimeCorrelation}
+leads to shifting the column of the autocorrelation matrix (\figl{correlationNonStationary}) corresponding to each 
+value $n=n_1$ of interest.
+
+\begin{figure}[htbp]
+\centering
+%\includegraphics[width=\figwidth,keepaspectratio]{Figures/twoAbsVersusLagAsImage}
+\includegraphics[width=\figwidth,keepaspectratio]{FiguresNonScript/twoAbsVersusLagAsImage}
+\caption{Comparison between autocorrelation representations using images instead of 3-d graphs as in \figl{twoAbsVersusLag}.\label{fig:twoAbsVersusLagAsImage}}
+\end{figure}
+
+Properties such as the symmetry of the autocorrelation matrix may not be so evident from
+the right-side representation of \figl{twoAbsVersusLagAsImage} as in the left-side
+representation, but both are useful in distinct situations.
+\eExample
+
+
+\subsubsection{Covariance matrix}
+
+Similar to autocorrelation functions, it is possible to define covariance functions that expand
+the definition for random variables such as \equl{covarianceBetweenRVs} and take as
+arguments two time instants of a random process. For example, for a complex-valued discrete-time process the \emph{covariance}\index{Covariance} is
+\begin{equation}
+c_{X}[n,l] = \ev \left[(\calX[n] - \mu[n]) (\calX[n+l] - \mu[n+l])^* \right].
+\label{eq:discreteTimeCovariance}
+\end{equation}
+%while which adopts a notation similar to the one in \cite{Giannakis99}.
+
+\subsubsection{Stationarity, cyclostationarity and ergodicity}
+\label{sec:stationarity}
+A random process is a powerful model. Hence, an important question is what information is necessary to fully characterize it. Take the $7 \times 5$ matrix in \exal{simpleRandomProcess}: this data does not fully characterize the random process because it consists of only five realizations (tossing a coin five times does not allow to estimate its probability of heads robustly). We would need an infinite number of realizations if we insist in characterizing it in a tabular form. The most convenient alternative is to describe it through pdfs. We should be able to indicate, for all time $t$, the pdf of $\calX(t)$. Besides, for each time pair $(t,s)$, the joint pdf $f(\calX(t),\calX(s))$ should be known. The same for the pdf $f(\calX(t),\calX(s),\calX(r))$ of each triple $(t,s,r)$ and so on. It can be noted that a general random process requires a considerable amount of statistics to be fully described. So, it is natural to define particular and simpler cases of random processes as discussed in the sequel.
+
+An important property of a random process is the stationarity of a statistics, which means this statistics is time-invariant even though the process is random. More specifically, a process is called \emph{$n$-th order stationary}\index{Stationarity} if the joint distribution of any set of $n$ of its random variables is independent of absolute time values, depending only on relative time.
+
+A first-order stationary process has the same pdf $f(\calX(t)), \forall t$ (similar is valid for  discrete-time). Consequently,
+it has a constant mean
+\begin{equation}
+\ev[\calX(t)] = \mu, \forall t,
+\label{eq:stationaryMean}
+\end{equation}
+constant variance and other moments such as $\ev[\calX^4(t)]$.
+
+A second-order stationary process has the same joint pdf $f(\calX(t),\calX(s))=f(\calX(t+\tau),\calX(s+\tau)), \forall t,s$. Consequently, its autocorrelation is
+\begin{equation}
+R_{X}(\tau) = \ev[\calX(t+\tau) \calX(t)],
+\label{eq:continuousTimeCorrelation}
+\end{equation}
+where the time difference $\tau=s-t$ is called the \emph{lag} and has the same unit as $t$ in $\calX(t)$. Note that, in general, $R_X(t,\tau)$ of \equl{autocorrelation2} depends on two parameters: $t$ and $\tau$. However,
+for a stationary process, \equl{continuousTimeCorrelation} depends only on the lag $\tau$ because, given $\tau$,
+$R_X(t,\tau) = R_X(\tau)$ is the same for all values of $t$.
+
+Similarly, if a discrete-time process is second-order stationary, $R_X[n,l]$ \equl{discreteTimeCorrelation} can be simplified to
+\begin{equation}
+R_X[l] = \ev[\calX[n] \calX[n+l]],
+\label{eq:discreteTimeCorrelationWSS}
+\end{equation}
+where $l=n_2 - n_1$ is the lag.
+
+A third-order stationary process has joint pdfs $f(\calX(t_1),\calX(t_2),\calX(t_3))$ that do not depend on absolute time values $(t_1,t_2,t_3)$ and so on.
+A random process $\calX(t)$ is said to be \emph{strict-sense stationary} (SSS) or simply \emph{stationary} if any joint pdf $f(\calX(t_1),\dots,\calX(t_n))$ is invariant to a translation by a
+delay $\tau$.
+A random process with realizations that consist of i.\,i.\,d. random variables (called an
+i.\,i.\,d. process)\index{i.\,i.\,d. random process} is SSS.
+A random process that is not SSS is
+referred to as a \emph{non-stationary} process even if some of its statistics have the stationarity property.
+
+The SSS process has very stringent requirements, which are hard to verify. Hence, many real-world signals are modeled as having a weaker form of stationarity called \emph{wide-sense stationarity}. %that depends only on second-order statistics.
+
+Basically, a wide-sense stationary (WSS) process has a mean that does not vary over time and an autocorrelation that does not depend on absolute time, as indicated in \equl{stationaryMean} and \equl{continuousTimeCorrelation}, respectively. Broadly speaking, wide-sense theory deals with moments (mean, variance, etc.) while strict-sense deals with probability distributions. Note that SSS implies WSS but the converse is not true in general, with Gaussian processes being a famous exception.
+
+For example, the process corresponding to \figl{correlationNonStationary} is not WSS: its autocorrelation does not depend only on the time difference $\tau$. 
+
+\bExample \textbf{The autocorrelation matrix of a WSS process is Toeplitz}.
+For a WSS process, elements $R_X(i,j)$ of its autocorrelation matrix depend only on the
+absolute difference $|i-j|$ and, therefore, the matrix is Toeplitz.
+In this example, the function \ci{toeplitz.m} is used to visualize the corresponding
+autocorrelation matrix as an image. For example, 
+the command \ci{Rx=toeplitz(1:4)} generates the following real-valued matrix:
+\begin{verbatim}
+ Rx=[1     2     3     4
+     2     1     2     3
+     3     2     1     2
+     4     3     2     1].
+\end{verbatim}
+Usually, the elements of the main diagonal correspond to $R_X(0) = \ev[\calX^2[n]]$.
+
+To visualize a larger matrix, \figl{rxxOfToeplitz} was generated with \ci{Rxx=toeplitz(14:-1:4)}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/rxxOfToeplitz}
+\caption{Representation of a WSS autocorrelation matrix that depends only on the lag $l$.\label{fig:rxxOfToeplitz}}
+\end{figure}
+
+Given the redundancy in \figl{rxxOfToeplitz}, one can observe that for a WSS, it
+suffices to describe $R_X(l)$ for each value of the lag $l$.
+\eExample
+
+
+A \emph{cyclostationary} process is a non-stationary process having statistical properties that vary periodically (cyclically) with time. In some sense it is a weaker manifestation of a stationarity property.
+Cyclostationary processes are further discussed in Appendix~\ref{sec:cyclostationarity}.
+
+A given statistics (variance, autocorrelation, etc.) of a random process is 
+\emph{ergodic}\index{Ergodic} if its time average is equal to the ensemble average. 
+For example, an i.\,i.\,d. random process 
+is \emph{ergodic} in the mean.\footnote{See, e.\,g., ~\cite{Kay06}, pg.~564.} And, loosely speaking,
+ a WSS is ergodic in both mean and autocorrelation if its autocovariance decays to zero.\footnote{See 
+\akurl{http://www.ece.unm.edu/faculty/bsanthan/ece541/ergmean.pdf}{BMerm} for the
+requirement of a WSS to be ergodic in the mean and/or \cite{Kay06}, pg.~577.}
+
+A process could be called ``ergodic'' if all ensemble and time averages are interchangeable.
+However, it is more pedagogical to consider ergodicity as a property of specific statistics, and always inform them.\footnote{See
+\akurl{http://dsp.stackexchange.com/questions/1167/what-is-the-distinction-between-ergodic-and-stationary}{BMerg} for an example of a SSS process that is not ergodic. The discussion also illustrates how it is confusing when the statistics that is ergodic is not specified and the process is called ``ergodic''.}
+Even non-stationary or cyclostationary processes can be ergodic in specific statistics such
+as the mean.
+\figl{randomProcessesTaxonomy} depicts the suggested taxonomy of random processes using a Venn diagram.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/randomProcessesTaxonomy}
+\caption[Suggested taxonomy of random processes.]{Suggested taxonomy of random processes. SSS are sometimes called stationary and all processes that are not SSS are called non-stationary.\label{fig:randomProcessesTaxonomy}}
+\end{figure}
+
+\ifml
+\else
+The following example discusses WSS processes using bit streams from Section~\ref{sec:linecodes}.
+\fi
+
+\bExample \textbf{Polar and unipolar bitstreams modeled as WSS processes}.
+\label{ex:polarUnipolarWSS}
+This example is based on processes used in digital communications to represent sequences of 
+bits.
+Note that, after these bit streams are upsampled in order to create line codes, they become cyclostationary processes. This issue is discussed in Appendix~\ref{sec:cyclostationarity}, while here the sequences are not upsampled.
+
+\figl{correlationStationary} illustrates two processes for which the main diagonal $R_X[1,1]=R_X[2,2]=R_X[3,3] \ldots$ has the same values. The process (a) (left-most) is called a \emph{unipolar} line code and consists of sequences with equiprobable values 0 and 1, while for the second process (called \emph{polar}) the values are $-1$ and 1.
+
+For the unipolar and polar cases, the theoretical correlations $R_X[n_1,n_2]$ for $n_1=n_2$ are 0.5 and 1, respectively. The result is obtained by observing that $R_X[n_1,n_2]=R_X[n_1,n_1]=\ev[\calX[n_1]^2]$ and for the unipolar case, $\calX[n_1]^2$ is 0 or 1. Because the two values are equiprobable, $\ev[\calX[n_1]^2]=0.5$. For the polar case, $\calX[n_1]^2=1$ always and $\ev[\calX[n_1]^2]=1$. The values of $R_X[n_1,n_2]$ for $n_1 \ne n_2$ are obtained by observing the values of all possible products $\calX[n_1] \calX[n_2]$. For the unipolar case, the possibilities are $0 \times 0 = 0$, $0 \times 1 = 0$, $1 \times 0 = 0$ and $1 \times 1 = 1$, all with probability 1/4 each. Hence, for this unipolar example, $\ev[\calX[n_1] \calX[n_2]] = (3 \times 0 + 1 \times 1)/4 = 0.25, n1 \ne n2$.
+For the polar case, the possibilities are $-1 \times -1 = 1$, $-1 \times 1 = 1$, $1 \times -1 = -1$ and $1 \times 1 = 1$, all with probability 1/4 each. Hence, for this polar example, $\ev[\calX[n_1] \calX[n_2]] = (2 \times -1 + 2 \times 1)/4 = 0, n1 \ne n2$.
+
+In summary, for the polar code $R_X[n_1,n_2]=1$ for $n_1=n_2$ and 0 otherwise. For the unipolar code, $R_X[n_1,n_2]=0.5$ for $n_1=n_2$ and 0.25 otherwise.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/correlationStationary}
+\caption[{Correlation for random sequences with two equiprobable values:}]{Correlation for random sequences with two equiprobable values: a) values are 0 and 1 (unipolar), b) values are $-1$ and 1 (polar).\label{fig:correlationStationary}}
+\end{figure}
+
+A careful observation of \figl{correlationStationary} indicates that two dimensions are not necessary and it suffices to describe $R_X[l]$ as in \equl{discreteTimeCorrelation}.
+As discussed previously, in the case of WSS processes, the correlation depends only on the difference between the ``time'' instants $n_1$ and $n_2$. 
+\figl{correlationPolarAsImage}  emphasizes this aspect using another representation for
+the polar case in \figl{correlationStationary}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/correlationPolarAsImage}
+\caption{Alternative representation of the correlation values for the polar case of \figl{correlationStationary}.\label{fig:correlationPolarAsImage}}
+\end{figure}
+
+Because the polar and unipolar processes that were used to derive \figl{correlationStationary} are WSS, \codl{convertToWSSCorrelation} can be used to take advantage of having $R_X[n_1,n_2]$ depending only on the lag and convert this matrix to an array $R_X[l]$.
+
+\includecode{MatlabOctaveFunctions}{convertToWSSCorrelation}
+
+\figl{correlationStationaryOneDim} was generated using \codl{convertToWSSCorrelation} for the data in \figl{correlationStationary}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/correlationStationaryOneDim}
+\caption{One-dimensional ACF $R_X[l]$ for the data corresponding to \figl{correlationStationary} (unipolar and polar codes).\label{fig:correlationStationaryOneDim}}
+\end{figure}
+
+If ergodicity can be assumed, a single realization of the process can be used to estimate the ACF.  \figl{correlationErgodic} was generated using the code below, which generates a single realization of each process:
+\begin{lstlisting}
+numSamples=1000;
+Xunipolar=floor(2*rand(1,numSamples)); %r.v. 0 or 1
+[Rxx,lags]=xcorr(Xunipolar,9,'unbiased');%Rxx for unipolar
+subplot(121); stem(lags,Rxx) title('Unipolar');
+Xpolar=2*[floor(2*rand(1,numSamples))-0.5]; %r.v. -1 or 1
+[Rxx,lags]=xcorr(Xpolar,9,'unbiased'); %Rxx for polar code
+subplot(122); stem(lags,Rxx) title('Polar');
+\end{lstlisting}
+Increasing the number of samples to \ci{numSamples=1e6} achieves estimation errors smaller than in \figl{correlationErgodic}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/correlationErgodic}
+\caption[{ACF estimated using ergodicity and waveforms with 1,000 samples for each process.}]{ACF estimated using ergodicity and waveforms with 1,000 samples for each process. The theoretical values are 0.25 and 0.5 (at $l=0$) for unipolar, while for polar these values are 0 and 1.\label{fig:correlationErgodic}}
+\end{figure}
+%The results of this example are used in Section~\ref{sec:linecodes} as part of the steps for
+%calculating the PSD of line codes.
+\ifml
+\else
+The polar and unipolar processes discussed here are used to model line codes in Section~\ref{sec:linecodes}.
+\fi
+\eExample 
+
+\ifml  %################ start long if
+\else
+%\subsection{Improper and Noncircular Complex-valued random variables and stochastic processes}
+%\subsection{Proper and circular complex-valued random variables and stochastic processes}
+\subsection{Proper and circular complex-valued random variables}
+\label{sec:properCircularRV}
+
+In many applications, 
+complex random signals are assumed to be proper or circular. These assumptions
+are convenient and widely adopted because they simplify computations.
+These two properties are briefly discussed here. More information 
+can be found e.\,g. in~\cite{Neeser93,Schreier10,Adali11,Proakis07}.
+
+A complex random variable is \emph{proper}\index{Proper random variable} if
+its real and imaginary parts have equal variances and are uncorrelated.
+For example, QAM symbols such as the ones from constellations depicted in \figl{crossConstellations}
+have uncorrelated real and imaginary components but  their variances may differ as for $b=3$.
+In the other cases of \figl{crossConstellations} ($b=5, 7$ and 9), the
+symbols are proper random variables. As another example, the code:
+\begin{lstlisting}
+b=3; M=2^b; x=ak_qamSquareConstellation(M); cov(imag(x),real(x))
+b=4; M=2^b; x=ak_qamSquareConstellation(M); cov(imag(x),real(x))
+\end{lstlisting}
+shows examples of improper ($b=3$ bits) and proper ($b=4$) constellations. In fact, 
+all square QAM constellations with an even number of bits have the same
+variance per dimension and, consequently, are proper.
+
+If $\rvx$ is proper and zero-mean, then $\ev[\rvx^2] = 0$  because, denoting $\rvx = \rvx_r + j \rvx_i$:
+\begin{equation}
+\ev[\rvx^2] = \ev[(\rvx_r + j \rvx_i)^2] = \ev[\rvx_r^2] - \ev[\rvx_i^2] + 2j \ev[\rvx_r \rvx_i] = 0.
+\label{eq:expectedSquareProperRV}
+\end{equation}
+
+The concept of a proper random variable can be extended to random vectors and random processes as discussed in~\cite{Neeser93}.
+In fact, when fully characterizing statistical moments of two complex random variables $\rvx$ and $\rvy$, one has to combine their real and imaginary parts. For example, it is possible to define  four covariances. Hence, when dealing with complex-valued $\rvx$ and $\rvy$, besides the conventional covariance defined in \equl{covarianceBetweenRVs}, the pseudo-covariance
+\[
+\textrm{pseudo-cov}(\rvx,\rvy) = \ev[ (\rvx - \mu_x) (\rvy - \mu_y)],
+\]
+which does not use the complex conjugate of the second parcel as in \equl{covarianceBetweenRVs}, brings complementary information. For example (see \cite{Neeser93} for details):
+\begin{itemize}
+	\item when $\textrm{pseudo-cov}(\rvx,\rvy) = 0$, the complex random variable or process is proper;
+	\item in order to have $\rvx$ and $\rvy$ uncorrelated (all four combinations
+of real and imaginary parts), all non-diagonal elements of both conventional and pseudo covariances need to be zero.
+\end{itemize}
+
+Another interesting property of some complex random variables is circularity. A complex random variable $\rvx$ is \emph{circular}\index{Circular random variable} (also called \emph{circularly symmetric}\index{Circularly symmetric}) if its probability distribution is invariant under rotation in the complex plane, i.\,e., if $\rvx$ and $\rvx e^{j \theta}$ have the same pdf for any angle $\theta$.
+For example, a complex-valued AWGN as the one generated in \codl{snip_digi_comm_gaussian_noise} is
+circular. 
+\figl{wgnExpansionHistogram} motivates the term circularly-symmetric, given the shape of its two-dimensional pdf estimation (visualized via the estimated histogram).
+
+If any random variable is circular, then it is both proper and zero-mean. In
+the specific case of a Gaussian random variable or
+processes, being proper and zero-mean is equivalent to being circular. Also, when
+a circular Gaussian process is filtered by a linear (not
+necessarily time-invariant) system, the output is also a circular Gaussian process.
+The properties of being circular and proper are widely used to model complex-valued AWGN in telecommunications~\cite{Proakis07} and when they are not observed the algorithms that
+aim at optimality become more sophisticated~\cite{Neeser93,Adali11}.
+
+Digital modulation schemes produce noncircular complex baseband signals,
+since the system constellation are not rotationally invariant to an arbitrary angle $\theta$.
+But whether or not the constellation is rotationally invariant to a discrete set of rotation
+angles leads to interesting properties, as discussed in the sequel.
+
+\subsection{Rotationally symmetric signal constellations}
+\label{sec:balancedConstellation}
+
+Constellations such as M-PSK, square QAM and cross QAM (see \figl{crossConstellations}) are 
+rotationally symmetric to specific angles~\cite{Moeneclaey94}. Assuming equiprobable symbols,
+their pdfs do not change for these angles. For example, if $\rvx$ is a symbol from a M-PSK constellation, $\rvx e^{j \frac{2\pi}{M}}$ has the same pdf as $\rvx$. If $\rvx$ is a (square or cross) QAM symbol, it has the same pdf as $\rvx e^{j \frac{\pi}{2}}$. Without a pilot tone or known training sequence, an arbitrary phase rotation cannot be identified from such rotationally symmetric constellations.\footnote{In the case, of PAM, a rotation by $e^{j \pi}$ does not change the pdf but knowing the original symbols are real can be used in blind processing algorithms.} Hence, using nonequiproblabe systems or not zero-mean has been proposed to enable sensible blind statistics of the channel outputs~\cite{Thaiupathump00}.
+
+Related to this issue is the distinction between ``circular'' and ``noncircular'' constellations, as they are called in~\cite{Ciblat02,Ciblat03}. The ``noncircular'' (or \emph{unbalanced})\index{Unbalanced constellation} constellations
+are characterized by $\ev[\rvx^2] \ne 0$ where $\rvx$ is the random constellation symbol. One
+example is a PAM constellation.
+This nomenclature is not adopted here to avoid confusion with the concept of circularity
+just discussed in Appendix~\ref{sec:properCircularRV}. Instead, as in \cite{Franks80}, the ``circular'' is called here \emph{balanced} constellation.
+
+Note that the average constellation energy $\ev[|\rvx|^2] \ne 0$ is non-zero, but
+many constellations are proper and zero-mean, such that, from \equl{expectedSquareProperRV}, they are balanced.
+An application that exemplifies the importance of $\ev[\rvx^2]$ is blind estimation
+of frequency offset. If the constellation is unbalanced, a cyclic frequency occurs
+when the signal is squared and can be  used to estimate the frequency offset. This technique is discussed in~\cite{Ciblat02,Ciblat03} and exemplified in \codl{ex_fftBasedPAMCarrierRecovery}.
+\fi %############# end of if
+
+\subsection{Cyclostationary random processes}
+\label{sec:cyclostationarity}
+This section aims at providing some intuition about cyclostationarity. More information
+can be found e.\,g. in \cite{Giannakis99,Antoni07,Gardner91}.
+
+A discrete-time process $\calX[n]$ is wide-sense cyclostationary (WSC) if, and only if, exists an integer period $P > 0$ such that the mean and correlation are periodic (consequently, the covariance is periodic too), as summarized by:
+\begin{align}
+\mu_X[n] &= \mu_X[n+P]  \textrm{~~and}\nonumber \\
+R_{X}[n,l] &= R_{X}[n+P,l].
+\label{eq:cycloConditions}
+\end{align}
+Note that the correlation is periodic but a cyclostationary process generates realizations
+that are random and not periodic.
+To avoid confusion, the period $P$ in \equl{cycloConditions} of a WSC process is referred to as its \emph{cycle}.\index{Cyclic frequency}
+
+Because WSC are more common than strict-sense cyclostationary processes, the term \emph{cyclostationary}
+is assumed here to correspond to a WSC (wide, not strict sense), as adopted in~\cite{Giannakis99}, which is the main reference for the discussion presented in the sequel.
+In order to better understand WSC processes, it is useful to review the concepts of non-stationary processes in Appendix~\ref{app:stochasticprocesses} and get familiar with representations such
+as the ones in \figl{twoAbsVersusLag} and \figl{twoAbsVersusLagAsImage}. While WSS processes have autocorrelations depending only on one parameter, the lag $l$, WSC correlations depend on two parameters ($R_{X}[n,l]$) and this is a key factor for the following discussion.
+
+Note that \equl{cycloConditions} implies the correlation $R_{X}[n,l]$ in \equl{discreteTimeCorrelation} is periodic in $n$ for each ``lag'' $l$. In other words, given a lag value $l_0$, 
+the time-series $R_{X}[n,l_0]$ over the ``absolute time instant'' $n$ is periodic.
+Hence, it can be represented using a DTFS in which the Fourier coefficients $C_X[k,l]$ are 
+called \emph{cyclic} correlations. Therefore, when $R_X[n,l]$ has a period of $P$ samples over $n$, the following Fourier pair can be used:
+\begin{equation}
+R_{X}[n,l] = \sum_{k=0}^{P-1} C_X[k,l] e^{j \frac{2\pi}{P}nk} \Leftrightarrow 
+C_{X}[k,l] = \frac{1}{P}\sum_{n=0}^{P-1} R_X[k,l] e^{-j \frac{2\pi}{P}nk}.
+\label{eq:cycloDTFS}
+\end{equation}
+$R_{X}[n,l]$ is also called \emph{time-varying} correlation and \emph{instantaneous} correlation.
+
+As explained in \cite{Giannakis99}, sampling a continuous-time periodic signal may lead to an \emph{almost periodic} signal for which \equl{sinusoidPeriodicityCondition} does not hold. This occurs in 
+the so-called \emph{wide-sense almost cyclostationary} processes, in which $R_{X}[n,l]$ has the following
+\emph{generalized} Fourier series:
+\begin{equation}
+R_{X}[n,l] = \sum_{\alpha_k \in \calC} C_X[\alpha_k,l] e^{j \alpha_k n} \Leftrightarrow 
+C_{X}[\alpha_k,l] = \lim_{N \rightarrow \infty} \frac{1}{N}\sum_{n=0}^{P-1} R_X(k,l) e^{-j \alpha_k n},
+\label{eq:cycloGeneralizedDTFS}
+\end{equation}
+where $\calC$ is the set $\calC = \{\alpha_k: C_{X}[\alpha_k,l] \ne 0, -\pi \le \alpha_k < \pi\}$ of cycles.
+
+The estimation of both $C_{X}[k,l]$ and $C_{X}[\alpha_k,l]$ is often done with FFTs and, consequently, both periodic and almost periodic realizations are treated similarly.
+Hereafter, the notation $C_{X}[\alpha_k,l]$ is also adopted for $C_{X}[k,l]$.
+
+For a given cycle $\alpha_k$, the evolution of $C_{X}[\alpha_k,l]$ over the lags $l$ can be
+interpreted over frequency using its DTFT to define the \emph{cyclic spectrum}:
+\begin{equation}
+S_{X}(\alpha_k,\dw) = \sum_{l=-\infty}^{\infty} C_X[\alpha_k,l] e^{-j \dw l}.
+\label{eq:cyclicSpectrum}
+\end{equation}
+%Similarly, DTFTs can be used to convert $n$ and/or $l$ to frequency domain.
+
+In summary, while stationary discrete-time signals are analyzed using PSDs in frequency-domain 
+($\dw$) and time-invariant correlations in lag-domain ($l$), non-stationary signals include
+also the time ($n$) and cycle ($\alpha$) domains.
+\figl{cyclostationaryTools} illustrates the relations.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthLarge,keepaspectratio]{FiguresTex/cyclostationaryTools}
+\caption[Functions used to characterize cyclostationary processes.]{Functions used to characterize cyclostationary processes. FS stands for ``generalized Fourier series'', useful
+for representing ``almost periodic'' discrete-time signals (Adapted from Fig. 17.1 of \cite{Giannakis99} to include the notation adopted in this text and the one widely used by~\cite{Gardner91}).\label{fig:cyclostationaryTools}}
+\end{figure}
+
+As further discussed in Section~\ref{sec:uniformRandomPhase}, a cyclostationary process can be converted into a WSS through the ``uniform shift'' or ``uniformly randomizing the phase''~\cite{Giannakis99}. 
+
+The following example aims at making these concepts more concrete.
+%\footnote{\cite{Giannakis99}, Eq. (17.1). }
+
+\bExample \textbf{Example: WGN modulated by sinusoid}.
+\label{ex:wgnModulatedEnsemble}
+Assume $\nu[n]$ represents a realization of
+an i.\,i.\,d. white Gaussian noise process with variance $\sigma^2$ . Each realization is modulated by a carrier of frequency $\dw_c$ and phase $\phi$ (both in radians) leading to\footnote{See, e.\,g., Example 17.1 of \cite{Giannakis99} and Example 1 of \cite{Antoni07} (Eq. (1)).}
+\begin{equation}
+x[n] = \nu[n] \cos(\dw_c n + \phi).
+\label{eq:modulatedWGN}
+\end{equation}
+The top plot in \figl{modulatedNoiseStats} illustrates a single realization of $x[n]$, as generated
+by \codl{snip_appprobability_modulatednoise}. It can be seen that the sinusoid is ``buried'' in noise.
+All \ci{M=5000} realizations are stored in matrix \ci{X}. The ensemble variance for each
+``time'' instant $n$ is shown in the bottom plot of \figl{modulatedNoiseStats}, indicating that the
+variance has a period $P/2$ (in this case, 15 samples, given that \ci{P=30}) because it
+depends on the absolute value of the sinusoid amplitude at instant $n$. This can be also
+seen from the correlation of $x[n]$ over time, as discussed in the sequel.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_appprobability\_modulatednoise}{snip_appprobability_modulatednoise}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/modulatedNoiseStats}
+\caption{Single realization $x[n]$ of \equl{modulatedWGN} (top) and the ensemble
+variance over time (bottom plot), which has a period of $P/2=15$~samples.\label{fig:modulatedNoiseStats}}
+\end{figure}
+
+From \equl{discreteTimeCorrelation}, the correlation of $x[n]$ is
+\begin{align}
+R_X[n,l] &= \ev \left[\nu[n] \cos(\dw_c n + \phi) \nu[n+l] \cos(\dw_c (n+l) + \phi) \right] \nonumber \\
+ &=  \cos(\dw_c n + \phi) \cos(\dw_c (n+l) + \phi) \ev \left[\nu[n] \nu[n+l] \right] = \cos^2(\dw_c n + \phi) \sigma^2 \delta[l] \nonumber \\
+ &= \frac{\sigma^2}{2} \left(1 + \cos(2\dw_c n + 2\phi) \right) \delta[l],
+\label{eq:modulatedNoiseCorrelation}
+\end{align}
+which is depicted in \figl{modulatedNoise2}. The value of $\delta[l]$ is 1 for
+all $n$ when $l=0$ and zero otherwise. Note that \figl{modulatedNoise1} is the
+alternative representation with a pair of absolute time instants $[n_1,n_2]$.
+
+%\begin{figure}[!htb]
+  %\begin{center}
+    %\subfigure[a]{\includegraphics[width=5cm,keepaspectratio]{Figures/modulatedNoise1}\label{fig:modulatedNoise1}}
+    %\subfigure[xz]{\includegraphics[width=5cm,keepaspectratio]{Figures/modulatedNoise2}\label{fig:modulatedNoise2}}
+    %\\
+    %\subfigure[dd]{\includegraphics[width=5cm,keepaspectratio]{Figures/modulatedNoise3}\label{fig:modulatedNoise3}}
+    %\subfigure[ee]{\includegraphics[width=5cm,keepaspectratio]{Figures/modulatedNoise4}\label{fig:modulatedNoise4}}
+  %\end{center}
+  %\caption{Cyclostationary analysis of the modulated white Gaussian noise.\label{fig:modulatedNoise}}
+%\end{figure}
+
+\begin{figure}[!htb]
+  \begin{center}
+    \subfigure[~{$R_{X}[n_1,n_2]$}]{\includegraphics[width=5cm,keepaspectratio]{Figures/modulatedNoise1}\label{fig:modulatedNoise1}}
+    \subfigure[~{$R_{X}[n,l]$}]{\includegraphics[width=5cm,keepaspectratio]{Figures/modulatedNoise2}\label{fig:modulatedNoise2}}
+    \\
+    \subfigure[~{$|C_{X}[\alpha_k,l]|$}]{\includegraphics[width=5cm,keepaspectratio]{Figures/modulatedNoise3}\label{fig:modulatedNoise3}}
+    \subfigure[~{$|S_{X}(\alpha_k,\dw)|$}]{\includegraphics[width=5cm,keepaspectratio]{Figures/modulatedNoise4}\label{fig:modulatedNoise4}}
+  \end{center}
+  \caption{Cyclostationary analysis of the modulated white Gaussian noise.\label{fig:modulatedNoise}}
+\end{figure}
+
+
+\equl{modulatedNoiseCorrelation} is non-zero only at $l=0$, where it is 
+a squared cosine $\cos^2(\dw_c n) \sigma^2$.  Hence, from \equl{squaredCosine}, 
+its cyclic correlation is $C_{X}[\alpha_k,l]=\frac{\sigma^2}{2} \delta[\alpha] + \frac{\sigma^2}{4}(\delta[\alpha+2\dw_c ] + \delta[\alpha-2\dw_c] )$. And the cyclic spectrum is obtained by
+a DTFT for each cycle, which leads to the DC levels in \figl{modulatedNoise4}.
+
+\equl{modulatedWGN} can be modified to $x[n] = \nu[n] p[n]$, where $p[n]$ is a generic periodic signal. In this case, $C_{X}[\alpha_k,l]=c_k \sigma^2 \delta[l]$, where $c_k$
+is the Fourier coefficient of $|p[n]|^2$, as discussed in~\cite{Antoni07}.
+
+\codl{snip_appprobability_cyclo_analysis_ensemble} indicates how the sinusoid frequency
+and phase can be obtained using the realizations in matrix \ci{X} created by \codl{snip_appprobability_modulatednoise}. 
+
+%firstline=16,firstnumber=34
+\lstinputlisting[lastline=10,caption={MatlabOctaveCodeSnippets/snip\_appprobability\_cyclo\_analysis\_ensemble.m},label=code:snip_appprobability_cyclo_analysis_ensemble]{./Code/MatlabOctaveCodeSnippets/snip_appprobability_cyclo_analysis_ensemble.m}
+
+It should be noted that the phase estimation is highly
+sensitive to the value of \ci{alphaFFTLength} (relatively, the frequency estimation
+is more robust). The reader is invited to modify this value
+and observe the estimation errors. As an example, the following output was obtained with \codl{snip_appprobability_cyclo_analysis_ensemble}:
+\begin{verbatim}
+Peak value=0.25187*exp(1.2545j)
+Period:  Correct=30, Estimated=30 (samples)
+Cycle:  Correct=0.20944, Estimated=0.20944(rad). Error=2.7756e-17
+Phase:  Correct=0.62832, Estimated=0.62724(rad). Error=0.0010821
+\end{verbatim}
+
+In this example the cyclic correlation was obtained with ensemble statistics. The following
+discussion concerns estimation using a single realization.
+\eExample
+
+When it is feasible to assume ergodicity in the autocorrelation of a WSC, the estimation
+can be done with a single realization of $N$ samples. In this case and assuming a complex-valued
+$x[n]$ signal, an estimator for the cyclic correlation is:\footnote{See, e.\,g., Eq. (2) in~\cite{Genossar94} and/or Eq. (15) in \cite{Gini98}.}
+\begin{equation}
+\hat C_{X}[\alpha_k,l] = \frac{1}{N}\sum_{n=0}^{N-l-1} x[n] x^*[n+l] e^{-j \alpha_k n}, \textrm{~~~} l \ge 0.
+\label{eq:cyclicCorrelationErgodicEstimation}
+\end{equation}
+For negative $l$, one can use $\hat C_{X}[\alpha_k,-l]=\hat C_{X}^*[\alpha_k,l] e^{j \alpha_k l}$.
+
+\bExample \textbf{Example: WGN modulated by sinusoid using a single realization}.
+\label{ex:wgnModulatedSingleRealization}
+\codl{snip_appprobability_cyclo_analysis} estimates the cyclic spectrum using a single realization of \exal{wgnModulatedEnsemble}.
+
+\lstinputlisting[lastline=5,caption={MatlabOctaveCodeSnippets/snip\_appprobability\_cyclo\_analysis.m},label=code:snip_appprobability_cyclo_analysis]{./Code/MatlabOctaveCodeSnippets/snip_appprobability_cyclo_analysis.m}
+
+The output of \codl{snip_appprobability_cyclo_analysis} in this case is
+\begin{verbatim}
+Peak value=0.24393*exp(1.3427j)
+Period:  Correct=30, Estimated=30 (samples)
+Cycle:  Correct=0.20944, Estimated=0.20944(rad). Error=0
+Phase:  Correct=0.62832, Estimated=0.67133(rad). Error=-0.043013
+\end{verbatim}
+
+\codl{snip_appprobability_cyclo_analysis} is similar to \codl{snip_appprobability_cyclo_analysis_ensemble}, but estimates the cyclic correlation $C_{X}[\alpha_k,l]$ from a single realization instead of ensemble statistics.
+The main functions for these codes are \ci{ak\_cyclicCorrelation.m} and \ci{ak\_cyclicCorrelationEnsemble.m}, respectively.
+\eExample 
+
+In both \codl{snip_appprobability_cyclo_analysis} and \codl{snip_appprobability_cyclo_analysis_ensemble}, the duration of the signals was
+carefully controlled to improve accuracy. More sophisticated algorithms use windowing or estimate
+the cyclic spectrum directly, via periodograms.
+
+%\figl{cycloExample}
+%\begin{figure}[htbp]
+%\centering
+%\includegraphics[width=\figwidth,keepaspectratio]{FiguresNonScript/cycloExample}
+%\caption{Adapted from Fig. 17.1 of \cite{Giannakis99}.\label{fig:cycloExample}}
+%\end{figure}
+
+\bExample \textbf{Example: Cyclic spectrum via periodograms}.
+The cyclic spectrum $S_{X}(\alpha_k,\dw)$ of \equl{cyclicSpectrum} can be 
+obtained by first estimating the cyclic correlation $C_{X}[\alpha_k,l]$ as in 
+\ci{ak\_cyclicSpectrum.m}, which was used to obtain \figl{modulatedNoise4}.
+Alternatively, $S_{X}(\alpha_k,\dw)$ can be directly estimated via periodograms~\cite{Antoni07,Gini98}.
+
+\codl{snip_appprobability_cyclo_spectrum_periodograms} estimates the cyclic spectrum using a single realization of the modulated WGN in \exal{wgnModulatedEnsemble}.
+
+\lstinputlisting[lastline=24,caption={MatlabOctaveCodeSnippets/snip\_appprobability\_cyclo\_spectrum\_periodograms},label=code:snip_appprobability_cyclo_spectrum_periodograms]{./Code/MatlabOctaveCodeSnippets/snip_appprobability_cyclo_spectrum_periodograms.m}
+
+\codl{snip_appprobability_cyclo_spectrum_periodograms} is based on the third-party function
+\ci{cps\_w.m},\footnote{This code is available on the Web~\cite{Antoni07}.} which allows calculating $S_{X}(\alpha_k,\dw)$ for specific values of $\alpha_k$. This is handy when there is 
+previous knowledge about the cycles of interest.
+
+The output of \codl{snip_appprobability_cyclo_spectrum_periodograms} is:
+\begin{verbatim}
+Period:  Correct=30, Estimated=30 (samples)
+Cycle:  Correct=0.20944, Estimated=0.20944(rad). Error=-2.7756e-17
+Phase:  Correct=0.62832, Estimated=0.64059(rad). Error=-0.012276
+\end{verbatim}
+
+Note that this relatively good result was obtained with \ci{N} chosen as a multiple
+of \ci{P} and, consequently, the sinusoid frequency \ci{Wc} is a multiple of the
+cycle resolution \ci{da}. Changing \ci{N} from $30$ to $40$ thousand samples led to:
+\begin{verbatim}
+Period:  Correct=30, Estimated=30 (samples)
+Cycle:  Correct=0.20944, Estimated=0.20947(rad). Error=-2.618e-05
+Phase:  Correct=0.62832, Estimated=0.10469(rad). Error=0.52363
+\end{verbatim}
+which has an significantly increased phase estimation error. Practical issues when
+estimating cyclostationary statistics are discussed, for example, in~\cite{Antoni07}.
+\eExample 
+
+\subsection{Two cyclostationary signals: sampled and discrete-time upsampled}
+\label{sec:cyclostationaritySampledUpsamples}
+
+Cyclostationarity is discussed here in the context of digital communications. More
+specifically, two signals of interest with periodic statistics are:
+\begin{equation}
+m_u[n] \textrm{~~and~~} x_s(t),
+\label{eq:twoExamplesWSC}
+\end{equation}
+which are generated, respectively, by the following processes:
+\begin{itemize}
+	\item the output $m_u[n]$ of an upsampler when its input $m[n']$ is a discrete-time WSS process;
+	\item the sampled signal $x_s(t)$ obtained by periodic sampling of a continuous-time WSS process.
+\end{itemize}
+%Because the statistics are periodic, such processes are called \emph{cyclostationary}\index{Cyclostationary}.
+
+The upsampler of the former case is discussed in Section~\ref{sec:updownsampler}, and its
+block diagram is repeated here for convenience:
+\[
+m[n'] \arrowedbox{\uparrow{L}} m_u[n].
+\] 
+%and later present the continuous-time version.
+The first goal of this discussion is to indicate that $m_u[n]$ is WSC (wide-sense cyclostationary)
+while $m[n']$ is WSS.
+
+\exal{polarUnipolarWSS} discusses that the input $m[n']$ is WSS and presents the corresponding autocorrelations $R_m[l]$ for a polar and unipolar binary signal. 
+But, as informed in Section~\ref{sec:updownsampler}, the upsampling by $L$ is not a time-invariant operation and the output process cannot be assumed WSS in spite of the input being WSS. This fact can be confirmed by observing \figl{polarWithoutRandomPhase} and \figl{sampledSignalACFPolar}.  \figl{polarWithoutRandomPhase} shows that 
+the amplitudes of the upsampled signal $m_u[n]$ obtained from a polar signal $m[n']$ with $L=4$ are always zero at times that are not a multiple of $L$. The corresponding autocorrelation in \figl{sampledSignalACFPolar} presents cyclostationarity.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/polarWithoutRandomPhase}
+\caption{Realizations of polar signal $m_u[n]$ after \textbf{upsampling} by $L=4$ samples.\label{fig:polarWithoutRandomPhase}}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/sampledSignalACFPolar}
+\caption{Autocorrelation of the cyclostationary $m_u[n]$ polar signal \textbf{upsampled} by $L=4$.\label{fig:sampledSignalACFPolar}}
+\end{figure}
+
+
+\figl{sampledSignalACFPolar} was generated by \codl{snip_digi_comm_upsampled_autocorrelation}.
+It can be seen that, different from \figl{rxxOfToeplitz}, \figl{sampledSignalACFPolar} 
+cannot be represented by a one-dimensional function of the lag because the corresponding
+process is WSC, not WSS.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_digi\_comm\_upsampled\_autocorrelation}{snip_digi_comm_upsampled_autocorrelation}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/sampledSignalACFUnipolar}
+\caption{Autocorrelation of the cyclostationary $m_u[n]$ unipolar signal obtained with \textbf{upsampling} by $L=4$.\label{fig:sampledSignalACFUnipolar}}
+\end{figure}
+
+Similar to \figl{sampledSignalACFPolar}, \figl{sampledSignalACFUnipolar} corresponds to the autocorrelation of an upsampled signal $m_u[n]$ obtained from a unipolar signal $m[n']$ with $L=4$.
+In both cases the output processes are not WSS. For example, $R_X[1,1]=1$ and $R_X[15,15]=0$ in spite of both pairs $(n_1,n_2)$ corresponding to a lag $l=n_2-n_1=0$.
+
+The reason for $m_u[n]$ not being WSS is that all realizations have well-defined time instants in which they have value zero and time instants in which there is randomness (the value may not be zero). In other words, the randomness is mixed along time with a deterministic behavior of zero values. For example, at $n=0$ there is randomness, but all realizations have zero amplitude at $n=1$. At $n=L$ the randomness appears again and so on. Note that the statistics are periodic and the random process is cyclostationary.
+
+\subsection{Converting a WSC into WSS by randomizing the phase}
+\label{sec:uniformRandomPhase}
+
+A WSC can be converted into a WSS by using the trick of ``uniformly randomizing the phase''.
+The following discussion, assumes the two signals $m_u[n]$ and $x_s(t)$ from \equl{twoExamplesWSC},
+both representing realizations of WSC processes.
+The upsampled discrete-time signal $m_u[n]$ is discussed first, and then the results
+are adapted to the WSC process associated to $x_s(t)$.
+
+%There is a trick to convert such cyclostationary signals into WSS. It is usually denoted as ``uniformly randomizing the phase''. 
+The procedure of ``uniformly randomizing the phase'' means that $m_u[n]$ is randomly shifted to create a new signal $q[n] = m_u[n - \rvk]$, where $\rvk$ is a uniformly-distributed discrete random variable assuming integer values from 0 to $L-1$ (periodic signals require another choice of values for $\rvk$ and are discussed later). The process is illustrated as
+\begin{equation}
+m[k] \arrowedbox{\uparrow{L}} m_u[n] \arrowedbox{\mbox{random shift by } \rvk} q[n].
+\label{eq:randomShiftTrick}
+\end{equation}
+
+%TC:ignore
+\bExample \textbf{Conversion of polar WSC process into WSS}.
+Based on \blol{randomShiftTrick}, \figl{cyclostationaryRealizations} shows three realizations of $q[n]$ for a polar\footnote{The polar signal is discussed in \exal{polarUnipolarWSS}
+\ifml
+.
+\else
+and Section~\ref{sec:linecodes}.
+\fi
+}
+%TC:endignore
+signal $m[k]$ with $L=4$. 
+ The new process with realizations represented by $q[n]$ is WSS because the randomness is now spread over time.
+%there is no spreaded
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/cyclostationaryRealizations}
+\caption{Realizations of an upsampled polar signal ($L=4$) with random initial sample.\label{fig:cyclostationaryRealizations}}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/sampledSignalACFAfterUnifPhase}
+\caption[{ACF for the same polar process that generated the realizations in \figl{cyclostationaryRealizations}.}]{ACF for the same polar process that generated the realizations in \figl{cyclostationaryRealizations}. It can be seen that it has the characteristics of a WSS process ACF.\label{fig:sampledSignalACFAfterUnifPhase}}
+\end{figure}
+
+\figl{sampledSignalACFAfterUnifPhase} shows the ACF for the same process $q[n]$ that generated the realizations in \figl{cyclostationaryRealizations}. The random shift turned $q[n]$ into a WSS process. Because the product $\rvx_q[n_1] \rvx_q[n_2]$ is zero for several pairs of realizations, the original value $R_m[0]=1$
+(obtained for the signal $m[n]$)
+decreases to $R_q[0]=1/L=1/4$ when $q[n]$ is considered.
+\eExample 
+
+\bExample \textbf{Conversion of upsampled sinusoids into WSS}.
+Another example is useful to illustrate the concept of randomizing the phase. This time the signal is a deterministic sinusoid of period equal to $N=4$ samples.
+%in \exal{AutocorrelationOfSinusoid}. 
+This signal is upsampled by $L=4$ and randomly shifted. In this case, the uniformly distributed r.v. $\rvk$ assumes integer values in the range $[0, N L-1]$ (see \ci{ak\_upsampleRandomShift.m} for an explanation). Some realizations of the resulting random process are depicted in \figl{realizationsUpShiftedSine}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/realizationsUpShiftedSine}
+\caption[{Three realizations of the random process corresponding to upsampling by 2 and randomly shifting a sinusoid of period $N=4$ and amplitude $A=4$.}]{Three realizations of the random process corresponding to upsampling by 2 and randomly shifting a sinusoid of period $N=4$ and amplitude $A=4$. Note the original sinusoid already had zero values and one could think the upsampling factor was 4. The random shift $\rvk$ is such that any sample of the original sinusoid can occur at $n=1$, for example. \label{fig:realizationsUpShiftedSine}}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\figwidth,keepaspectratio]{Figures/correlationUpShiftedSine}
+\caption[{Correlation of the WSS process corresponding to \figl{realizationsUpShiftedSine}.}]{Correlation of the WSS process corresponding to \figl{realizationsUpShiftedSine}: an upsampled sinusoid with random phase. It can be seen the characteristics of a WSS process.\label{fig:correlationUpShiftedSine}}
+\end{figure}
+
+\figl{correlationUpShiftedSine} illustrates the correlation of the WSS process corresponding to \figl{realizationsUpShiftedSine}.
+Note that the autocorrelation values (recall \equl{sinusoidcorrelation}) of the original sinusoid were reduced by a factor of 2 in \figl{correlationUpShiftedSine}. For example, $R_x[0]=A^2/2=4^2/2=8$ of the original cosine was reduced to $8/2=4$.
+\eExample
+
+In fact, from \equl{upsampledXcorr} and taking in account that the random shift will add
+$L-1$ parcels equal to zero (decreasing the autocorrelation values by $L$), the autocorrelations 
+of $m[k]$ and $q[n]$ in \blol{randomShiftTrick} are related by
+\[
+R_m[l] \arrowedbox{\uparrow{L}} \boxed{\div \mbox{L}} \rightarrow R_q[l],
+\]
+that can be written mathematically as:
+\begin{equation}
+R_q[l]  = \left\{\begin{array}{cl}\frac{1}{L}  R_m[l/L],& l=0, \pm L, \pm 2L, \ldots\\ 0, & \text{otherwise} \\ \end{array}\right. 
+\label{eq:randomShiftXcorr}
+\end{equation}
+The following example illustrates the use of \equl{randomShiftXcorr}.
+
+
+%AK-IMPROVE %Section~\ref{sec:updownsampler} discusses the upsampling operation. Using that results, one can relate the PSDs 
+%The upsampling operation corresponds to a spectrum given by \equl{upsampledPSDDiscreteTime}.
+
+\bExample \textbf{Conversion of an upsampled MA(1) process into WSS}.
+Assume the MA(1) process of \exal{ma1Example} is driven by WGN with power $\sigma^2=1$ and uses the FIR filter $B(z) = 1 - 0.8z^{-1}$. The MA(1) is then upsampled by a factor of $L=3$ and
+becomes a WSC process. The processing of \blol{randomShiftTrick} is then used to convert it to
+a WSS. The goal here is to confirm \equl{randomShiftXcorr}.
+
+In this case, from \equl{ma1ExampleXcorr}, the input to the upsampler has autocorrelation
+$R_m[l] = -0.8\delta[l+1] + 1.64 \delta[l] -0.8 \delta[l-1]$. From \equl{randomShiftXcorr}, the
+autocorrelation of the phase randomizer block $q[n]$ has autocorrelation
+$R_q[l] = \frac{1}{3}(-0.8\delta[l+3] + 1.64 \delta[l] -0.8 \delta[l-3]) 
+\approx -0.267 \delta[l+3] + 0.546 \delta[l] -0.267\delta[l-3]$. 
+This can be confirmed with
+\codl{snip_appprobability_phaseRandomization} that generates \figl{phaseRandomization} (which
+can then be analyzed using a data cursor).
+
+\lstinputlisting[lastline=21,caption={MatlabOctaveCodeSnippets/snip\_app\_correlationEnsemble.m},label=code:snip_appprobability_phaseRandomization]{./Code/MatlabOctaveCodeSnippets/snip_appprobability_phaseRandomization.m}
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=\figwidth]{Figures/phaseRandomization}		
+	\caption{Autocorrelation matrices for the a) WSS process obtained by phase randomization of the 
+	b) WSC process.\label{fig:phaseRandomization}}
+\end{figure}
+
+\figl{phaseRandomization} illustrates that the upsampling creates zeros in the autocorrelation
+over the lag $l$ dimension and, that the phase randomization made the value of the autocorrelation
+independent of the absolute time $n$, as required by a WSS. 
+\eExample
+
+Via the phase randomization, dealing with a WSC process has been circumvented, and one can 
+obtain the PSD $S_q(e^{j \dw})$ of $q[n]$ in \blol{randomShiftTrick} by calculating the DTFT of both sides of \equl{randomShiftXcorr}:
+\begin{equation}
+S_q(e^{j \dw}) = \frac{1}{L} S_m(e^{j L \dw}).
+\label{eq:randomShiftPSD}
+\end{equation}
+Observe that the PSD $S_m(e^{j\dw})$ of $m[n]$ is simply obtained via the DTFT of $R_m[l]$, i.\,e.,
+\begin{equation}
+S_m(e^{j\dw}) = \calF\{R_m[l]\} = \sum_{l=-\infty}^{\infty} R_m[l] e^{-j \dw l},
+\label{eq:psd_periodic}
+\end{equation}
+such that \equl{randomShiftPSD} can be written as
+\begin{equation}
+S_q(e^{j \dw}) = \frac{1}{L} \sum_{l=-\infty}^{\infty} R_m[l] e^{-j L \dw l}.
+\label{eq:randomShiftPSD2}
+\end{equation}
+
+\ifml
+\else
+The phase randomization of \blol{randomShiftTrick} and, consequently, \equl{randomShiftPSD2}, has several applications. For example,
+it can be used to obtain the PSD of a discrete-time PAM signal, generated as in
+\blol{linecodegenerationDiscreteTime}.
+\fi
+
+The second case of a WSC listed in the beginning of this section occurs when a sampled signal $x_s(t)$ is obtained by periodic sampling of a continuous-time WSS process.
+Similar to \blol{randomShiftTrick}, a continuous-time randomization with a uniformly distributed phase can be represented by
+\begin{equation}
+m[n] \arrowedbox{D/C} m_s(t) \arrowedbox{random phase} q_s(t),
+\label{eq:randomPhaseContinuousTime}
+\end{equation}
+and it turns the sampled signal $q_s(t)$ into a realization of a WSS process.
+\ifml
+\else
+This kind of strategy is useful, for example, to obtain the PSD of continuous-time
+PAM signals, as the ones generated by \blol{linecodegeneration}.
+\fi
+
+The PSD of $q_s(t)$ is given by\footnote{For a proof of \equl{upsampledPSDContinuousTime}, see e.\,g.~\cite{Barry04}, page 74 and Appendix 3-1.}
+\begin{equation}
+S_q(\aw) = \frac{1}{\tsym} S_m(e^{j\dw})|_{\dw=\aw \tsym},
+\label{eq:upsampledPSDContinuousTime}
+\end{equation}
+which is similar to \equl{randomShiftPSD} and
+also has the PSD $S_m(e^{j\dw})$ of $m[n]$ (not $m_s(t)$) provided by \equl{psd_periodic}.
+
+Note that due to the D/C conversion in \blol{randomPhaseContinuousTime}, $S_m(e^{j\dw})$ is mapped to continuous-time $\aw$ in rad/s using the relation $\aw = \dw \fs$. In this specific case, $\fs = \rsym=1/\tsym$, which leads to:
+\[
+S_m(e^{j\dw})|_{\dw=\aw \tsym} = \sum_{l=-\infty}^{\infty} R_m[l] e^{-j \aw \tsym l}.
+\]
+Hence, \equl{upsampledPSDContinuousTime} can be written as
+\begin{equation}
+S_q(\aw) = \frac{1}{\tsym} \sum_{l=-\infty}^{\infty} R_m[l] e^{-j \aw \tsym l}.
+\label{eq:upsampledPSDContinuousTime2}
+\end{equation}
+or, alternatively, with $f$ in Hz:
+\begin{equation}
+S_q(f) = \frac{1}{\tsym} \sum_{l=-\infty}^{\infty} R_m[l] e^{-j 2 \pi f \tsym l}.
+\label{eq:upsampledPSDContinuousTimeHz}
+\end{equation}
+
+
+From \equl{psd_periodic}, note that $S_m(\aw)$ is periodic, as it is a version of $S_m(e^{j\dw})$ with a scaled abscissa. Consequently, $S_q(\aw)$ are $S_q(f)$ also periodic, in spite of the notation using the independent variables $\aw$ and $f$. 
+
+%It is the shaping pulse that plays the role of a D/A reconstruction filter and attenuates or even eliminates the images in these periodic PSDs.

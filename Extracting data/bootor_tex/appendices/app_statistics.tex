@@ -1,0 +1,25 @@
+\subsection{Confidence intervals}
+%
+The code below indicates how to calculate confidence intervals. The application is the misclassification error of a classifier.
+%
+\begin{lstlisting}
+%Input data
+confidence = 80 % in percent, e.g., 95 %
+n = 4  %total number of examples in the test set
+m = 2  %number of errors (or matches)
+%Auxiliary terms
+p = m/n
+q = 1-p
+alpha = (1 - confidence/100) / 2
+zc = norminv(1-alpha) %this could be found via a table
+% Simple method
+d = zc*sqrt(p*q/n)
+inferiorLimit = p - d
+superiorLimit = p + d
+% More advanced method based on a 2nd order equation 
+tempb = zc * sqrt( ((p*q)/n) + ((zc^2)/(4*n^2)) );
+tempa = p + (zc^2/(2*n));
+den = 1 + ( (zc^2) / n);
+superior = (tempa + tempb) / den
+inferior = (tempa - tempb) / den
+\end{lstlisting}

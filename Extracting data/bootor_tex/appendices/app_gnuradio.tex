@@ -1,0 +1,132 @@
+\subsection{For those willing to stop reading and run code}
+
+Running GR on Windows is easier nowadays than when GR started, as discussed at \akurl{http://gnuradio.org/redmine/projects/gnuradio/wiki/WindowsInstall}{agrw}. But if it is an option, using GR on Linux is advised.\footnote{In case you need (or want) to run GR on Windows, the main difficulty during the installation process is to keep the dependencies (Python libraries, etc.) compatible among themselves. For example, assume that you have Python version 2.7 installed, then you cannot use a library for Python version 3.3. The problem is that it is sometimes hard to find the file you are looking for on the Web. Try, for example, finding \ci{PyQwt-5.2.1-py2.7-x32-pyqt4.9.6-numpy1.6.2-1.exe}, which is suggested at the Ettus Windows install page. If not found, you may end up going for \ci{PyQwt-5.2.1-py2.7-x32-pyqt4.9.6-numpy1.7.1.exe} instead. But then, you must use the NumPy version 1.7.1 (\ci{numpy-1.7.1-win32-superpack-python2.7.exe}) instead of the originally suggested 1.6.2. Pay attention on how the versions are encoded in the file names to be installed and make sure they match.}
+
+\begin{figure}
+\centering
+\includegraphics[width=\figwidth]{./FiguresNonScript/gnuradio_companion}
+\caption{GNU Radio Companion interface highlighting the icons to execute the simulation.\label{fig:gnuradio_companion}}
+\end{figure}
+
+The easiest way to explore GNU Radio (GR) is to execute \ci{gnuradio-companion.py}, the GNU Radio Companion (or GRC). The GRC is a GUI for GR that aims to make easier to get started with GR.
+On Windows, it is often located at \path{c:\Program Files\gnuradio\bin} and assuming this folder is part of your PATH and Python is properly installed, the script can be invoked with:
+\begin{lstlisting}[language=Python]
+python gnuradio-companion.py
+\end{lstlisting}
+from a command prompt. An alternative is to use Windows Explorer to navigate to its folder and double-click the script icon. \figl{gnuradio_companion} illustrates GRC after loading a file (with extension \ci{grc}).\footnote{One interesting thing is that, as indicated in \figl{gnuradio_companion}, the icon to execute the flow graph has a gray color that sometimes leads novice users to consider it is disabled.}
+
+For those who are serious about using GR, the official web site is \akurl{http://gnuradio.org}{agro}. A great source of information and cool projects is the \emph{Comprehensive GR Archive Network}~\akurl{https://www.cgran.org}{agra}. 
+
+\subsection{Basic facts about GR}
+GR is a free software development toolkit that provides the signal processing runtime and processing blocks to implement software radios.
+It supports, Linux, Mac OS and Windows.
+%It is useful for building software radio transceivers.
+
+GR applications are primarily written using the Python programming language, while the supplied, performance-critical signal processing path is implemented in C++.
+% Thus, the developer is able to implement real-time, high-throughput radio systems in a simple-to-use, rapid-application-development environment.
+
+As used in this text, GR supports the development of signal processing algorithms using pre-recorded or generated data, avoiding the need for actual RF hardware.
+
+%It has USRP, universal software radio peripheral, low cost HW platform for preprocessing. Not discussed in this chapter.
+
+%Note that GR is relatively badly documented at this point and 
+%By Dawei Shen: GR 
+%requires both strong computer skills and extensive knowledge on communications
+%and digital signal processing.
+
+\ignore{
+Requiring know-how in the fields of
+Computer programming
+Communications systems
+Digital signal processing
+Analog as well as digital hardware
+Hardware is also open source
+Schematics are available
+%
+Python scripting language used for creating ``signal flow graphs''
+%
+C++ used for creating signal processing blocks
+%
+An already existing library of signalling blocks
+%
+The scheduler is using Python"s built-in module threading, to control the "starting",
+"stopping" or "waiting" operations of the signal flow graph.
+%
+You may like to bookmark them in your web browser. The first one is also available on-line.
+}
+
+A \emph{block}\index{Block, in GR} in GR is actually a class implemented in C++. For example, a block called \ci{gr.quadrature\_demod\_cf} corresponds to the class
+\ci{gr\_quadrature\_demod\_cf} implemented in C++. SWIG (\emph{Simplified Wrapper and Interface Generator}) is a software layer that creates an interface between C++ and Python. 
+\ignore{
+With
+SWIG, from Python's point of view, the block becomes a class
+called, for example, \ci{quadrature\_demod\_cf} defined in the module \ci{gr}, so that one can access the block using
+\ci{gr.quadrature\_demod\_cf} in Python. When looking at GR documentation, prefixs
+such as \ci{gr}, \ci{qa}, \ci{usrp} correspond to the module name in Python and the part after the prefix is
+the real name of the block in that module, such as \ci{quadrature\_demod\_cf, fir\_filter\_fff}. So if a block is named `A\_B\_C\_...', it is used as `A.B\_C\_...' in Python.
+}
+%Built as shared libaries dynamically loaded using python "import" feature SWIG ""Simplified Wrapper and Interface Generator"" used for glue code allowing python import. C++ class ""gr\_block"" is base for all signal processing blocks Derived classes gr\_sync\_block, gr\_sync\_decimator and gr\_interpolator can also be used depending on input/output rate relations
+
+GR uses the following conventions for files:
+\begin{itemize}
+	\item .h file for class declaration
+	\item .cc file for class definition
+	\item .i file defining how SWIG generates glue code binding the C++ class into Python
+\end{itemize}
+and for variables names:
+\begin{itemize}
+	\item f - IEEE 754 single precision number in floating points (or \emph{floats})
+	\item c - complex (pair of 32-bit floats)
+	\item i - integer (32-bit signed integer)
+	\item s - short (16-bit signed integer)
+	\item b - byte (8-bit signed integer)
+\end{itemize}
+Much more information about code conventions is available at \akurl{http://gnuradio.org/redmine/projects/gnuradio/wiki/Coding_guide_impl}{agrc}.
+
+A very important aspect of GR is that it has a \emph{Scheduler}\index{Scheduler, in GR} that controls the flow of information. The user connects the blocks using a graph and the Scheduler takes care of sending information from a block to the next block(s) in the graph.
+
+Blocks are connected together using the connect()
+method of the flow graph. The connect() method takes two parameters, the source
+endpoint and the destination endpoint, and creates a connection from the source to the
+destination. An endpoint has two components: a signal processing block and a port
+number. The port number specifies which input or output port of the specified block is
+to be connected. In the general form, an endpoint is represented as a Python tuple like
+this: (block, port\_number). When port\_number is zero, the block may be used alone.
+For instance the following two expressions are equivalent:
+\begin{lstlisting}[language=Python]
+fg.connect ((src1, 0), (dst, 1))
+fg.connect (src1, (dst, 1))
+\end{lstlisting}
+The start() method forks one or more threads to run the computation
+described by the graph and returns control immediately to the caller. 
+
+Among other tasks, the Scheduler has to allocate buffers to accommodate the data that flows among the blocks.
+When developing simple applications, which rely only on existing blocks, most of the times the user does not need to understand much about the Scheduler.
+%In these cases, using GRC for example, is somehow similar to using Mathwork's Simulink 
+However, when developing new blocks in C++ or sophisticated applications, it is important to study the Scheduler and related tasks.
+
+%In this case, the program waits for any keystroke.
+
+%A wx window will appear with
+%any sliders or graphs that were added. To stop the flow graph, close the wx window,
+%press stop in the tool bar, or press F7. Flow graphs can be run without the interface by
+%invoking the python interpreter on FlowGraphApp.py, and passing the saved flow
+%graph as the first argument to FlowGraphApp.py.
+
+\ignore{
+Good examples of blocks are:
+\begin{itemize}
+	\item \url{./gr-qtgui/src/python/qt_digital.py}
+	\item \url{./gnuradio-examples/python/ofdm/benchmark_ofdm.py}
+	\item \url{./gnuradio-examples/python/digital/benchmark_loopback.py}
+\end{itemize}
+Classes para equalizacao (nao muito usadas):
+class  	gr_cma_equalizer_cc
+ 	Implements constant modulus adaptive filter on complex stream. More...
+class  	gr_lms_dfe_cc
+ 	Least-Mean-Square Decision Feedback Equalizer (complex in/out). More...
+class  	gr_lms_dfe_ff
+ 	Least-Mean-Square Decision Feedback Equalizer (float in/out). More...
+Detailed Description
+}
+

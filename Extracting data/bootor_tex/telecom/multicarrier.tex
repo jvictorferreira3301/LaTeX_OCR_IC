@@ -1,0 +1,681 @@
+\section{To Learn in This Chapter}
+
+\ignore{
+- To do:
+- explain that DMT is a mix of MFSK and QAM. Take jargon from Barry et al.
+- Explain simple example. 
+- Need to deduce the channel capacity for AWGN.
+- Move gap approximation to QAM study.
+- Not use subchannel but substream or something else.
+- Recall that in DMT, one wants the same error rate for all subchannels. Then the gap is the same. And b depends on SNR.
+- \subsection{Multicarrier: A combination of M-FSK and QAM}
+- Illustrate that orthogonal modulations such as M-FSK are good for power but bad for BW and QAM is complementary. Use book by Barry et al.
+- Show code for M-FSK.
+- Prove that
+\[
+Y_k \approx H_k X_k + N_k
+\]
+showing that ICI is zero and ISI too.
+Thomas' notes are useful for that.
+%
+\subsection{DMT}
+\subsection{OFDM}
+%
+\begin{figure}[htb]
+\centering
+\includegraphics[width=15cm]{./FiguresNonScript/ofdm_blocks}
+\caption{Representation of OFDM using complex-valued signals.}\label{fig:ofdm_blocks}
+\end{figure}
+%
+\begin{figure}[htb]
+\centering
+\includegraphics[width=15cm]{./FiguresNonScript/ofdm_rx}
+\caption{Representation of an OFDM receiver using real signals.}\label{fig:ofdm_rx}
+\end{figure}
+%
+\begin{figure}[htb]
+\centering
+\includegraphics[width=15cm]{./FiguresNonScript/ofdm_tx}
+\caption{Representation of an OFDM transmitter using real signals.}\label{fig:ofdm_tx}
+\end{figure}
+}
+
+%\section{Concepts of Multicarrier Systems from Cioffi material}
+%(from Cioffi's notes, Chapter 4)
+
+Multicarrier modulation schemes have been adopted in several recent communication standards.
+The basic concept of a multicarrier system is to split the bistream into $K$ ``sub-bitstreams'' and transmit them in parallel over a given channel $\cal H$. A distinct carrier frequency, called subcarrier or tone in this context, is associated to each sub-bitstream. This scheme is similar to frequency division multiplexing (FDM), but in multicarrier all sub-bitstreams are derived from a unique bitstream instead of being independent signal sources as typically found in FDM. In the multicarrier literature, the frequency bandwidth used by each substream is called \emph{subchannel}. 
+%The term subchannel is avoided in this text because the channel $\cal H$ does not change. What changes is 
+Each subchannel uses a bandwidth $\Delta f$ for its respective individual substream, which is smaller  than the total bandwidth BW of $\cal H$ used to transmit all substreams. This has an impact on the ISI that the channel imposes to each substream and simplifies the equalization process at the receiver.
+
+
+%RETIRADO DO TEXTO DO JEFFREY ANDREWS. PDF TAH NO DIRETORIO DA CLASSE DE TD:
+\ignore{
+The basic idea of multicarrier modulation is quite simple, and follows naturally from the competing desires
+for high data rates and intersymbol interference (ISI) free channels. In order to have a channel that does
+not have ISI, the symbol time Ts has to be larger - often significantly larger - than the channel delay
+spread Tm. Typically, it is assumed that $T_s  \approx 10 T_m$ in order to satisfy this ISI-free condition. Digital
+communication systems simply cannot function if ISI is present - an error floor quickly develops and
+as Ts approaches or falls below Tm, the bit error rate becomes intolerable. For the wideband channels
+that provide the high data rates needed by today's applications, the desired symbol time is usually much
+smaller than the delay spread, so intersymbol interference is severe.
+Multicarrier modulation divides the high-rate transmit bitstream into L lower-rate substreams, each of
+which has $Ts >> Tm$, and is hence ISI-free. These individual substreams can then be sent over L parallel
+subchannels, maintaining the total desired data rate. Typically the subchannels are orthogonal under ideal
+propagation conditions, in which case multicarrier modulation is often referred to as orthogonal frequency
+division multiplexing (OFDM). The data rate on each of the subchannels is much less than the total data
+rate, and so the corresponding subchannel bandwidth is much less than the total system bandwidth. The
+number of substreams is chosen to insure that each subchannel has a bandwidth less than the coherence
+bandwidth of the channel, so the subchannels experience relatively flat fading. Thus, the ISI on each
+subchannel is small. Moreover, in the discrete implementation of OFDM, often called discrete multitone
+(DMT), the ISI can be completely eliminated through the use of a cyclic prefix. The subchannels in OFDM
+need not be contiguous, so a large continuous block of spectrum is not needed for high rate multicarrier
+communications.
+}
+
+%SHOW A GRAPH OF same impulse response durationS. EXPLAIN ISI IN TIME AND FREQUENCY DOMAINS.
+
+%To call subchannel is misleading because the channel does not change, and it has the same impulse response duration. What changes is the bandwidth required by the substreams.
+
+\section{DMT and OFDM Multicarrier Modulations}
+
+There are several multicarrier systems and two important examples are DMT and OFDM. Both use IFFT and FFT to perform modulation and demodulation, respectively. Some texts consider DMT as a special case of OFDM while others make the distinction. Basically, OFDM can be seen as a DMT modulated by a carrier (sinusoidal signal). In this sense, an analogy can be drawn between the pair PAM / QAM and the pair DMT / OFDM. In time-domain, PAM and DMT are real-valued signals. Similarly, QAM and OFDM are complex-values signals. This text assumes the following convention: the DMT modulator generates a real-valued baseband signal while the OFDM modulator generates a complex-valued envelop (that does not need to have a spectrum with Hermitian symmetry) and uses a carrier frequency to perform frequency upconversion for all ``OFDM subcarriers'' and generate a real-valued passband signal. 
+
+In OFDM, the signal after the IFFT corresponds to a baseband complex envelope $x_{\textrm{ce}}(t)$ that is then upconverted via a carrier of frequency $f_c$ to create a real-valued passband signal 
+\begin{equation}
+x_{\textrm{OFDM}}(t) = \real{ x_\textrm{ce}(t) e^{j 2 \pi f_c t} }.
+\label{eq:ofdm}
+\end{equation}
+This scheme is similar to the one used in \equl{qam_complex} for QAM.
+
+In OFDM, all values in the IFFT modulator's input (interpreted as QAM symbols) are independent and can be chosen to carry information because the IFFT output can be a complex-valued signal. In contrast, in DMT there is no upconversion by $f_c$ (i.\,e., $f_c = 0$) and the QAM symbols corresponding to ``negative frequencies'' need to be the complex conjugate of their corresponding symbols (in ``positive frequencies'') such that the IFFT output is a real-valued signal. Another restriction in DMT systems is that the symbols at subcarriers DC and Nyquist frequency must be real (i.\,e. PAM, not QAM symbols). 
+
+Another distinction that has been adopted in the past is that OFDM used the same number of bits per tone while DMT uses a bit loading procedure to assign bits per tone according to their SNRs. However, modern OFDM systems may not use a flat bit allocation. 
+
+It should be noted that, while DMT has been widely 
+used to describe some DSL technologies (ADSL, VDSL, etc.), in more recent standards such as G.fast,
+the term OFDM has been adopted instead of DMT.
+
+%SHOW A GRAPH OF OFDM AND DMT SPECTRA.
+%\section{Implementing a Multicarrier System Using FFT}
+
+%Typically, the channel partition is obtained with a DFT (more specifically, with an FFT) of size $N$. 
+The next section discusses DMT, but most of the concepts are valid for OFDM systems too.
+%In this chapter, $N$ is the FFT dimension.
+
+\section{DMT Modulation via Matlab/Octave Code}
+
+\ignore{
+TO BE IGNORED:
+and $\overline{N}=N/2$. When DMT uses both DC and Nyquist tones, it has a total of $\overline{N}+1$ tones. Note that $N$ is not anymore the number of ``dimensions'' of QAM and PAM, as in Chapter~\ref{ch:digi_comm}. In the current chapter, the QAM and PAM symbols are called subsymbols and their dimensions will be called ``subdimensions'' and represented by $\kappa$ (e.g., $\kappa=2$ for QAM and $\kappa=1$ for PAM).
+}
+
+In DMT, the channel partition is obtained with a DFT (more specifically, with an FFT) of size $N$. 
+Several QAM and PAM symbols are grouped to create a \emph{DMT symbol}\index{DMT symbol} represented by a vector \ci{Xk} with $N$ elements $X[k],k=0,\ldots,N-1$, which is interpreted as in frequency domain. Conceptually, the subcarriers (sinusoids) are scaled by the elements of $X$ via an inverse FFT, as in \equl{idft}, to obtain the time-domain samples \ci{xn}. 
+For example, the first element $X[0]$ of this vector is the substream information that will be transmitted at the DC tone ($k=0$ in \equl{fft_freq_tone_hz}). 
+
+In {{\matlab}} the modulation can be done with \ci{xn=ifft(Xk)}, but it is convenient to use an orthonormal definition of the pair FFT / IFFT, as explained via \equl{forms_of_fft}. 
+
+Before sending the time-domain samples to the DAC chip, the DMT modulator places a copy of the $L_\textrm{cp}$ last samples of the IFFT output \ci{xn} before the first sample of \ci{xn}, creating a ``prefix''. These samples are called \emph{cyclic prefix} (CP) and their importance will be explained later in this chapter. For example, if $N=4$ and \ci{xn=[1~2~3~4]}, the adoption of a CP of $L_\textrm{cp}=2$ samples would create the signal \ci{[3~4~1~2~3~4]}, while $L_\textrm{cp}=3$ would lead to \ci{[2~3~4~1~2~3~4]}. The minimum length of CP $L_\textrm{cp}$ is the channel \emph{dispersion} $D$.
+
+\figl{dmt_blocks} depicts a DMT system. The FEQ block is the frequency equalizer that, for each tone, compensates the effect of the channel $H[k]$. Given an estimate $\hat H[k]$ of the channel and eventually
+of the noise, the role of a FEQ algorithm to remove the deleterious influence of the channel. This can
+be done by multiplying each received symbol $Y_k$ by $1/\hat H[k]$.
+
+\begin{figure}
+\centering
+\includegraphics[width=\figwidthLarge]{./FiguresTex/dmt_blocks}
+\caption{DMT block diagram.\label{fig:dmt_blocks}}
+\end{figure}
+
+Because the system is designed such that the tones are independent, the \textbf{fundamental DMT equation} is
+\begin{equation}
+Y[k] \approx H[k] X[k] + N[k],
+\label{eq:dmt_fundamental_equation}
+\end{equation}
+where $H_k$ and $N_k$ are the channel frequency response and noise at the $k$-th tone, respectively.
+This equation is valid under the assumption of a perfect \emph{channel partition}.% and will be discussed in this chapter.
+
+\codl{ex_dmt_one_symbol} shows how to transmit one DMT symbol using IFFT / FFT over a channel with impulse response $h[n]=0.6 \delta[n] + 1.2 \delta[n-1] + 0.3 \delta[n-2]$, which corresponds to a dispersion of $D=2$ samples. In this case, it was adopted $L_\textrm{cp}=2$ and the result of the command \ci{Zk-Xk} indicates that the transmitted symbols are properly recovered.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_dmt\_one\_symbol}{ex_dmt_one_symbol}
+
+Note in \codl{ex_dmt_one_symbol} that a unitary (orthonormal) IFFT / FFT pair was used for modulation and demodulation. This is not strictly required and any valid DFT pair could be used, given that the output and input powers will be controlled by the analog front end electronics. 
+
+Note that, besides its usage for demodulation, the FFT is also adopted in \codl{ex_dmt_one_symbol} to obtain the values \ci{Hk} of the channel frequency response. These values correspond to sampling the channel DTFT and, to be properly estimated, the FFT normalization factors are $\alpha=1$ and $\beta=1/N$, as explained in \equl{forms_of_fft}.
+
+If the channel frequency response is 0 at some tone, it is not possible to send information via this tone. Recalling \equl{z_dc_nyquist_freqs}, if the channel has $h[n]=0.6 \delta[n] + 0.9 \delta[n-1] + 0.3 \delta[n-2]$, its system function is $H(z)=0.6 + 0.9 z^{-1} + 0.3 z^{-2}$, which has a zero gain at the Nyquist frequency. \codl{ex_dmt_one_symbol} can be modified to use this channel and demonstrate that the information sent at tone $k=2$ in this case cannot be recovered. Similarly, a channel with $H(z)=0.6 - 0.6 z^{-1}$ has a zero gain at DC and the tone $k=0$ should not be used in this case.
+
+\codl{ex_dmt_two_symbols} shows how to consecutively transmit two DMT symbols, indicating how the channel memory must be taken into account when using the routine \ci{filter} in {\matlab}, as discussed in Application~\ref{app:filterMemoryInAccount}.
+
+%It is important to learn how to simulate DMT systems using blocks of samples instead of creating long arrays that may not fit in memory. In this case, the convolution can be simulated using \ci{filter}, but the channel memory must be considered when processing successive blocks.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_dmt\_two\_symbols}{ex_dmt_two_symbols}
+
+Observe that \ci{X} in \codl{ex_dmt_one_symbol} has the required Hermitian symmetry to generate a real-valued DMT signal.
+
+Assuming the sampling frequency (the rate that the transmitted DAC chip works) is $\fs$, the DFT tone spacing is $\Delta_f = \fs/N$ as illustrated in \tabl{fft_equations}. Hence, the carrier frequency of the $k$-th tone is given by \equl{fft_freq_tone_hz}: $f_k  = k \fs/N$.
+
+While some standardized OFDM systems use the same number $b_k$ of bits for all tones, DMT-based DSL systems for example allocate more bits to tones with larger SNR. In other words, for DSL, $b_k$ is proportional to $\snr_k$. The process of choosing $b_k$ is known as bit-allocation and will be discussed later. Before that, 
+\codl{ex_dmt} shows details about DMT with a given bitloading and the use of distinct constellations.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_dmt}{ex_dmt}
+
+The next section discusses how the rate can be calculated in multicarrier systems.
+
+\section {DMT/OFDM rate estimation}
+% of single line, considering all crosstalk as noise (no vectoring)}
+
+OFDM can carry information bits in all $N$ tones while DMT can use $K=N/2+1$ tones (the DC and Nyquist tones must be real PAM values while the others $N/2-1$ can be complex QAM symbols).\footnote{The FFT size $N$ is assumed to be even unless otherwise stated.}
+
+Assuming the channel for a given tone is not frequency-selective (it is approximately flat within the tone spacing $\Delta f$) and the transmission on this tone can be modeled as an AWGN channel, the Shannon capacity is given by \equl{capacityDiscreteAWGN} and
+\equl{snr_multicarrierFinal} 
+
+The Shannon capacity indicates an upper bound on bit rate but coding schemes have to control the bit rate and SNR to achieve a given symbol error probability $P_e$. This is a non-linear relation that depends on the adopted code. For uncoded QAM (and few other modulations), one can use the convenient \emph{gap approximation}, which specifies, for a given $\snr_k$, how many bits can be loaded at tone $k$ for obtaining a given $P_e$. The goal is to keep $P_e$ constant over all  tones. As discussed in 
+\ifdefined\akAmazonBook
+Chapter~\ref{ch:qam},
+\else
+Section~\ref{sec:gap_approximation},
+\fi
+the gap approximation is
+\begin{equation}
+b_k  = \log_2 \left(1 + \frac{\snr_k}{\Gamma }\right),
+\label{eq:bitloading2}
+\end{equation}
+where $\Gamma$ denotes the \emph{gap} or SNR-gap to \emph{capacity}. The gap is typically specified in $10\log_{10}(\Gamma)$ dB and converted to linear scale to be used in \equl{bitloading2}. There are convenient expressions to obtain the gap $\Gamma = f(P_e)$ as a function of the target $P_e$ for simple schemes such as uncoded QAM. When more efficient coding is used, the gap should be modified. Alternatively, if channel coding is used, the SNR can be multiplied by the net \emph{coding gain}\index{Coding gain} $\Gamma_c$ to obtain
+\begin{equation}
+b_k  = \log_2 \left(1 + \frac{\snr_k \Gamma_c}{\Gamma }\right).
+\label{eq:bitloading3}
+\end{equation}
+
+In practice, it may be convenient to increase the robustness of the system by some \emph{target margin} $\gamma_t$, given that the $\snr$ can deteriorate and, consequently, the errors surpass the target $P_e$. Hence, instead of using~\equl{bitloading3}, a margin $\gamma_t > 1$  on tone $k$ can be imposed to find a smaller number of bits $\hat b_k < b_k$ according to
+\begin{equation}
+\label{eq:margin}
+\hat b_k \triangleq \log_2 \left(1 + \frac{\snr_k \Gamma_c}{\Gamma \gamma_t}\right) = \log_2 \left(1 + \frac{\snr_k }{\zeta}\right),
+\end{equation}
+where $\zeta = (\Gamma \gamma_t)/\Gamma_c$.
+
+The bitloading is normally executed during the modem initialization stage. Afterwards, the margin can change over time due to noise variations and the number of bits per tone may need to be adjusted. The \emph{current margin} (or \emph{noise margin}) is denoted as $\gamma$ and may be different from the target $\gamma_t$.
+
+When dealing with \equl{margin} it is convenient to deal with the quantities in dB, such that
+\[
+10 \log_{10} \left( \frac{\snr_k \Gamma_c}{\Gamma \gamma_t} \right) = 10 \log_{10} \snr_k - \zeta_{\dB},
+\]
+where
+\[
+\zeta_{\dB} = 10 \log_{10} (\Gamma) + 10 \log_{10} (\gamma_t) - 10 \log_{10} (\Gamma_c)
+\]
+is the amount in dB by which the SNR should be reduced before using \equl{capacityDiscreteAWGN} to obtain the number of bits per tone when one aims at operating at $P_e$. In summary, after the system designer specified $\Gamma$ and $\Gamma_c$, the margin $\gamma$ is the amount by which the SNR on the channel may be lowered before performance degrades
+to a probability of error greater than the target error probability used when calculating the gap. 
+
+%Note that it is more common to specify the margin in dB than in linear scale as in:
+%\begin{equation}
+%\gamma_{\dB} = 10 \log_{10} \gamma.
+%\label{eq:}
+%\end{equation}
+
+From \equl{margin} with $\Gamma_c = 1$ (no coding gain), the margin can be written as
+\begin{equation}
+\gamma = \frac{\snr}{(2^{\tilde b} - 1) \Gamma},
+\label{eq:margin_explicit}
+\end{equation}
+where $\tilde b$ represents the number of bits actually used.
+
+Dealing with both margin $\gamma$ and gap $\Gamma$ seems redundant because the margin could be incorporated into the gap by redefining it as $\hat \Gamma = \Gamma \gamma$. However, they play different roles in the design and operation of DSL systems. The gap is determined by the required $P_e$ and is a fixed value, while the current margin $\gamma$ varies over time according to \equl{margin_explicit}.
+
+From \equl{bitloading2} and \equl{margin}, the current margin for a given tone $k$ can be written as
+\begin{equation}
+\gamma_k = \frac{2^{b_k}-1}{2^{\tilde b_k}-1},
+\label{eq:margin_explicit2}
+\end{equation}
+where $b_k$ is given by \equl{bitloading2} and $\tilde b_k$ is the 
+number of bits actually used.
+A DSL system tries to keep all tones with a margin close to the target, i.\,e., $\gamma_k \approx \gamma_t$.
+
+%such that ``a positive margin'' implicitly assumes the in dB
+%is such that the margin is constant over the tones, but as $\snr_k$ varies, the margins $\gamma_k$ also change over time given that $b_k$ depends on $\snr_k$. 
+
+To observe an example of using margins, assume a QAM tone (the subscript $k$ will be omitted) with $\snr = 10^4$ (40~dB) and targets $P_e=10^{-9}$ and $\gamma_t = 100$ (20~dB). 
+\ifdefined\akAmazonBook
+In this case,
+\else
+According to \tabl{pam_qam_gaps}, 
+\fi
+the gap is $\Gamma=12.8924$ (11.1~dB) and \equl{bitloading2} leads to $b = 9.6$. This means that, if the system manages to operate with a non-integer $\tilde b = 9.6$, the margin would be 0~dB. A value $\tilde b > 9.6$ means the margin is negative and the error is higher than $P_e$. Imposing $\gamma_t = 100$ leads to $\hat b = 3.13$.
+But if the tone is loaded with $\tilde b = 5$~bits, \equl{margin_explicit} or, alternatively, \equl{margin_explicit2}, indicates that the margin is $\gamma = 25.021$ ($\gamma_{\dB} \approx 14$) instead of the target $\gamma_t = 100$.
+
+The convenience of working with dB can be seen in the following reasoning. The values $\gamma_t=20$~dB and $\Gamma_{\dB}=11.1$~dB dictate that the original $\snr_{\dB}=40$ is lowered to $40 - 20 - 11.1 = 8.9$ and only this amount is effectively used to calculate the number of bits. More generally, one has
+\begin{equation}
+\hat b = \log_2 \left( 1+ \snr^{\textrm{effective}} \right)
+%\label{eq:}
+\end{equation}
+where 
+\begin{equation}
+\snr_{\dB}^{\textrm{effective}} = \snr_{\dB} - \Gamma_{\dB} - \gamma_{\dB}.
+%\label{eq:}
+\end{equation}
+
+%per tone 
+%The bitloading typically uses the gap approximation
+%codingGain=5; %net coding gain: 5dB
+%margin = 6; %margin = 6dB
+%shannonGap=9.8; %shannon gap: 9.8dB
+
+Given that there are $K$ tones to transmit information at, the total number of bits per DMT symbol is
+\begin{equation}
+b = \sum_{k=0}^{K-1} b_k.
+\end{equation}
+Hereafter, for simplicity, it is assumed that all tones can carry QAM symbols such \equl{capacityDiscreteAWGN} applies with $D=2$.
+
+In multicarrier, the term symbol rate often refers to the DMT symbol rate $\rdmt = 1/\tdmt$, where $\tdmt$ is the time interval to transmit a complete DMT symbol (that includes several QAM symbols). Therefore, the DMT data rate in bits per second (bps) is 
+\begin{equation}
+R = \frac{b}{\tdmt} = b \rdmt = \rdmt \sum_{k=0}^{K-1} b_k,
+\end{equation}
+which can be expanded using \equl{margin} and $\zeta_{\dB} = 10 \log_{10} \zeta$ into
+\begin{equation}
+R = \rdmt \sum_{k=0}^{K-1} \log_2 \left(1 + \frac{\snr_k}{\zeta}\right) \textrm{~~~~~~~bps}. 
+\label{eq:rate}
+\end{equation}
+
+Taking in account the CP samples leads to
+\[
+\tdmt = (N + L_{\textrm{cp}}) \ts
+\]
+such that
+\begin{equation}
+\fs = (N+L_{\textrm{cp}}) \rdmt.
+\label{eq:dmt_fs_rdmt}
+\end{equation}
+
+%Here, it is assumed that the cyclic suffix is zero and $L$  corresponds only to the prefix (CP) samples. The reason is that G.fast uses overlapping windows that effectively make only the CP to be accounted for in $\tdmt$. 
+
+If there is no CP ($L_{\textrm{cp}}=0)$, $\tdmt = N \ts$ and $\Delta_f = \fs/N = 1/(N \ts) = 1/\tdmt = \rdmt$. In this specific case, 
+\equl{rate} can be written as
+\begin{equation}
+\hat R = \Delta_f \sum_{k=0}^{K-1} \log_2 \left(1 + \frac{\snr_k}{\zeta}\right). 
+\label{eq:rate2}
+\end{equation}
+But in the general case, dividing both sides of \equl{dmt_fs_rdmt} by $N$ and combining with $\Delta_f = \fs/N$ leads to
+\begin{equation}
+ \rdmt = \Delta f \left(\frac {N} {N+L_{\textrm{cp}}} \right).
+\label{eq:dmt_delta_f_rdmt}
+\end{equation}
+Substituting \equl{dmt_delta_f_rdmt} into \equl{rate} leads to
+\begin{equation}
+R = \Delta f \left(\frac {N} {N+L_{\textrm{cp}}} \right) \sum_{k=0}^{K-1} \log_2 \left(1 + \frac{\snr_k}{\zeta}\right),
+\label{eq:rate3}
+\end{equation}
+which can be written as
+\[
+R = \left(\frac {N} {N+L_{\textrm{cp}}} \right) \hat R.
+\]
+Besides the CP, DSL has additional overhead (for example, to organize the information in frames for transmission) and it is convenient to define the \emph{framing overhead} $\nu \triangleq 1 - (R/{\hat R})$ such that
+\begin{equation}
+R = (1 - \nu) \hat R.
+\label{eq:overhead}
+\end{equation}
+When the overhead consists solely of the cyclic prefix samples it is given by
+\[
+\nu = 1 - \left(\frac {N} {N+L_{\textrm{cp}}} \right).
+\]
+
+\section{DMT / OFDM in Matrix Notation}
+
+AK-TODO: DMT / OFDM in Matrix Notation
+
+Botar em algum lugar: o canal eh linear, queremos usar FFT, dribla-se a convolucao circular da FFT com CP...
+
+Extended \codl{snip_systems_matrixBlockConvolutions} to OFDM is \codl{snip_multicarrier_DMTInMatrixNotation}.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_multicarrier\_DMTInMatrixNotation}{snip_multicarrier_DMTInMatrixNotation}
+
+\section{Total Transmit Power Estimation}
+
+The goal here is to discuss relations between the power $\calP_t$ of an analog signal and the power $\calP_d$ of its digital counterpart. In practice, the analog front end  circuitry (line driver, etc.) controls the relation $\calP_t / \calP_d$. For simulation purposes, most of the times using the actual power of the analog signal is not important because only the SNR matters (as will be seen in \equl{snr_multicarrier}, for example). In other words, a scaling power factor can be implicit in both signals and noises during the simulation if only their ratios are used. However, it is useful to have a clear understanding of how to manipulate power values in multicarrier systems.
+
+For simplicity, it will be assumed that the adopted FFT is unitary, such that Parseval theorem is obeyed. Considering the signals in \figl{dmt_blocks}, the unitary FFT allows to have the vectors $\bX_k$ and $\bx_n$ with the same norm.
+The discussed operations are done in the digital domain (performed by a CPU) and it would remain to determine what is the time assumed for the existence of $\bX$ and $\bx$ when the analog signal is sent over the channel. For example, if $\bx$ lasts for $T$ seconds, its power can be assumed $\ev [ |\bx|^2]/T$. 
+
+Note that the signal $x_p$ that is effectively sent to the channel is derived from vectors $\bx_p$, which include the cyclic prefix and have larger norm than the respective $\bx_n$. But it is assumed here that, on average, the vectors $\bx_n$ and $\bx_p$ lead to signals that have the same power. This way, it is sensible to consider that an element of $\bX_k$ represents the average power in that specific frequency bin, taking into account the spectrum is bilateral and include negative frequencies. 
+\codl{ex_multicarrier_parseval} illustrates the calculations with a unitary FFT.
+%that energy is not changed (Parseval is obeyed) when using the unitary DFT and how to calculate the energy per tone.
+\includecodelong{MatlabOctaveBookExamples}{ex\_multicarrier\_parseval}{ex_multicarrier_parseval}
+
+Hence, the ``power'' corresponding to $\bX_k$ will impose the power of the discrete-time signal $x[n]$ and, consequently, its continuous-time version $x(t)$. Here, the assumption is that the power $\calP_d$ of $x[n]$ is the same as $x(t)$, i.\,e., $\calP_d=\calP_t$.
+
+For example, assume a DMT transmitting the symbols $5, 3+j, -2$ using an FFT of $N=4$ points. In this case, $\bX = [5, 3+j, -2, 3-j]$ and the time-domain signal is obtained with:
+\begin{lstlisting}
+X = [5, 3+j, -2, 3-j]
+x=sqrt(4)*ifft(X)
+sum(abs(X).^2)
+sum(x.^2)
+\end{lstlisting}
+where the \ci{sqrt(N)} compensates the fact that the \ci{ifft} function in {\matlab} is not unitary. As expected, the squared norms are the same, which in this case is 49.
+As mentioned, in DMT the DC and Nyquist frequencies are not used and the transmitter calculates the PSD of the tones that carry information (the negative frequency tones have their values obtained by Hermitian symmetry). Adjusting the previous example, consider that $\bX_k = 3+j$ is the symbol that carries information. This tone and its Hermitian lead to a time-domain signal with norm 20 and power $\calP_d = 5$~W, as indicated by
+\begin{lstlisting}
+X = [0, 3+j, 0, 3-j]
+x=sqrt(4)*ifft(X)
+mean(abs(X).^2)
+mean(x.^2)
+\end{lstlisting}
+
+In summary, the cyclic prefix does not affect the power. 
+%If, after adding CP, the time for this extended symbol is still $T$, then its power would increase because of the extra ``energy'' provided by the CP. But, noting that 
+It is assumed that $\calP_t=\calP_d$ and $\calP_d$ is not modified because the CP has the same average power as the other samples. 
+%Under thone can conclude that the CP does not alter power.
+
+
+Sometimes, the available information in a DMT system are the PSD values per tone $s_k = P_k / \Delta_f$, where the tone frequency is $\Delta_f$ and $P_k$
+% \[
+% P_k \defeq \ev [ |X_k|^2 ]/N
+% \]
+is the power per tone such that 
+\[
+\calP_d = \sum_{k=0}^{N-1} P_k.
+\]
+Using estimation based on a single DMT symbol, $\hat P_k = |X[k]|^2/N$ and
+\[
+\hat \calP_d = \frac{1}{N}\sum_{k=0}^{N-1} |X[k]|^2 \approx \sum_{k=0}^{N-1} P_k = \Delta_f \sum_{k=0}^{N-1} s_k.
+\]
+Because of the imposed Hermitian symmetry and assuming $N$ is even, $s_k = s_{N-k}, k=1,\ldots,N/2-1$, one can write
+\[
+\calP_d = \sum_{k=0}^{N-1} P_k = P_0 + P_{N/2} + 2 \sum_{k=1}^{N/2-1} P_k.
+\]
+
+As an example, assume $\fs=211.968$~MHz and a tone interval $\Delta_f = 51.75$~kHz, as for the G.fast standard. Assume also that all tones are used with a flat transmit PSD of $P_k = -76$~dBm/Hz. Note that the convention is to assume the PSD is unilateral (or one-sided), not bilateral. For example, if it were white noise, one would use the notation $\no = -76$~dBm/Hz (not $\no / 2 = -76$~dBm/Hz), which corresponds to $\no = 2.5119 \times 10^{-11}$~W/Hz. Recall that $\calP_d = \BW \times \no$ and $\BW = \fs/2$, such that a first-order estimate is $\calP_d = 2.66$~mW. Assuming that only $K=2004$ tones are used, an estimate of $\calP_d = 2.60$~mW and the generation of a signal with this power is obtained as in \codl{snip_multicarrier_power_calculation}.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_multicarrier\_power\_calculation}{snip_multicarrier_power_calculation}
+
+%\begin{lstlisting}
+%N=4096; %FFT size
+%K=2004; %# tones that can be used
+%Fs = 211.968e6; %sampling frequency
+%BW = Fs/2;
+%sk_dB = -76 %PSD (dBm/Hz)
+%sk = 10^(0.1*sk_dB)*1e-3 %PSD (W/Hz)
+%deltaF = 51.75e3; %tone spacing
+%Pk = sk * deltaF; %power at tone k
+%Pd1=BW * sk *1000 %first order Tx power estimation (mW)
+%Pd2=K*sum(Pk)*1000 %more realistic Tx power estimation (mW)
+%%% just to play with signal generation
+%X=sqrt(Pd2)*randn(1,N); %generate random signal with given power
+%x=sqrt(N)*ifft(X); %go to time-domain
+%mean(abs(X).^2) %compare the squared norms
+%mean(abs(x).^2)
+%\end{lstlisting}
+
+Hence, in general, assuming the PSD per tone (only non-negative frequencies) is available on an array \ci{psd} in mW/Hz, one can obtain the total power with
+\begin{lstlisting}
+disp('Total power (in mW) per user:')
+sum(psd)*deltaF %calculate the total transmitted power
+\end{lstlisting}
+where \ci{deltaF} is in Hz.
+
+%\section{Power and Noise in Multicarrier Systems}
+
+% When dealing with the fundamental equation (above), one can assume that the input signal $x$ is deterministic (non-random). 	
+%Assuming noise free conditions from \equl{dmt_fundamental_equation}, one has the channel output given by $Y[k] = H[k] X[k]$. At the receiver, the average output power $\calP_k^y = \expval_y(|Y[k]|^2)=\expval_x(|X[k] H[k]|^2)=\expval_x(|X[k]|^2 |H[k]|^2)= |H[k]|^2 \expval(|X[k]|^2)=|H[k]|^2 \calP_k^x$. In this chapter, $\calP_k^x$ will be simply written as $\calP_k$, and corresponds to the average power in tone $k$ at the input side (transmitter).
+%\footnote{It should be noted that Cioffi's notes~\cite{Ciofficn} assume $\expval_y(|Y[k]|^2)$ is the average energy $\varepsilon$, not power. This alternative nomenclature is discussed in Application~\ref{app:dc_conversion} and corresponds to assuming the reconstruction uses a filter with $h(t)$ of unitary energy.}
+
+
+
+%PARA QUE SERVE ESSE?
+%\lstinputlisting{./Code/MatlabOctaveFunctions/cioffi_table42.m}
+
+
+\ignore{
+Cioffi provides what I think are wrong numbers for $\Gamma$. Instead of using $Q^{-1} \left( \frac {\overline{P}_e}  2 \right)$, he does not divide by 2 and uses $Q^{-1} \left({\overline{P}_e}\right)$. For QAM, that would correspond to using $P_e$ instead of $\overline P_e$. In any case, the correct table follows below. Check the script gap.m, which also plots the two figures below.
+%
+\begin{table}
+\begin{center}
+	\label{gaps}
+	\caption{Gaps for uncoded PAM and QAM.}
+\begin{tabular}{|c|c|c|}
+$\overline{P_e}$ & $\Gamma$ (dB) \\ \hline
+$2 \times 10^{-5}$ & 7.8 \\ \hline
+$10^{-5}$ & 8.1 \\ \hline
+$2 \times 10^{-6}$ & 8.8 \\ \hline
+$10^{-6}$ &  9.0 \\ \hline
+$2 \times 10^{-7}$ & 9.5 \\ \hline
+$10^{-7}$ &  9.8 \\ \hline
+$2 \times 10^{-8}$ & 10.2 \\ \hline
+$10^{-8}$ &  10.4 \\ \hline
+$2 \times 10^{-9}$ & 10.8 \\ \hline
+$10^{-9}$ &  10.9 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+%
+\begin{figure}
+	\centering
+		\includegraphics[width=3in]{./FiguresNonScript/gap}
+	\caption{Illustration of the gap approximation: comparing the correct expression with the approximation for SNR = 10 dB. Plot of $\overline b$ versus $\overline P_e$.}
+	\label{fig:gap}
+\end{figure}
+%
+\begin{figure}
+	\centering
+		\includegraphics[width=3in]{./FiguresNonScript/gaplog}
+	\caption{Previous figure in log scale. Note the approximation is worse for small $\overline b$. One should try with different SNR too.}
+	\label{fig:gaplog}
+\end{figure}
+%
+It seems clear that I am not completely understanding Cioffi. The following code shows what I tried to replicate Table 4.2 in page 295 of Cioffi's notes.
+\lstinputlisting{./Code/MatlabOctaveFunctions/cioffi_table42.m}
+}
+
+
+\section{Operation modes: RA, MA and PA (FM)}
+
+As discussed in Chapter~\ref{ch:channels}, there is always a restriction on the amount of power that can be used for transmission. Because multicarrier modulation allows to assign distinct power values for different tones (subcarriers), there are many power loading algorithms for distributing the total power among the tones, which corresponds to defining a PSD for the transmitted signal. A related problem is bitloading, which assigns the number of bits that each tone will carry.
+
+When choosing a transmit PSD, three parameters are of major interest: rate $R$, total power $\ptot$ and margin $\gamma$. Given two of them, the third can be determined. Choosing the parameter that will vary (be maximized or minimized) while keeping the other two at chosen values defines three modes of operating a 
+multicarrier transceiver:
+\begin{itemize}
+% can be operated in 3 adaptation modes~\cite{Bogaert04b}. 
+\item \emph{rate-adaptive} (RA) mode: having pre-specified (fixed) total power and margin, the transceiver maximizes the bit rate, while
+maintaining $\ptot$ and $\gamma$ fixed,
+\item \emph{margin-adaptive} (MA) mode: $\ptot$ and $R$ are given, and the transceiver maximizes the noise margin, while maintaining a fixed bit rate,
+\item \emph{power-adaptive} (PA) or \emph{fixed-margin} (FM) mode: given $R$ and $\gamma$, the
+transceiver minimizes the power consumption.
+\end{itemize}
+
+The PA mode is useful for minimizing power and favor ``green'' communications. The MA mode is the natural choice if the system must operate at full power and the user should have a given bit rate. The RA is the one that maximizes bit rate.
+
+%Algorithms that compute values for $b_k$ and $s_k$ for each and every tone in a parallel set of tones are called \emph{loading} algorithms~\cite{Ciofficn} (Chapter 4). 
+%\section{Waterfilling}
+
+
+When designing a DMT system, after estimating the channel, one can then choose how many bits $b_n$ and energy $\varepsilon_n$ each tone will use.  There are basically two optimizations:
+\begin{itemize}
+	\item a) Rate-adaptive: the modem is restricted to a maximum transmit power and the optimization is to find the $\varepsilon_n$ that maximizes the rate
+	\item b) Margin-adaptive: the modem should transmit in a given total rate and the optimization is to find the minimum total power that achieves this target rate and also maximizes the margin.
+\end{itemize}
+
+%AK-IMPROVE take in account: %You should read Cioffi's subsections 4.2.3, 4.2.4, 4.3.1 and 4.3.2.
+%The following code illustrates example 4.3.1 in Cioffi's notes.
+%\lstinputlisting{./Code/MatlabOctaveFunctions/cioffi_example431.m}
+%
+%The following code illustrates example 4.3.2 in Cioffi's notes.
+%\lstinputlisting{./Code/MatlabOctaveFunctions/cioffi_example432.m}
+
+\section{Applications}
+
+\bApplication \textbf{Find power and bitloading using waterfilling}. (version A: without PAMs) Assume a DMT system with a FFT size $N=8$ and design the power and bitloading such that the total transmit power is equal to 20.4 dBm. Use the rate-adaptive version of waterfilling to maximize rate under the power constraint. The gap must be $\Gamma_{dB} = 6$ dB and the noise at the receiver is AWGN with $\no = -140$~dBm/Hz. Do not use the two PAM tones. The estimated channel is $h(n)=10^{-7} (2\delta(n) + \delta(n-1) + 3\delta(n-3))$ (the small channel gains were used to allow results close to the real world). The symbol rate is $\rdmt=4$~kHz. Provide: a) a plot of the channel frequency response, b) the signal-to-noise ratio $\snr_n$ per tone, c) the number $b_n$ of bits per tone assuming this number can be non-integer, d) the margin in dB associated with item c), e) the number $b_n$ of bits per tone assuming the largest integer not greater than $b_n$ in item c), f) the margin in dB associated with item e), g) by how many dB can the $\snr_3$ (tone $n=3$ with the first one being $n=0$) decrease before the error probability becomes lower than the specified by the gap $\Gamma$? h) what is the rate in bps assuming the bit loading of item e)?\footnote{Check \ci{MatlabOctaveFunctions/ak\_loading\_dmt\_a.m}.}
+
+\eApplication
+
+
+
+
+\bApplication \textbf{G.fast: the new DSL standard}.
+This application discusses G.fast, the new ITU-T standard for transmission over copper pairs.
+It uses TDD instead of FDD as most of its precursors, and the G.fast development has been organized into defining two profiles, with bandwidths of 100 and 200~MHz. The 100~MHz profile will be concluded in the end of 2013.
+
+\begin{table}
+\centering
+\caption{Parameters for DSL standards. The values of $L_{\textrm{cp}}$ and $\rdmt$ are detailed in \tabl{cp}. TBD stands for ``to be defined''. \label{tab:dsl_parameters}}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+&  ADSL & VDSL  & G.fast   & G.fast \\ 
+&  & (Profile17a) & (100~MHz)  & (200~MHz) \\ \hline
+FFT size $N$ & 512 & 8192 & 4096 & 8192 \\ \hline
+Cyclic prefix length $L_{\textrm{cp}}$ & 40 & 640 &  128 to 1056 & TBD \\ \hline
+Cyclic suffix length $\beta$ & - & - &  64 or 128 & TBD \\ \hline
+Number of tones ($K=N/2$) & 256  &  4096 &  2048 & 4096 \\ \hline
+$\fs$ (MHz) & 2.208 & 35.328 &  211.968 & 423.936\\ \hline
+Bandwidth (MHz) & 1.104 & 17.664 & 105.984 & 211.968 \\ \hline
+DMT symbol rate $\rdmt$ (kHz) & 4.0 & 4.0 & 41.142 to 50.181 & TBD \\ \hline
+Tone spacing $\Delta f$ (kHz) & 4.3125 & 4.3125 & $12 \times 4.3125 = 51.75$ & 51.75 \\ \hline
+Max. Tx power (US and DS) & - & - & 4~dBm (2.512~mW) & TBD \\ \hline
+\end{tabular}
+\end{table}
+%AK-IMPROVE Take from DSL Advances, page 216. % Profile 30a
+
+
+\begin{table}
+\centering
+\caption{Allowed range for $m$ in G.fast ($\fs=211.968$~MHz) and corresponding parameters assuming BW $=100$ MHz.\label{tab:cp}}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+m & $L_{\textrm{cp}}$ & CP ($\mu$s) & $\rdmt$ (kHz) & $\nu$ (\%) \\ \hline
+4 & 128 & 0.6 & 50.182 & 3.03\\ \hline
+8 & 256 & 1.2 & 48.706 &  5.88\\ \hline
+10 & 320 & 1.5 &  48.000 & 7.24\\ \hline
+12 & 384 & 1.8 & 47.314 &  8.57\\ \hline
+14 & 448 & 2.1 & 46.648 &  9.86\\ \hline
+16 & 512 & 2.4 & 46.000 &  11.11\\ \hline
+20 & 640 & 3.0 & 44.757 &  13.51\\ \hline
+24 & 768 & 3.6 & 43.579 &  15.79\\ \hline     
+30 & 960 & 4.5 & 41.924 &  18.99\\ \hline     
+33 & 1056 & 4.98 & 41.143 &  20.50\\ \hline     
+\end{tabular}
+\end{table}
+   
+\tabl{dsl_parameters} provides the currently agreed values for G.fast (these values will not change) and, for comparison, a list of standardized parameters for DMT transmission over DSL. Previous DSL standards adopt $\rdmt = 4000$ Hz. Using \equl{dmt_fs_rdmt}, one can calculate that $\fs = (512+40) 4000 = 2.208$~MHz for ADSL and $\fs = (8192+640) 4000 = 35.328$~MHz for VDSL. For ADSL and VDSL the ratio $L_{\textrm{cp}}/N$ is the same, and using \equl{dmt_delta_f_rdmt} one gets 
+$\Delta f = 4.3125$~kHz for both. In contrast, 
+G.fast specifies
+\[
+L_{\textrm{cp}}=m \frac{N}{128},
+\]
+where $m$ is an integer. The specific settings of $m$ and $\beta$ are exchanged during initialization.  The code below lists the valid range for $m$. The results are summarized in \tabl{cp}.
+\begin{lstlisting}
+N=4096; %FFT size
+Fs=211.968e6; %sampling frequency (Hz)
+m=[4, 8, 10, 12, 14, 16, 20, 24, 30, 33]
+L=m*N/128 %cyclic prefix length
+Rdmt = Fs./(N+L) %DMT symbol rate
+100*(1-(N./(N+L))) %overhead, considering only CP
+\end{lstlisting}
+
+A maximum of $b_k=12$ bits can be loaded and sub-carriers below 2.2 MHz cannot be used in G.fast. Because $2.2e6  / \Delta f \approx 42.5$, the first 44 tones (from $k=0$ to 43) cannot be used and only 2004 tones can carry data and the maximum number of bits per DMT symbol in G.fast is $2004 \times 12 = 24,048$. Adopting the shortest CP $L_{\textrm{cp}}=128$ in \tabl{cp} ($\rdmt=50.182$~kHz) leads to a maximum gross rate of
+\[
+R = b \rdmt = 24,048 \times 50182 = 1.206776736 \times 10^9,
+\]
+or approximately $1.2$~Gbps.
+\eApplication
+
+\bApplication \textbf{Writing SNR in terms of power or energy}.
+As discussed in Section~\ref{sec:powerPAMSignal}, when using unitary-energy basis functions, the average constellation energy $\varepsilon_k$ coincides with the signal power. Hence, some texts specify SNR with respect to energy.
+For example, at \akurl{http://www.stanford.edu/group/cioffi/}{5cln}, $\expval_y(|Y[k]|^2)$ is the average energy $\varepsilon$, not power. This alternative nomenclature is discussed in Application~\ref{app:dc_conversion} and corresponds to assuming the reconstruction uses a filter with $h(t)$ of unitary energy.
+	 
+Assume the DAC converts the discrete-time signal into a continuous-time signal using a sample-and-hold. In this case, one can assume $P_x = \varepsilon_x$ (power is equivalent to the average energy constellation). Assuming the tone bandwidth is $\Delta_f$, the transmit PSD at tone $n$ is $t_k = P_k / \Delta_f$, where $P_k = \varepsilon_k$ is the average energy of the constellation used in tone $n$. The correspondent received PSD is $s_k = t_k |H_k|^2 = \varepsilon_k |H_k|^2 / \Delta_f$, where $H_k$ is the frequency response at tone $n$. The signal-to-noise ratio is $\snr_k = P_k/N_k$, where $N_k$ is the total filtered noise power at tone $n$. The DFT demodulator works as a matched filter and each of its output has noise of $\sigma^2$ per dimension. Therefore, if $\no / 2$ is the bilateral noise PSD, $\sigma^2 = \no / 2$ and:
+	 $$
+	 \snr_k = \frac{P_k}{N_k} = \frac{s_k \Delta_f}{ \no} = \frac{\varepsilon_k |H_k|^2}{2 \sigma^2} = \frac{\varepsilon_k |H_k|^2}{\no}
+	 $$
+for a QAM channel ($N=2$ dimensions) and 
+	 $$
+	 \snr_k = \frac{\varepsilon_k |H_k|^2}{\sigma^2} = \frac{\varepsilon_k |H_k|^2}{\no/2}
+	 $$
+for a PAM channel ($N=1$ dimension).
+\eApplication
+
+
+\bApplication \textbf{SVD channel partitioning}.
+\label{app:SVD_partitioning}
+The CP can be interpreted as providing a \emph{guard interval} to combat the channel dispersion, which otherwise would create intersymbol (or, in this case, interblock) interference.
+In fact, zero-valued samples can be also used to compose a guard interval. But using a CP allows to mimic the effect of a circular convolution while using the actual channel, which naturally implements a linear convolution. This section concerns yet another view, and shows that a DFT partitions a channel represented by a circulant matrix.
+First, \emph{singular value decomposition} (SVD) is used and Application~\ref{app:DFT_partitioning} discusses DFT partitioning.
+
+Channel partitioning is the technique for dividing a channel such that it can be interpreted as a set of individual and independent parallel channels. Given a channel, a possible solution for channel partitioning is to find matrices that allow to convert the vector to be transmitted in such a way that the transformed symbols do not interfere with each other and the original symbols can be recovered at the channel output. A DFT obtains channels using distinct frequencies but SVD works differently.
+
+%\subsection{SVD for partitioning any channel matrix}
+
+%As discussed in \label{sec:svd}
+Note that the SVD of a matrix $\bA$ of dimension $P \times N$ provides a diagonal matrix $\bS$ and two unitary matrices $\bF$ and $\bM$ such that
+\begin{equation}
+\bA = \bF \, \bS \, \bM^H,
+\label{eq:svd_decomposition}
+\end{equation}
+where $\bF$ is $P \times P$, $\bM$ is $N \times N$ and $\bS$ has the same dimension of $\bA$.
+Note that $\bF^H \, \bF = \bI$ and $\bM^H \, \bM = \bI$ because the two matrices are unitary.
+
+The number of symbols (PAM or QAM symbols) to be transmitted over the channel is $N$.
+Hence, a vector $\bX$ of dimension $N$ with symbols must be transmitted through a LTI channel with impulse response $h[n]$ and SVD will be used to partition the channel convolution matrix $\bH$ (e.\,g., obtained with \ci{convmtx}). The result of the SVD decomposition of $\bH$ is used to design ``modulation'' $\bM$ and ``demodulation'' $\bF$ matrices, which multiply the transmit $\bX$ symbols and received samples $\by$, respectively. The role played by $\bM$ and $\bF$ is similar to the ones of the IDFT and DFT transforms in DMT, and the notation of lower and upper case letters for the ``time'' and ``frequency-domain'' vectors is also adopted here. In summary, the overall process is
+\[
+\bX \arrowedbox{modulator $\bM$} \bx \arrowedbox{channel $\bH$} \by \arrowedbox{demodulator $\bF^H$} \bY.
+\]
+
+The discussion assumes column (not row) vectors. For example, $\by = \bH \, \bx$. The number $N$ of columns of $\bH$ can be chosen, while the number $P$ of rows is given by the length of $h[n]$.
+
+To check that this scheme partitions the channel, from a given channel, use \equl{svd_decomposition} to obtain the SVD decomposition $\bH = \bF \, \bS \, \bM^H$. Then, using the previous block diagram note that
+\begin{align*}
+\bY &= \bF^H \by \\
+&= \bF^H \, \bH \, \bx \\
+&= \bF^H \, \bH \, \bM \, \bX \\
+&= \bF^H \, (\bF \, \bS \, \bM^H) \, \bM \, \bX  = (\bF^H \, \bF) \, \bS \, (\bM^H \, \bM) \, \bX  = \bI \, \bS \, \bI \, \bX \\
+&= \bS \bX.
+\end{align*}
+Hence, each transmit symbol from $\bX$ is multiplied by the corresponding element of the diagonal matrix $\bS$, proving that the channel was properly partitioned in independent channels.
+\codl{ex_svd_partitioning} implements an example of SVD-based transmission.
+% and can be used to obtain the so-called vector coding.\footnote{It follows the example in Section 4.5.1 of Cioffi's course notes \akurl{http://www.stanford.edu/group/cioffi/}{5cln}.}
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_svd\_partitioning}{ex_svd_partitioning}
+
+The singular values are always real and correspond to channel gains of their respective transmission channel.
+\codl{ex_snr_in_svd_partitioning} illustrates how they can be used to estimate the SNR at the receiver for each individual channel assuming the transmit power is the same for all symbols of $\bX$.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_snr\_in\_svd\_partitioning}{ex_snr_in_svd_partitioning}
+
+This schemes requires a SVD decomposition whenever the channel changes. Also, besides the singular values, the demodulation matrix must be informed to the receiver. This is avoided in DMT schemes based on the DFT as discussed in Application~\ref{app:DFT_partitioning}.
+\eApplication
+
+%\subsection{DFT for partitioning channels represented by circulant matrices}
+\bApplication \textbf{DFT channel partitioning}.
+\label{app:DFT_partitioning}
+Instead of SVD, here the eigenvalues decomposition is adopted. The first point to note is that while SVD supports a rectangular channel matrix $P \times N$, the eigenvalue decomposition requires a square $N \times N$ matrix. Hence, the original channel matrix is arranged via circular extension to become not only $N \times N$ but also a \emph{circulant matrix}\index{Circulant matrix}. This fact will be used later on.
+
+In general, the eigenvalue decomposition of a square matrix $\bA$ provides a diagonal matrix $\bD$ with the eigenvalues and a full matrix $\bV$ with the corresponding eigenvectors, such that
+\begin{equation}
+\bA \, \bV = \bV \, \bD.
+\label{eq:eigenvalueDecomposition}
+\end{equation}
+
+The channel partition with a DFT is based on the fact that the basis functions of the DFT are eigenvectors of any circulant matrix.
+Hence, when the channel is a circulant matrix $\bH$ and \equl{eigenvalueDecomposition} is applied, 
+the eigenvectors of $\bV$ are basis functions of the DFT and the eigenvalues in $\bD$ are the DFT of the impulse response. \codl{ex_dft_eigendecomposition} provides an example.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_dft\_eigendecomposition}{ex_dft_eigendecomposition}
+
+It should be noted in \codl{ex_dft_eigendecomposition} that the function \ci{eig} does not order the eigenvector as in the DFT and, also, a factor of $-1$ was used for two eigenvectors.
+
+Hence, if the channel matrix can be made circulant, the following scheme allows to partition it
+\[
+\bX \arrowedbox{$\bA$ \, (IDFT)} \bx \arrowedbox{channel $\bH$} \by \arrowedbox{$\bA^H$ \, (DFT)} \bY
+\]
+and should be compared with the SVD-based one. \codl{ex_dft_partitioning} illustrates the DFT partitioning.
+
+\includecodelong{MatlabOctaveBookExamples}{ex\_dft\_partitioning}{ex_dft_partitioning}
+
+The code indicates via \ci{D=Ah*H*A} that the DFT matrices obtain a diagonal matrix. Besides, the elements in the diagonal of \ci{D} coincide with the DFT of the impulse response.
+
+In practice, obtaining a circulant matrix for representing the channel is implemented via a ``trick'': adopting a cyclic prefix. Mathematically, the result of using $\bx$ without cyclic prefix and a circulant matrix is the same as using $\bx$ with cyclic prefix and a linear convolution matrix (non-circulant).
+\eApplication
+
+\section{Comments and Further Reading}
+
+There are many textbooks on OFDM for wireless communications, such as \cite{Prasad04} and \cite{Cho10}, which have plenty of Matlab scripts for practicing.
+Similarly, there are many books about DSL that discuss DMT, such as \cite{Summers99,Starr99,Starr03,Golden06,Golden07}.
+A book about circulant matrices is~\cite{Davis79} and one about convex optimization is~\cite{Boyd04}.
+
+%\emph{discrete} loading algorithms~\cite{Campello99b}, 

@@ -1,0 +1,338 @@
+\subsection{Probabilistic estimation theory}
+
+\emph{Estimation theory}\index{Estimation theory} concerns estimating the values of parameters $\theta$ based on measured data.
+An \emph{estimator}\index{Estimator} attempts to approximate the unknown parameters using  measurements that have a random component (e.\,g., due to noise).
+There are other approaches, but the one of interest to this text is the
+probabilistic estimation theory, which aims at finding a set $\Theta = \{\theta_1,\ldots,\theta_M\}$ of $M$ parameters. In this approach, the measured data set $\Xi$ with $N$ elements is random and with a probability distribution $p(\Xi|\Theta)$ that depends on $\Theta$.
+The parameters $\theta$ themselves may have associated probability distributions.
+An estimator provides $\hat \Theta = \{\hat \theta_i \}$, where the ``hat'' suggests the element $\hat \theta_i$ is an estimate of the true parameter $\theta_i$.
+The value $\hat \theta_i$ is a statistics with distribution, variance, mean $\ev[\hat \theta_i]$, etc. 
+
+The \emph{bias}\index{Bias of an estimator} of an estimator is $\ev[\hat \theta_i] - \theta_i$ and an estimator is called \emph{unbiased}\index{Unbiased estimator} if the bias is zero for all $M$ elements of $\hat \Theta$. 
+%An unbiased estimator can be denoted as $\Theta(\Xi) = $
+The estimator of the sample variance that uses $N$ as normalization factor instead of $N-1$ is a good example of a biased estimator~\akurl{http://en.wikipedia.org/wiki/Bias_of_an_estimator}{BMbia}.
+ There is a well-known tradeoff between bias and variance. In many applications it is possible
+to decrease the variance of an estimator at the expenses of allowing its bias to increase.
+
+Some specific topics of probabilistic estimation theory are discussed in the sequel.
+But this theory is broad and some of the (many) concepts out of the scope of this text are:
+\begin{itemize}
+	\item Cram\'er-Rao bound (CRB)\index{Cram\'er-Rao bound}: lower bound on the variance of an estimator;
+	\item Several estimators: Maximum likelihood (MLE), maximum a posteriori (MAP), generalized Bayes, etc.;
+	\item Non-linear estimators such as artificial neural networks;
+	\item Dynamic systems: Kalman filter, recursive Bayesian estimation, etc.
+\end{itemize}
+
+\subsection{Minimum mean square error (MMSE) estimators}
+
+A popular estimator is the minimum mean square error (MMSE) estimator\index{MMSE estimator}, which utilizes the error $e_i = \theta_i - \hat \theta_i, i=1,\ldots,M,$ between the estimated parameters and their actual values.
+
+The measurements $\Xi$ may be organized in several different forms.
+For example, in multivariate statistics, each element of $\Xi$ can be an array.
+For simplicity, it is assumed here that $\Xi$ and $\Theta$ are column vectors $\by$ and
+$\bx$ with $N$ and $M$ complex-valued elements, respectively. The estimator $\hat \bx(\by)$ is a function
+ of the measurements $\by$ and the estimation error is $\be = \hat \bx - \bx$ with elements $e_i, i=1,\ldots,M$. Because the vectors are random, the MSE is given by
+\begin{equation}
+\textrm{MSE} \defeq \sum_{i=1}^M \ev[|e_i|^2],
+\label{eq:mseDefinition}
+\end{equation}
+which can be written in matrix notation as the expected value of the trace
+\begin{equation}
+\textrm{MSE} = \textrm{tr} \left\{ \ev \left[ \be \be^H  \right] \right\},
+%\label{eq:}
+\end{equation}
+%from http://en.wikipedia.org/wiki/Minimum_mean_square_error
+where $R_{ee} = \ev [ \be \be^H  ]$ is the error autocorrelation matrix.
+
+
+\subsection{Orthogonality principle}
+
+AK-TODO Orthogonality principle
+
+\section{One-dimensional linear prediction over time}
+\label{app:1dtimeprediction}
+
+%Code was originally developed in C:\ak\Works\2014_spatialCorrelationLPC\code
+
+\subsection{The innovations process}
+
+As indicated in \equl{discrete_filtered_wss}, when white noise with power $\sigma_n^2$ is passed through an LTI filter $M(z)$, the output PSD is
+\begin{equation}
+S(e^{j \Omega}) = \sigma^2 |M(e^{j \Omega})|^2.
+\label{eq:ltiOutputPSD}
+\end{equation}
+Conversely, when a PSD $S(e^{j \Omega})$ satisfies the corresponding conditions,\footnote{The spectral factorization of \equl{spectralFactorization} is valid when $S(z)$ satisfies the Paley-Wiener condition~\cite{Barry04} (page 33).} it is possible to find a filter $M(z)$ that obeys \equl{ltiOutputPSD}.
+
+As discussed in \cite{Barry04} (page 71), a WSS random process $\calX[n]$ with PSD $S_X(e^{j \Omega})$  allows the following monic\footnote{In a monic filter, the highest order coefficient in the denominator is unitary.} minimum-phase spectral factorization of the associated\footnote{See \cite{Barry04}, page 25, for explanations on reflected transfer functions $H^*(1/z^*)$ and also Example 2-13 in page 31. Note that when $H(z) H^*(1/z^*)$ is evaluated on the unit circle, the result is $|H(e^{j\Omega})|^2$.} ``transfer function'' $S_X(z)$:
+\begin{equation}
+S_X(z) = \sigma_i^2 M_x(z) M_x^*(1/z^*),
+\label{eq:spectralFactorization}
+\end{equation}
+where $M_x(z)$ is a monic loosely\footnote{A loosely minimum-phase filter can have zeros on unit circle while a strictly minimum phase has all zeros within the unit circle.} minimum-phase causal filter and $\sigma_i^2$ is the variance of the innovation process or, equivalently, the geometric mean\footnote{The geometric mean can be easily calculated with \ci{geomean} in Octave/Matlab, but as discussed in \cite{Barry04}, page 30, just before Example 2-12, the zeros of $S_X(e^{j \Omega})$ must be avoided by, e.\,g., adding a small constant. The following code provides an example: w=linspace(-pi,pi,10000);
+S=2-2*sin(w);
+S=S+eps;
+Sg=geomean(S),
+Sa=mean(S).} of $S_X(e^{j \Omega})$.
+
+If $M_x(z)$ is strictly minimum phase, $M_x^{-1}(z)$ is stable and the following filtering process
+\[
+\calX[n] \rightarrow\boxed{M_x^{-1}(z)}\rightarrow \calI[n] \rightarrow\boxed{M_x(z)}\rightarrow \calX[n] 
+\]
+illustrates how to generate a white WSS process $\calI[n]$ with power $\sigma_i^2$ from $\calX[n]$ (the ``whitening'' operation) and how to recover $\calX[n]$ from $\calI[n]$.
+
+The filter $M_x^{-1}(z)$ removes correlated components in $\calX[n]$ and obtains $\calI[n]$ with characteristics of white noise. Hence, it is called \emph{whitening filter}. And because $\calI[n]$ corresponds to the new and random part of the process, it is called 
+the innovation sequence.
+
+\subsubsection{Linear prediction for signal decorrelation}
+
+The whitening filter $M_x^{-1}(z)$ is also called \emph{prediction-error filter} because its action can be split into two stages, assuming linear prediction:
+\begin{enumerate}
+	\item a prediction $\tilde \calX[m] = \sum_{k=1}^{\infty} p_k \calX[m-k]$ of the current ($m$-th) sample of $\calX[n]$ is obtained from past samples of $\calX[n]$ via the \emph{prediction filter} 
+	\begin{equation}
+	P(z) = \sum_{n=1}^{\infty} p_n z^{-n},
+	%\label{eq:}
+	\end{equation}
+	which is $P(z) = 1 - M_x^{-1}(z)$
+	\item and then this prediction is subtracted from the current sample to produce the prediction error $\calI[m] = \calX[m] - \tilde \calX[m]$. It can be shown that this scheme is an optimum minimum mean square error (MMSE) estimator\footnote{MMSE linear estimation theory is further discussed in~\cite{Cioffi97}.}
+ \cite{Barry04} (page 72).
+\end{enumerate}
+
+Using the notation of ``prediction'', the whitening can be obtained with:
+\[
+\calX[n] \arrowedbox{1-P(z)} \calI[n]
+\]
+
+In summary, the filter $M_x^{-1}(z) = 1 - P(z)$ is often used to perform \emph{decorrelation}\index{Decorrelation} of a signal while $M_x(z)$ is called the \emph{synthesis filter} because it can generate a signal $\calX[n]$ with a given PSD from white noise $\calI[n]$.
+	
+When $\calX[m]$ is a correlated signal, the decorrelation procedure decreases its power and is typically beneficial for signal compression (reducing the bit rate) purposes.
+
+The power of the prediction error $\calI[m]$ is $\sigma_i^2$, which is the geometric mean of the PSD $S_X(e^{j \Omega})$,  while the power $\sigma_x^2$ of $\calX[m]$ is the average of $S_X(e^{j \Omega})$. Hence, linear prediction reduces the noise power by
+\begin{equation}
+\textrm{prediction gain} = 10 \log_{10} \left( \frac{\sigma_x^2}{\sigma_i^2} \right) = 10 \log_{10} \left( \frac{1}{\textrm{SFM}} \right)~~~\textrm{dB}.
+\label{eq:predictionGain}
+\end{equation}
+
+The ratio $\textrm{SFM}={\sigma_i^2}/{\sigma_x^2}$ is called the \emph{spectral flatness measure}\index{Spectral flatness measure}. 
+Assuming the PSD was estimated in $K$ discrete points $S_X[k]$, the SFM can be alternatively obtained by
+\begin{equation}
+\textrm{SFM} = \frac{\textrm{PSD geometric mean}}{\textrm{PSD arithmetic mean}} = \frac{\left(\prod_{k=1}^K S_X[k]\right)^{1/K}}{(1/K) \sum_{k=1}^K S_X[k]}.
+\label{eq:sfm}
+\end{equation}
+Because the geometric mean is never larger than the arithmetic mean: $0 \le \textrm{SFM} \le 1$, and $\textrm{SFM}=1$ only if $S_X[k]$ is constant, $\forall k$.
+
+The prediction gain (in linear scale) coincides with $1/\textrm{SFM}$. Small values of SFM suggest concentration of power at narrow portions of the PSD and, consequently,
+large prediction gains,
+while large SFM values indicate the PSD is approximately flat, which corresponds to small prediction
+gains.
+
+\subsubsection{Autoregressive (AR) linear prediction}
+
+This discussion is related to Section~\ref{sec:arModelingPSD}.
+There are computationally efficient methods to estimate $M(z)$ when it is restricted to be and autoregressive (AR) filter $M(z)=1/A(z)$. For example, the Yule-Walker equations consist of an efficient method to estimate $A(z)$~\cite{Haykin01}.
+In this case, it is assumed that $\calX[n]$ is a realization of an ergodic autoregressive random process of order $P$, denoted as AR($P$).
+
+The problem can then be posed mathematically as finding the FIR filter  $A(z) =1-\sum_{i=1}^P a_i z^{-i}$ that minimizes the energy $\sum_n |\calI[n]|^2$ of the output signal $\calI[n]$ in the filtering process:
+\[
+\calX[n] \arrowedbox{A(z)} \calI[n].
+\]
+
+In this case, the prediction-error filter can be written as $M^{-1}(z) = A(z)=1-\tilde P(z)$, where $\tilde P(z)=\sum_{k=n}^P a_k z^{-k}$ predicts an estimate $\tilde \calX[n]$ of $\calX[n]$ as
+\begin{equation}
+\tilde \calX[n] = \sum_{k=1}^P a_k \calX[n-k],
+\label{eq:lpcPrediction2}
+\end{equation}
+based on the $P$ past samples of $\calX[n]$.
+
+AR-based modeling using (\ref{eq:lpcPrediction2}) is widely used in speech coding and, because $\calX[n]$ in (\ref{eq:lpcPrediction2}) is a linear combination of past inputs, 
+it is called \emph{linear predictive coding} (LPC)\index{Linear predictive coding} (see~Section~\ref{sec:arModelingPSD}).
+%\codl{linearPredictionExample} 
+\codl{snip_appprediction_example} 
+provides two examples of linear prediction using or not an AR process.
+
+%\lstinputlisting[caption={Linear prediction example.},label=code:linearPredictionExample]{./code/linearPredictionExample.m}
+
+\includecodelong{MatlabOnly}{snip\_appprediction\_example}{snip_appprediction_example}
+
+The result of running \codl{snip_appprediction_example} with \ci{useARProcess = 1} is the following:
+\begin{verbatim}
+AR process example
+prediction gain = 14.0937 dB 
+Signal power (time-domain) =  422.558 
+Signal power (via PSD arithmetic mean) = 412.08 
+Innovation power (via PSD geometric mean) = 16.0552 
+Innovation power (via AR modeling) = 16.0843 
+Innovation power (time-domain) = 16.0819 
+\end{verbatim}
+
+Running \codl{snip_appprediction_example} with \ci{useARProcess = 0} leads to the following:
+\begin{verbatim}
+ARMA process example
+prediction gain = 2.99342 dB 
+Signal power (time-domain) =  72.056 
+Signal power (via PSD arithmetic mean) = 71.8227 
+Innovation power (via PSD geometric mean) = 36.0512 
+Innovation power (via AR modeling) = 36.1937 
+Innovation power (time-domain) = 36.1937 
+\end{verbatim}
+
+In both cases the results were consistent. In the second case, an order 10 for the AR filter was adopted. Note that moving the poles closer to unit circle increases the prediction gain. This occurs because, by moving the poles closer to the unit circle, the frequency response (and the power spectral density) tends to present a shaper peak with higher magnitude. This, in turn, produces a more significant increase in the arithmetic mean than on the geometric mean of the PSD, which implies in increased prediction gain, as inferred from Eq. (\ref{eq:predictionGain}).
+
+\section{Vector prediction exploring spatial correlation}
+
+Instead of exploring correlation over time, this section discusses methods to explore the so-called spatial correlation: an element of the random vector being estimated based on the other elements of this vector. As signal model, the Gaussian block or ``packet'' ISI channel \cite{Cioffi97}, (page 84, Eq. 4.6) is adopted here, which is given by
+\begin{equation}
+\bY = H \bX + \bN,
+\label{eq:packetChannel}
+\end{equation}
+where $\bX$ is a zero-mean complex random input $m$-vector, $\bY$ is a zero-mean complex random output $n$-vector, $\bN$ is a complex zero-mean Gaussian noise $n$-vector independent of $\bX$ and $H$ is the complex $n \times m$ channel matrix \cite{Cioffi97}. For these random vectors, the correlation matrices coincide with covariance matrices. \footnote{Eq. (15) in \cite{Ginis06} corresponds to Eq. (\ref{eq:packetChannel}), assuming the channel matrix $H$ is diagonal because vectoring of the $V$ lines already partitioned the channel.}
+
+The output covariance matrix is given by
+\begin{equation}
+R_{yy} = H R_{xx} H^* + R_{nn},
+\label{eq:outputAutocorrelation}
+\end{equation}
+where a matrix superscript $*$ denotes Hermitian (transpose conjugate).
+
+A characteristic representation of a random $m$-vector $\bX$ is given by the linear combination of the columns of a matriz $F$, whose determinant is equal to one,\footnote{ A matrix whose determinant is equal to one is said to be equi-areal and orientation-preserving.} weighted by a vector of uncorrelated random variables $\bV$, that is:
+\begin{equation}
+\bX = F\bV.
+\label{eq:characteristicRepr}
+\end{equation}
+Hence, the covariance matrix of $\bX$ is given by:
+\begin{equation}
+R_{xx} = F R_{vv} F^*
+\label{eq:characteristicReprCovMtx}
+\end{equation}
+where $R_{vv}$ is diagonal (the random variables in $\bV$ are uncorrelated). 
+
+There are two alternatives of interest for representing a vector in its characteristic form, the modal and the innovations representation. The first is derived from the eigendecomposition of $R_{xx}$. Given the factorization $R_{xx} = U \Lambda_x^2 U^* = (U \Lambda_x) (U \Lambda_x)^*$, by comparison to Eq. (\ref{eq:characteristicReprCovMtx}), $F$ corresponds to the unitary matrix $U$ from the eigendecomposition, while the uncorrelated vector $\bV$ from Eq. (\ref{eq:characteristicRepr}) corresponds to $U^{-1} \bX$. Meanwhile, the latter (innovations representation) is derived from the Cholesky decompostion. In a similar manner, given the factorization $R_{yy} = LD_y^2L^* = (LD_y) (LD_y)^*$, $F$ corresponds to the lower triangular matrix $L$, while $\bV$ corresponds to $L^{-1} \bX$.
+
+The important conclusion yielded by these two representations is that a vector $\bX$ whose random variables are correlated can be \textit{whitened} by a forward section given by $U^{-1}$, the inverse of the unitary matrix from the eigendecomposition of its covariance matrix, or $L^{-1}$, the inverse of the lower triangular matrix from the Cholesky decomposition of its covariance matrix.
+
+The innovations representation is a natural adaptation of linear prediction over time and is obtained with a Cholesky factorization of $R_{yy}$, while the modal representation can be obtained via eigenanalysis or SVD.
+
+The optimum MMSE linear predictor in this scenario is 
+\begin{equation}
+\tilde{\bY} = P \bY, 
+\label{eq:matrixPredictor}
+\end{equation}
+where the predictor matrix $P$ is given by
+\begin{equation}
+P = I - L^{-1},
+\label{eq:optimumPredictor}
+\end{equation}
+with $L$ being obtained from the innovations representation $R_{yy} = LD_y^2L^*$ and $I$ being the identity matrix. It was assumed that $R_{yy}$ is nonsingular, otherwise the pseudo inverse can be used.
+
+Because $L$ is lower triangular and monic, its inverse is also lower triangular and monic. The subtraction of $L^{-1}$ from $I$ makes $P$ to be lower triangular with zeros in the main diagonal. This structure imposes a causal relation among the elements of $\bY$, such that 
+$\tilde{\bY}$ can be obtained recursively.
+
+The error vector is 
+\begin{equation}
+\bE = \bY - \tilde{\bY} = \bY - P \bY = \bY - (I - L^{-1}) \bY = L^{-1} \bY.
+%\label{eq:}
+\end{equation}
+In general, the sum mean-squared prediction error is
+\begin{equation}
+\ev[ || \bE ||^2] = \ev[ || \bY - \tilde{\bY} ||^2 ] = \textrm{trace} \{ R_{ee}\},
+%\label{eq:}
+\end{equation}
+where $R_{ee} = \ev[\bE \bE^*]$ is the autocorrelation matrix of $\bE$.
+It can be proved (see, e.\,g., \cite{Barry04}) that when the optimum linear predictor of \equl{optimumPredictor} is adopted, the error power $\textrm{trace} \{ R_{ee}\}$ achieves its minimum value given by 
+$\textrm{trace} \{ D_y^2\}$. This avoids the step of estimating $R_{ee}$ to obtain the prediction gain, which is given by
+\begin{equation}
+\textrm{prediction gain} = 10 \log_{10} \left( \frac{\textrm{trace} \{ R_{xx}\}}{\textrm{trace} \{ R_{ee}\}} \right) =  10 \log_{10} \left( \frac{\textrm{trace} \{ R_{xx}\}}{\textrm{trace} \{D_y^2\}} \right)~~~\textrm{dB}.
+%\label{eq:}
+\end{equation}
+
+Hence, making an analogy with prediction over time, repeated here for convenience:
+\[
+\calX[n] \rightarrow\boxed{M_x^{-1}(z)}\rightarrow \calI[n] \rightarrow\boxed{M_x(z)}\rightarrow \calX[n] 
+\]
+the spatial prediction allows to obtain
+\[
+\bY \rightarrow\boxed{L^{-1}}\rightarrow \bE \arrowedbox{L} \bY,
+\]
+which is expressed in matrix notation as $\bE=L^{-1} \bY$ and $\bY=L \bE$.
+
+\codl{snip_appprediction_spatialLinearPredictionExample} illustrates an example discussed in \cite{Barry04}.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_appprediction\_spatialLinearPredictionExample}{snip_appprediction_spatialLinearPredictionExample}
+
+%\lstinputlisting[caption={Spatial linear prediction example.},label=code:spatialLinearPredictionExample]{./code/spatialLinearPredictionExample.m}
+
+In \codl{snip_appprediction_spatialLinearPredictionExample}, the original predictor matrix is 
+\begin{verbatim}
+P =     [0,         0,         0;
+    0.5000,         0,         0;
+         0,    0.5000,         0]
+\end{verbatim}
+and the prediction gain is 0.7463~dB.
+Adopting a new correlation matrix 
+\ci{Ryy=[10, 8, 2; 8 10 10; 2 10 10]} leads to
+\begin{verbatim}
+P =     [0,         0,         0;
+    0.8000,         0,         0;
+   -1.6667,    2.3333,         0]
+\end{verbatim}
+and a prediction gain of 9.2082~dB.
+	
+Note that the first element $\tilde y_1$ of $\tilde{\bY}=[y_1,\ldots,y_V]$ in $\tilde{\bY} = P \bY$ is always zero due to the structure of $P$. Then, the second element $\tilde y_2$ is a scaled version of the first element $y_1$ of $\bY$, and so on.
+
+\ifml %################ long if
+\else
+
+\section{Spatial whitening applied to interference mitigation}
+Assume that a communication channel has been partitioned into independent parallel ``subchannels'' by DMT or SVD (SVD-based partitioning is summarized in Application~\ref{app:SVD_partitioning}). Then, the predictor of \equl{optimumPredictor} can be used as follows.
+
+Assume a single ``subchannel'', which would correspond to a single tone $k$ in DMT.
+Also, as depicted in figl{alien\_crosstalk}, assume that $M$ interferers provoke crosstalk on the $V$ copper lines of interest of the vectored group through a channel matrix $H$ of dimension $V \times M$ as in \equl{packetChannel}. For DMT, the matrix $H$ corresponds to the frequency response (eventually complex-valued) at tone $k$. The vectors corresponding to transmission over tone $k$ in a DMT system are \cite{Ginis06} (Eq. (15)):
+\begin{equation}
+\bZ_k = T_k \bW_k + \bN_k,
+\label{eq:dmtVectors}
+\end{equation}
+where $T_k$ is a diagonal channel matrix and $\bN_k$ is the noise corresponding to both thermal (background) noise and alien crosstalk. Hence, the autocorrelation $R_{nn}$ of $\bN_k$ is nondiagonal and the goal is to reduce the noise power via decorrelation (whitening).
+
+Using the innovations representation, $R_{nn}$ is factored as $R_{nn} = LD_y^2L^*$
+
+For simplicity, consider a noise free condition ($\bN=0$ in \equl{packetChannel}) and that the interferers are i.i.d. zero-mean Gaussians with autocorrelation $R_{xx} = \sigma_x^2 \bI$. From \equl{outputAutocorrelation},
+\[
+R_{yy} = H R_{xx} H^* = \sigma_x^2 H H^*.
+\]
+The predictor of \equl{optimumPredictor} can be applied to $\bY$ to decrease...
+
+codl{to-be-done} performs the following experiment: 
+calculates the prediction gain over frequency for a set measured crosstalk channels.
+
+
+
+\section{Space-time prediction}
+
+	Linear prediction in space and time~\cite{Barry04} (page 473).
+		the Gaussian MIMO channel~\cite{Barry04} (page 475, Fig. 10-5).
+	
+
+\section{Non-linear decorrelation}
+	
+This is related with blind identification and ICA.	
+	
+	Non-linear decorrelation algorithms are discussed at
+\akurl{http://cis.legacy.ics.tkk.fi/aapo/papers/NCS99web/node40.html}{oooi}.
+
+Examples:
+
+Nonlinear decorrelator for multiuser detection in non-Gaussian impulsive environments
+Author(s): T.C. Chuah; B.S. Sharif; O.R. Hinton
+Source: Electronics Letters, Volume 36, Issue 10, 11 May 2000, p. 920 - 922
+
+A. Cichocki and R. Unbehauen. 
+Robust neural networks with on-line learning for blind identification and blind separation of sources. 
+IEEE Trans. on Circuits and Systems, 43(11):894-906, 1996.
+	
+\section{noise prediction and DFE}
+
+``ideal DFE assumption'': inputs to ``past'' subchannels are available to the receiver when decoding the current subchannel \cite{Cioffi97}, page 82.
+	
+	from Proakis
+
+\fi  %############### end of if
+

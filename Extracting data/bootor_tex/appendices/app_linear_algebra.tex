@@ -1,0 +1,258 @@
+%\section{Concepts of linear algebra}
+
+%AK TODO 
+%Linear spaces - inner product spaces - Hilbert spaces, finite and infinite.
+%3 useful spaces:
+%vector - signal $L^2$ (continuous and discrete) (signals with finite energy) 
+
+\subsection{Inner products and norms}
+
+In general, a norm is a function $f$ (also denoted as $\| \cdot \|$) that takes a vector $\bx$ and outputs a non-negative real number $y \in \Re_{+}$.
+The norm $y$ is often interpreted as the distance between $\bx$ and the adopted origin. 
+A norm can be defined for any real or complex vector space, and the vector $\bx$ will belong to this adopted vector space.
+For example, assuming the Euclidean space and a vector $\bx = [x_1, x_2, \ldots, x_D]$ with real-valued elements, the so-called L2 norm is denoted as $\| \bx \|_2 = \sqrt{x_1^2 + x_2^2 + \ldots + x_D^2}$.
+
+Another useful norm is the Manhattan norm $\| \bx \|_1 = |x_1| + |x_2| + \ldots + |x_D|$, also known as the L1 norm, which 
+correspond to the sum of the absolute values of the elements in vector $\bx$.
+
+A third common norm is the maximum norm $\| \bx \|_{\infty} = \max \{ |x_1|,|x_2|, \ldots, |x_D|\}$, also known as the infinity norm or Chebyshev norm, which measures the maximum distance along any dimension of the vector.
+For example, the maximum norm of $\bx = [-3, 10, -20]$ is $\| \bx \|_{\infty}=20$. 
+
+To be a valid norm, the function $\| \cdot \|$ needs to have some fundamental properties: a) $\| \bx \| \ge 0$; b) if $\| \bx \| = 0$ then $\bx$ is the zero vector; c) $\| \alpha \bx \| = |\alpha| \| \bx \|$ and d) (triangle inequality) $\| \bx + \by \| \le \| \bx \| + \| \by \|$.
+
+The inner product in a $K$-dimensional space with complex-valued vectors is:
+\begin{equation}
+\langle\ba, \bb\rangle = \sum_{i=1}^K \ba_i \bb_i^* = \lVert\ba\rVert\textrm{~} \lVert\bb\rVert \cos(\theta).
+\label{eq:innerProductComplexVectors}
+\end{equation}
+See \tabl{inner_products} for alternative definitions of inner products.
+
+When $\ba=\bb$, \equl{innerProductComplexVectors} can be written as
+\begin{equation}
+\lVert\ba\rVert\ = \sqrt{\langle\ba, \ba\rangle}.
+\label{eq:norm2InnerProduct}
+\end{equation}
+
+An inner product $\langle\ba, \bb\rangle$ can also be written as a multiplication of two vectors
+\begin{equation}
+\langle\ba, \bb\rangle = \bb^H \ba,
+\label{eq:innerProductAsVectorMultiplication}
+\end{equation}
+where in this case both are assumed to be column vectors (row vectors would suggest $\ba \bb^H$).
+
+In case a vector $\bb = \bA \ba$ is obtained via multiplication by a unitary matrix $\bA$, \equl{norm2InnerProduct} and \equl{innerProductAsVectorMultiplication} lead to
+\begin{equation}
+\lVert\bb\rVert = \sqrt{\langle\bA\ba, \bA\ba\rangle} = 
+\sqrt{(\bA\ba)^H \bA\ba} = \sqrt{\ba^H \bA^H \bA\ba} =  \sqrt{\ba^H \bI \ba} = \lVert \ba \rVert
+\label{eq:parsevalViaInnerProduct}
+\end{equation}
+because $\bA^H \bA=\bI$, which indicates that the unitary $\bA$ does not alter the norm of the input vector.
+
+\subsection{Projection of a vector using inner product}
+\label{sec:projection}
+
+To explore the properties and advantages of linear transforms, it is useful to study the \emph{vector projection} (or simply projection) of a vector onto another one.
+
+\ignore{
+It is worth checking which property the transform matrix has to have in order to preserve energy.
+\bTheorem
+\label{th:parseval} \textbf{Parseval theorem for block transforms.} If all columns of $\bA$ have unity norm, the transforms $\bX=\bA^H \bx$ and $\bx=\bA \bX$ preserve the norm, i.\,e., $||\bX||=||\bx||$.
+\textbf{Proof:} Assume a $2 \times 2$ matrix $\bA = [a_{11},a_{12};a_{21},a_{22}]$. The output vector $\by=[y_1,y_2]^T=\bA \bx$ has the norm $||y||=x_1^2(a_{11}^2+a_{12}^2)+x_2^2(a_{21}^2+a_{22}^2)$, where $\bx=[x_1,x_2]^T$. If the columns have unity norm, i.\,e., $a_{11}^2+a_{12}^2)=1$ and $a_{21}^2+a_{22}^2=1$, then $||\by||=||\bx||$. The reasoning applies also to larger matrices.
+\eTheorem
+}
+
+\begin{figure}[!htb]
+        \centering
+                \includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/projection_using_innerprod}          
+        \caption[{The perpendicular line for obtaining the projection $\bp_{xy}$ of a vector $\bx$ onto $\by$ in $\Re^2$.}]{The perpendicular line for obtaining the projection $\bp_{xy}$ of a vector $\bx$ onto $\by$ in $\Re^2$. Note that $\theta = \cos^{-1}(\langle \bx,\by\rangle/(\lVert\bx\rVert~\lVert\by\rVert)$ is the angle between $\bx$ and $\by$ and the inner product $\langle\bx,\by\rangle = \lVert\bp_{xy}\rVert ~\lVert\by\rVert = \lVert\bp_{yx}\rVert ~\lVert\bx\rVert$.\label{fig:projection_using_innerprod}}
+\end{figure}
+
+Using $\Re^2$ for simplicity, note that the projection $\bp_{xy}$ of a vector $\bx$ in another vector $\by$ is obtained by choosing the point along the direction of $\by$ that has the minimum distance to $\bx$. This line is perpendicular to $\by$, as indicated in \figl{projection_using_innerprod}. 
+%Given that $\langle\bx,\by\rangle \triangleq \lVert\bx\rVert~\lVert\by\rVert \cos(\theta)$,
+%= \lVert \bp_{xy} \rVert ~\lVert\by\rVert = \lVert \bp_{yx} \rVert ~\lVert\bx\rVert
+Using the Pythagorean theorem and assuming that $0 \le \theta \le \pi/2$, the norm  
+$\lVert\bp_{xy}\rVert$ of the projection can be written as
+$\lVert\bp_{xy}\rVert=\lVert\bx\rVert \cos(\theta)$.
+If $\pi/2 < \theta \le \pi$, $\lVert\bp_{xy}\rVert=\lVert\bx\rVert \cos(\pi-\theta) = -\lVert\bx\rVert \cos(\theta)$. Hence, in general,
+\begin{equation}
+\lVert\bp_{xy}\rVert=\lVert\bx\rVert \textrm{~} | \cos(\theta) |
+ = \frac{| \langle\bx,\by\rangle |}{\lVert\by\rVert}.
+\label{eq:projection_vector}
+\end{equation}
+For a given norm $\lVert\by\rVert$, the larger the inner product, the larger the norm of the projection. The same is valid for $\bp_{yx}$ as depicted in \figl{projection_vectors}:
+\[
+\lVert\bp_{yx}\rVert=
+\lVert\by\rVert \textrm{~} | \cos(\theta) |
+ = \frac{| \langle\bx,\by\rangle |}{\lVert\bx\rVert}.
+\]
+
+\begin{figure}[!htb]
+        \centering
+                \includegraphics[width=\figwidthSmall,keepaspectratio]{Figures/projection_vectors}          
+        \caption[{Projections of a vector $\bx$ and $\by$ onto each other.}]{Projections of a vector $\bx$ and $\by$ onto each other. Note the errors are orthogonal to the directions of the respective projections.\label{fig:projection_vectors}}
+\end{figure}
+
+Any vector $\bz$ can be written as its norm $\lVert\bz\rVert$ multiplied by a unity norm vector $\frac{\bz}{\lVert\bz\rVert}$ that indicates its direction.
+Note that the vector $\bp_{yx}$ is in the same or the opposite direction of $\bx$, which can be specified by the unity norm vector $\sign(\cos(\theta)) \frac{\bx}{\lVert\bx\rVert}$. Hence, one has
+% the vector $\bp_{yx}$ with norm $\lVert\bp_{yx}\rVert$ in the direction given by $\bx$, i.\,e.
+%\frac{||\by||}{||\bx||} \left( \frac{<\bx,\by>}{||\bx||~||\by||} \right) \bx =
+\[
+\bp_{yx} = \lVert\bp_{yx}\rVert \sign(\cos(\theta)) \frac{\bx}{\lVert\bx\rVert} =
+\left( \frac{\langle\bx,\by\rangle}{\lVert\bx\rVert^2} \right) \bx,
+\]
+where $\frac{\langle\bx,\by\rangle}{||\bx||^2}$ is a scaling factor that can be negative but does not change the direction of  $\bx$.
+Similarly, the projection $\bp_{xy}$ of $\bx$ onto $\by$ is given by
+\[
+\bp_{xy} = \left( \frac{\langle\bx,\by\rangle}{\lVert\by\rVert^2} \right) \by.
+\]
+Note that if the vector $\by$ has unitary norm, the absolute value of the inner product $\langle\bx,\by\rangle$ coincides with the norm $\lVert\bp_{xy}\rVert$.
+%The value of $\theta$ can be obtained via the definition of inner product $\langle\bx,\by\rangle=\lVert\bx\rVert~\lVert\by\rVert \cos(\theta)$.
+These expressions are valid for other vector spaces, such as $\Re^n$, $n>2$.
+
+Using geometry to interpret a projection vector is very useful.
+When one projects $\bx$ in $\by$, the result $\bp_{xy}$ is the ``best'' representation (in the minimum distance sense, or least-square sense) of $\bx$ that $\by$ alone can provide. The error vector $\be_{xy}=\bx-\bp_{xy}$ is orthogonal to $\by$ (and, consequently, to $\bp_{xy}$), i.\,e., $\langle\be_{xy},\by\rangle=0$. The vector $\be_{xy}$ represents what should be added to $\bp_{xy}$ in order to completely represent $\bx$, and the orthogonality $\langle\be_{xy},\by\rangle=0$ indicates that $\by$ cannot contribute any further.
+
+\figl{projection_vectors} completes the example. It was obtained using 
+the following {\matlab} script.\footnote{The function \ci{ak\_drawvector.m} was also used.} The example assumes $\bx=[2,2]$ and $\by=[5,1]$, having an angle $\theta$ of approximately 33.7 degrees between them.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_transforms\_projection}{snip_transforms_projection}
+%\begin{lstlisting}
+%x=[2,2]; %define a vector x
+%y=[5,1]; %define a vector y
+%magx=sqrt(sum(x.*x))%magnitude of x
+%magy=sqrt(sum(y.*y))%magnitude of y
+%innerprod=sum(x.*y) %<x,y>=||x|| ||y|| cos(theta)
+%theta=acos(innerprod / (magx*magy)) %angle between x and y
+%%obs: could use acosd to have angle in degrees
+%disp(['Angle is ' num2str(180*theta/pi) ' degrees']);
+%%check if inverting direction is needed:
+%invertDirection=1; if theta>pi/2 invertDirection=-1; end
+%%find the projection of x over y (called p_xy) and p_yx
+%mag_p_xy = magx*abs(cos(theta)) %magnitude of p_xy
+%%directions: obtained as y normalized by magy, x by magx
+%y_unitary=y/magy; %normalize y by magy to get unitary vec.
+%p_xy = mag_p_xy * y_unitary* invertDirection %p_xy
+%mag_p_yx = magy*abs(cos(theta)); %magnitude of p_yx
+%x_unitary=x/magx; %normalize x by magx to get unitary vec.
+%p_yx = mag_p_yx * x_unitary* invertDirection %p_yx
+%%test orthogonality of error vectors:
+%error_xy = x - p_xy; %we know: p_xy + error_xy = x
+%sum(error_xy.*y) %this inner product should be zero
+%error_yx = y - p_yx; %we know: p_yx + error_yx = y
+%sum(error_yx.*x) %this inner product should be zero
+%\end{lstlisting}
+
+The concept of projections via inner products will be extensively used in our discussion about transforms. For example, the coefficients of a Fourier series of a signal $x(t)$ correspond to the normalized projections of $x(t)$ on the corresponding basis functions. A large value for the norm of a projection indicates that the given basis function provides a good contribution in the task of representing $x(t)$. 
+
+%The next subsection discusses a procedure based on projections.
+
+Chapter~\ref{ch:transforms} discusses block transforms and relies on orthogonal functions. Hence, it is useful to  discuss why orthogonality is important.
+
+\subsection{Orthogonal basis allows inner products to transform signals}
+\label{sec:orthogonalBasis}
+
+Assume the existence of a set of orthogonal vectors composing the basis of a vector space. For example, in $\Re^2$, a convenient basis is the standard, composed by $\overline i=[1, 0]$ and $\overline j=[0, 1]$. The inner product $\langle\overline i , \overline j\rangle=0$ indicates that these two vectors are orthogonal. The orthogonality property simplifies the following \emph{analysis} task: given any vector $\bx$, the coefficients $\alpha$ and $\beta$ of the linear combination $\bx = \alpha \overline i + \beta \overline j$, can be easily found by using the dot products $\alpha = \langle\bx, \overline i\rangle$ and  $\beta = \langle\bx, \overline j\rangle$. The following theorem proves this important result.
+
+\bTheorem \textbf{Analysis via inner products.\label{th:analysis_inner_prod}} If the basis set $\{\bb_1, \ldots, \bb_N \}$ of an inner product space (e.\,g., Euclidean) is orthonormal, the coefficients of a linear combination $\bx=\sum_{i=1}^N \alpha_i \bb_i$ that generates a vector $\bx$ can be calculated by the inner product $\alpha_i = \langle\bx,\bb_i\rangle$ between $\bx$ and the respective vector $\bb_i$ in the basis set.
+
+\textbf{Proof:} Recall the following properties of a dot product: $\langle\overline a+\overline b , \overline c\rangle = \langle\overline a , \overline c\rangle + \langle\overline b , \overline c\rangle$ and $\langle\alpha \overline a ,\overline b\rangle = \alpha \langle\overline a ,\overline b\rangle$ and
+write
+\[
+\langle\bx,\bb_j\rangle=\langle\sum_{i=1}^N \alpha_i \bb_i,\bb_j\rangle = \sum_{i=1}^N \alpha_i \langle\bb_i,\bb_j\rangle
+\]
+because the basis vectors are orthonormal, $\langle\bb_i,\bb_j\rangle=1$ if $i=j$ and $\langle\bb_i,\bb_j\rangle=0$ if $i \ne j$. Therefore,
+\[
+\langle\bx,\bb_j\rangle=\alpha_j.
+\]
+because all the terms in the above summation are zero but the one for $i=j$.\eTheorem
+
+%Unless otherwise stated, the Euclidean space is assumed\footnote{More technically, one needs to assume only an inner product space.}
+%The orthonormal Euclidean space is an inner product space where the inner product corresponds to the the dot product, also known as the scalar product. See \url{en.wikipedia.org/wiki/Dot_product} and its external links.} 
+%throughout the text. Another note is that when dealing with complex vectors $\ba$ and $\bb$, the inner product is defined as $\sum_i \ba_i \bb_i^*$, where $\bb^*$ is the complex conjugate of $\bb$.
+%The following paragraphs detail the relation between basis and transforms.
+
+\bExample \textbf{Obtaining the coefficients of a linear combination of basis functions}.
+\label{ex:linearCombinationCoefficients}
+A simple example can illustrate the analysis procedure: the coefficients of $\bx=4 \overline i +8 \overline j$ are $\alpha=4$ and $\beta=8$ by inspection, but they could be calculated as
+$\alpha = \langle\bx,\overline i\rangle = \langle[4,8],[1,0]\rangle=4$ and $\beta = \langle\bx,\overline j\rangle = \langle[4,8],[0,1]\rangle=8$. Note that the zeros in these basis vectors make the calculation overly simple. Another example may be more useful to highlight orthogonality and the following alternative basis set is assumed: $\overline i = [0.5,0.866]$ and $\overline j = [0.866,-0.5]$. Let $\bx=3\overline i+2\overline j=[3.232,1.5980]$. Given $\bx$, the task is again to find the coefficients such that $\bx=\alpha \overline i+ \beta \overline j$. Due to the orthonormality of $\overline i$ and $\overline j$, one can for example obtain $\alpha=\langle\bx,\overline i\rangle=\langle[3.232,1.5980],[0.5,0.866]\rangle=3$. These computations can be done in {\matlab} as follows.
+\begin{lstlisting}
+i=[0.5,0.866], j=[0.866 -0.5] %two orthonormal vectors
+x=3*i+2*j %create an arbitrary vector x to be analyzed
+alpha=sum(x.*i), beta=sum(x.*j) %find inner products
+\end{lstlisting}
+
+In contrast, let us modify the previous example, adopting a non orthogonal basis. Assume that  $\overline i=[1, 1]$ and $\overline j=[0, 1]$ (note that $\langle\overline i , \overline j\rangle=1$, hence the vectors are not orthogonal). Let $\bx=3\overline i+2\overline j=[3,5]$. In this case, $\langle\bx, \overline i\rangle=8$ and $\langle\bx, \overline j\rangle=5$, which do not coincide with the coefficients $\alpha=3$ and $\beta=2$. How could the coefficients be properly recovered in this case? An alternative is to write the problem as a set of linear equations, organize it in matrix notation and find the coefficients by inverting the matrix. In {\matlab}:
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_transforms\_non\_orthogonal\_basis}{snip_transforms_non_orthogonal_basis} 
+%\begin{lstlisting}
+%i=transpose([1,1]), j=transpose([0,1]) %non-orthogonal
+%x=3*i+2*j %create an arbitrary vector x to be analyzed
+%A=[i j]; %organize basis vectors as a matrix
+%temp=inv(A)*x; alpha=temp(1), beta=temp(2) %coefficients
+%\end{lstlisting}
+
+In summary, the analysis procedure for many  linear transforms (such as Fourier, Z, etc.) obtain the coefficients via an inner product, and the procedure can be interpreted as calculating the projection of $\bx$ onto basis $\overline i$ (eventually scaled by the norm of $\overline i$).
+\eExample
+
+%, with the project is calculated by the inner product $\langle\bx,\overline i\rangle$.
+
+This discussion leads to the conclusion that a basis with orthogonal vectors significantly simplifies the task: in this case, the analysis procedure can be done via inner products. This applies when the basis vectors do not have unitary-norm, but in this case a normalization by their norms is needed. Orthogonal basis vectors are a property of all block transforms discussed in this text.
+%In transforms theory,
+%the columns are basis vectors and
+%a matrix $\bA$ will be called \emph{unitary}\index{Unitary matrix} when its columns form a orthonormal basis.
+%The described advantage of orthonormal basis promotes the importance of the following theorem.
+
+\ignore{
+%%Error: origin is not in (0,0,0)!!!
+What happens when the basis is orthogonal but not orthonormal (not normalized)? For example, \figl{orthogonal_3d_vectors}
+\begin{figure}[!htb]
+        \centering
+                \includegraphics[width=7cm]{Figures/orthogonal_3d_vectors}             
+        \caption{3 d plot.\label{fig:orthogonal_3d_vectors}}
+\end{figure}
+}
+
+\subsection{Moore-Penrose pseudoinverse}
+\label{sec:pseudoinverse}
+
+Pseudoinverses\index{Moore-Penrose pseudoinverse}\index{Pseudoinverse}\footnote{See, e.\,g., \akurl{http://en.wikipedia.org/wiki/Moore-Penrose_pseudoinverse}{3inv} and \akurl{http://en.wikipedia.org/wiki/One-sided_inverse}{2psi}.} are generalizations of the inverse matrix and are useful when the given matrix does not have an inverse (for example, when the matrix is not square or full rank).
+
+The Moore-Penrose pseudoinverse has several interesting properties and is adequate to least square problems. It provides the minimum-norm least squares solution $\bz = \bX \bb$ to the problem of finding a vector $\bz$ that minimizes the error vector norm $||\bX \bz - \bb ||$.
+Assuming $\bX$ is an $m \times n$ matrix, the pseudoinverse provides the solution for a set of overdetermined or underdetermined equations if $m>n$ or $m<n$, respectively.
+
+Two properties of a Moore-Penrose pseudoinverse $\bX^+$ are
+\begin{equation}
+\bX^H = \bX^H \, \bX \, \bX^+,
+\label{eq:pinv_over}
+\end{equation}
+and
+\begin{equation}
+\bX^H = \bX^+ \, \bX \, \bX^H.
+\label{eq:pinv_under}
+\end{equation}
+With $r$ being the rank of $\bX$, then:
+\begin{itemize}
+	\item if $m=n$ and $r=m=n$, the pseudoinverse $\bX^+ = \bX^{-1}$ is equivalent to the usual inverse;
+	\item if $m>n$ (overdetermined) and, besides, $r=n$ (the columns of $\bX$ are linearly independent), $\bX^H \, \bX$ is invertible and using \equl{pinv_over} the pseudoinverse is given by
+		\begin{equation}
+\bX^+ = \left( \bX^H \, \bX \right)^{-1}  \bX^H;
+\label{eq:pseudoInverseOver}	
+\end{equation}
+	\item if $n>m$ (underdetermined) and $r=m$ (the rows of $\bX$ are linearly independent), $\bX \, \bX^H$ is invertible and using \equl{pinv_under} leads to
+		\begin{equation}
+\bX^+ =   \bX^H \left( \bX \, \bX^H \right)^{-1}.
+\label{eq:pseudoInverseUnder}	
+\end{equation}
+\end{itemize}
+
+%Therefore, instead of seeking an inverse for $\bX$, the problem when the columns of $\bX$ are linearly independent is to find the inverse of $\bX^H \, \bX$, which is always a square and full rank matrix.
+
+Whenever available, instead of \equl{pseudoInverseOver} or \equl{pseudoInverseUnder} that requires linear independence, one should use a robust method to obtain $\bX^+$ such as the \ci{pinv} function in {\matlab}, which adopts a SVD decomposition to calculate $\bX^+$. \codl{snip_systems_pseudo_inverse} illustrates such calculations and the convenience of relying on \ci{pinv} when the independence of rows or columns is not guaranteed.
+
+\includecodelong{MatlabOctaveCodeSnippets}{snip\_systems\_pseudo\_inverse}{snip_systems_pseudo_inverse}
+%\begin{lstlisting}
+%X=[1 2 3; -4+j -5+j -6+j] %some example of complex matrix
+%Xpseudoinv = pinv(X) %correct way of obtaining pseudoinv.
+%Xpseudoinv2 =inv(X'*X)*X' %this does not always work because
+%rank(X'*X) %X'*X is square but may not be full rank
+%X'*X*pinv(X) %equal to X' (the property itself is valid)
+%\end{lstlisting}
